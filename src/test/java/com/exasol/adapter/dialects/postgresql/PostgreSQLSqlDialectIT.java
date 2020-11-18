@@ -33,12 +33,12 @@ import com.exasol.dbbuilder.dialects.exasol.*;
 @Testcontainers
 class PostgreSQLSqlDialectIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLSqlDialectIT.class);
-    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "exasol/docker-db:6.2.9-d1";
+    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "exasol/docker-db:6.2.11-d1";
     private static final String JDBC_CONNECTION_NAME = "JDBC";
     private static final String POSTGRES_CONTAINER_NAME = "postgres:9.6.2";
     private static final String DOCKER_IP_ADDRESS = "172.17.0.1";
     private static final int POSTGRES_PORT = 5432;
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-6.0.0-postgresql-0.1.0.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-7.0.0-postgresql-0.1.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
