@@ -179,7 +179,7 @@
 					<descriptors>
 						<descriptor>assembly/all-dependencies.xml</descriptor>
 					</descriptors>
-					<finalName>virtual-schema-dist-${vscjdbc.version}-postgresql-${project.version}</finalName>
+					<finalName>virtual-schema-dist-${vscjdbc.version}-postgresql-${version}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 				<executions>
