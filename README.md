@@ -5,8 +5,6 @@ Use this dialect if you want to create a Virtual Schema based on a PostgreSQL da
 
 If you want to set up a Virtual Schema for a different database system, please head over to the [Virtual Schemas Repository][virtual-schemas].
 
-**NOTE: this project is still a work in progress. For getting the stable release please head over to the [Virtual Schemas Repository][virtual-schemas]**
-
 ## Features
 
 * Access a PostgreSQL database using a Virtual Schema.
