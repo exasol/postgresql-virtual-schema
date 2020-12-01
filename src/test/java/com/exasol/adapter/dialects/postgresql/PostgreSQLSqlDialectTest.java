@@ -106,11 +106,6 @@ class PostgreSQLSqlDialectTest {
     }
 
     @Test
-    void testMetadataReaderClass() {
-        assertThat(this.dialect.createRemoteMetadataReader(), instanceOf(PostgreSQLMetadataReader.class));
-    }
-
-    @Test
     void testPostgreSQLIdentifierMappingConsistency() throws PropertyValidationException {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
                 SQL_DIALECT_PROPERTY, "postgresql", //
