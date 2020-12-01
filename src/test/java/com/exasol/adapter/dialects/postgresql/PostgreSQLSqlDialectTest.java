@@ -44,14 +44,12 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testCreateRemoteMetadataReader() {
-        assertThat(getMethodReturnViaReflection(this.dialect, "createRemoteMetadataReader"),
-                instanceOf(PostgreSQLMetadataReader.class));
+        assertThat(this.dialect.createRemoteMetadataReader(), instanceOf(PostgreSQLMetadataReader.class));
     }
 
     @Test
     void testCreateQueryRewriter() {
-        assertThat(getMethodReturnViaReflection(this.dialect, "createQueryRewriter"),
-                instanceOf(BaseQueryRewriter.class));
+        assertThat(this.dialect.createQueryRewriter(), instanceOf(ImportIntoQueryRewriter.class));
     }
 
     @Test
