@@ -6,7 +6,6 @@ import static com.exasol.adapter.capabilities.LiteralCapability.*;
 import static com.exasol.adapter.capabilities.MainCapability.*;
 import static com.exasol.adapter.capabilities.PredicateCapability.*;
 import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
-import static com.exasol.reflect.ReflectionUtils.getMethodReturnViaReflection;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -108,8 +107,7 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testMetadataReaderClass() {
-        assertThat(getMethodReturnViaReflection(this.dialect, "createRemoteMetadataReader"),
-                instanceOf(PostgreSQLMetadataReader.class));
+        assertThat(this.dialect.createRemoteMetadataReader(), instanceOf(PostgreSQLMetadataReader.class));
     }
 
     @Test
