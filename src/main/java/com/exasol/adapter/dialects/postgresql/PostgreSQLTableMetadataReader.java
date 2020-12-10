@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierConverter;
 import com.exasol.adapter.jdbc.*;
+import com.exasol.errorreporting.ExaError;
 
 /**
  * This class handles the specifics of mapping PostgreSQL table metadata to Exasol.
@@ -67,9 +68,11 @@ public class PostgreSQLTableMetadataReader extends BaseTableMetadataReader {
                         + POSTGRESQL_UPPERCASE_TABLES_SWITCH + ".");
                 return false;
             } else {
-                throw new RemoteMetadataReaderException("Table " + tableName
-                        + " cannot be used in virtual schema. Set property " + IGNORE_ERRORS_PROPERTY + " to "
-                        + POSTGRESQL_UPPERCASE_TABLES_SWITCH + " to enforce schema creation.");
+                throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-6")
+                        .message("Table " + tableName + " cannot be used in virtual schema. Set property "
+                                + IGNORE_ERRORS_PROPERTY + " to " + POSTGRESQL_UPPERCASE_TABLES_SWITCH
+                                + " to enforce schema creation.")
+                        .toString());
             }
         } else {
             return true;

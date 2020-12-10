@@ -16,6 +16,7 @@ import com.exasol.adapter.dialects.*;
 import com.exasol.adapter.jdbc.*;
 import com.exasol.adapter.sql.ScalarFunction;
 import com.exasol.adapter.sql.SqlNodeVisitor;
+import com.exasol.errorreporting.ExaError;
 
 /**
  * This class implements the PostgreSQL dialect.
@@ -75,9 +76,9 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         try {
             return new PostgreSQLMetadataReader(this.connectionFactory.getConnection(), this.properties);
         } catch (final SQLException exception) {
-            throw new RemoteMetadataReaderException(
-                    "Unable to create PostgreSQL remote metadata reader. Caused by: " + exception.getMessage(),
-                    exception);
+            throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-3")
+                    .message("Unable to create PostgreSQL remote metadata reader. Caused by: " + exception.getMessage())
+                    .toString(), exception);
         }
     }
 
@@ -162,15 +163,19 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
             final String propertyValue = this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY);
             if (!propertyValue.equals(POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE)
                     && !propertyValue.equals(POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)) {
-                throw new PropertyValidationException("Value for " + POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY
-                        + " must be " + POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE + " or "
-                        + POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE);
+                throw new PropertyValidationException(ExaError.messageBuilder("E-PGVS-4")
+                        .message("Value for " + POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY + " must be "
+                                + POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE + " or "
+                                + POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)
+                        .toString());
             }
         }
         if (this.properties.hasIgnoreErrors()
                 && !List.of(POSTGRESQL_UPPERCASE_TABLES_SWITCH).containsAll(this.properties.getIgnoredErrors())) {
-            throw new PropertyValidationException("Unknown error identifier in list of ignored errors ("
-                    + IGNORE_ERRORS_PROPERTY + "). Pick one of: " + POSTGRESQL_UPPERCASE_TABLES_SWITCH);
+            throw new PropertyValidationException(ExaError
+                    .messageBuilder("E-PGVS-5").message("Unknown error identifier in list of ignored errors ("
+                            + IGNORE_ERRORS_PROPERTY + "). Pick one of: " + POSTGRESQL_UPPERCASE_TABLES_SWITCH)
+                    .toString());
         }
     }
 

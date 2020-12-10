@@ -27,7 +27,7 @@ import com.exasol.adapter.sql.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostgresSQLSqlGenerationVisitorTest {
-    private SqlGenerationVisitor visitor;
+    private PostgresSQLSqlGenerationVisitor visitor;
 
     @BeforeEach
     void beforeEach(@Mock final ConnectionFactory connectionFactoryMock) {

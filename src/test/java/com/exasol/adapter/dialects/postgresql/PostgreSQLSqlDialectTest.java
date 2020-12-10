@@ -7,12 +7,14 @@ import static com.exasol.adapter.capabilities.MainCapability.*;
 import static com.exasol.adapter.capabilities.PredicateCapability.*;
 import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.hamcrest.CoreMatchers;
@@ -29,6 +31,7 @@ import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
 import com.exasol.adapter.dialects.*;
 import com.exasol.adapter.jdbc.ConnectionFactory;
+import com.exasol.adapter.jdbc.RemoteMetadataReaderException;
 
 @ExtendWith(MockitoExtension.class)
 class PostgreSQLSqlDialectTest {
@@ -44,6 +47,14 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testCreateRemoteMetadataReader() {
         assertThat(this.dialect.createRemoteMetadataReader(), instanceOf(PostgreSQLMetadataReader.class));
+    }
+
+    @Test
+    void testCreateRemoteMetadataReaderConnectionFails(@Mock final Connection connectionMock) throws SQLException {
+        when(this.connectionFactoryMock.getConnection()).thenThrow(new SQLException());
+        final RemoteMetadataReaderException exception = assertThrows(RemoteMetadataReaderException.class,
+                this.dialect::createRemoteMetadataReader);
+        assertThat(exception.getMessage(), containsString("E-PGVS-3"));
     }
 
     @Test
@@ -120,7 +131,9 @@ class PostgreSQLSqlDialectTest {
                 SQL_DIALECT_PROPERTY, "POSTGRESQL", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT")));
-        assertThrows(PropertyValidationException.class, sqlDialect::validateProperties);
+        final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
+                sqlDialect::validateProperties);
+        assertThat(exception.getMessage(), containsString("E-PGVS-4"));
     }
 
     @Test
@@ -129,7 +142,9 @@ class PostgreSQLSqlDialectTest {
                 SQL_DIALECT_PROPERTY, "postgresql", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "IGNORE_ERRORS", "ORACLE_ERROR")));
-        assertThrows(PropertyValidationException.class, sqlDialect::validateProperties);
+        final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
+                sqlDialect::validateProperties);
+        assertThat(exception.getMessage(), containsString("E-PGVS-5"));
     }
 
     @Test
