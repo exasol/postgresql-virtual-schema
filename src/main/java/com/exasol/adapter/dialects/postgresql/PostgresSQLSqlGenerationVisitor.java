@@ -275,18 +275,12 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         final StringBuilder builder = new StringBuilder();
         builder.append("STRING_AGG");
         builder.append("(");
-        if (function.getArgument() != null) {
-            final String expression = function.getArgument().accept(this);
-            builder.append(expression);
-            builder.append(", ");
-            final String separator = function.hasSeparator() ? function.getSeparator().accept(this) : "','";
-            builder.append(separator);
-            builder.append(") ");
-            return builder.toString();
-        } else {
-            throw new SqlGenerationVisitorException(ExaError.messageBuilder("E-PGVS-8")
-                    .message("List of arguments of SqlFunctionAggregateGroupConcat should have one argument.")
-                    .toString());
-        }
+        final String expression = function.getArgument().accept(this);
+        builder.append(expression);
+        builder.append(", ");
+        final String separator = function.hasSeparator() ? function.getSeparator().accept(this) : "','";
+        builder.append(separator);
+        builder.append(") ");
+        return builder.toString();
     }
 }
