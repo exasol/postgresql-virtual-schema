@@ -1,5 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
+import com.exasol.errorreporting.ExaError;
+
 /**
  * This enumeration defines the behavior of PostgresSQL when it comes to dealing with unquoted identifiers (e.g. table
  * names).
@@ -23,11 +25,12 @@ public enum PostgreSQLIdentifierMapping {
             case "PRESERVE_ORIGINAL_CASE":
                 return PRESERVE_ORIGINAL_CASE;
             default:
-                throw new IllegalArgumentException(
-                        "Unable to parse PostgreSQL identifier mapping \"" + mapping + "\".");
+                throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-2")
+                        .message("Unable to parse PostgreSQL identifier mapping \"" + mapping + "\".").toString());
             }
         } else {
-            throw new IllegalArgumentException("Unable to parse PostgreSQL identifier mapping from a null value.");
+            throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-1")
+                    .message("Unable to parse PostgreSQL identifier mapping from a null value.").toString());
         }
     }
 }

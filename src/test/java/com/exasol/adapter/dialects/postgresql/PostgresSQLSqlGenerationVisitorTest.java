@@ -5,7 +5,9 @@ import static com.exasol.adapter.dialects.VisitorAssertions.assertSqlNodeConvert
 import static com.exasol.adapter.sql.ScalarFunction.POSIX_TIME;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -27,7 +29,7 @@ import com.exasol.adapter.sql.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostgresSQLSqlGenerationVisitorTest {
-    private SqlGenerationVisitor visitor;
+    private PostgresSQLSqlGenerationVisitor visitor;
 
     @BeforeEach
     void beforeEach(@Mock final ConnectionFactory connectionFactoryMock) {
@@ -195,5 +197,14 @@ class PostgresSQLSqlGenerationVisitorTest {
         final SqlFunctionAggregateGroupConcat sqlFunctionAggregateGroupConcat = SqlFunctionAggregateGroupConcat
                 .builder(argument).separator(new SqlLiteralString("'")).orderBy(orderBy).build();
         assertThat(this.visitor.visit(sqlFunctionAggregateGroupConcat), equalTo("STRING_AGG(E'test', E'''') "));
+    }
+
+    @Test
+    void testVisitSqlFunctionAggregateGroupConcatWithNullArgument(
+            @Mock final SqlFunctionAggregateGroupConcat sqlFunctionAggregateGroupConcat) {
+        when(sqlFunctionAggregateGroupConcat.getArgument()).thenReturn(null);
+        final SqlGenerationVisitorException exception = assertThrows(SqlGenerationVisitorException.class,
+                () -> this.visitor.visit(sqlFunctionAggregateGroupConcat));
+        assertThat(exception.getMessage(), containsString("E-PGVS-8"));
     }
 }

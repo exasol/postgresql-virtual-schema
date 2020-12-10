@@ -2,8 +2,9 @@ package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.AdapterProperties.IGNORE_ERRORS_PROPERTY;
 import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
@@ -20,10 +21,14 @@ import com.exasol.adapter.jdbc.RemoteMetadataReaderException;
 
 class PostgreSQLTableMetadataReaderTest {
     private Map<String, String> rawProperties;
+    private PostgreSQLTableMetadataReader reader;
 
     @BeforeEach
     void beforeEach() {
         this.rawProperties = new HashMap<>();
+        final AdapterProperties properties = new AdapterProperties(this.rawProperties);
+        this.reader = new PostgreSQLTableMetadataReader(null, null, properties,
+                BaseIdentifierConverter.createDefault());
     }
 
     @CsvSource({ //
@@ -39,7 +44,7 @@ class PostgreSQLTableMetadataReaderTest {
             final PostgreSQLIdentifierMapping identifierMapping, final boolean included) {
         ignoreErrors(ignoreErrors);
         selectIdentifierMapping(identifierMapping);
-        assertThat(createTableMetadataReader().isTableIncludedByMapping(tableName), equalTo(included));
+        assertThat(this.reader.isTableIncludedByMapping(tableName), equalTo(included));
     }
 
     private void ignoreErrors(final String ignoreErrors) {
@@ -50,22 +55,16 @@ class PostgreSQLTableMetadataReaderTest {
         this.rawProperties.put(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY, identifierMapping.toString());
     }
 
-    private PostgreSQLTableMetadataReader createTableMetadataReader() {
-        final AdapterProperties properties = new AdapterProperties(this.rawProperties);
-        return new PostgreSQLTableMetadataReader(null, null, properties, BaseIdentifierConverter.createDefault());
-    }
-
     @Test
     void testIsUppercaseTableIncludedByMappingWithIgnoringUppercaseTables() {
         ignoreErrors("POSTGRESQL_UPPERCASE_TABLES");
-        final PostgreSQLTableMetadataReader reader = createTableMetadataReader();
-        assertThat(reader.isTableIncludedByMapping("\"FooBar\""), equalTo(false));
+        assertThat(this.reader.isTableIncludedByMapping("\"FooBar\""), equalTo(false));
     }
 
     @Test
     void testIsUppercaseTableIncludedByMappingWithConvertToUpperNotIgnoringUppercaseTablesThrowsException() {
-
-        final PostgreSQLTableMetadataReader reader = createTableMetadataReader();
-        assertThrows(RemoteMetadataReaderException.class, () -> reader.isTableIncludedByMapping("\"FooBar\""));
+        final RemoteMetadataReaderException exception = assertThrows(RemoteMetadataReaderException.class,
+                () -> this.reader.isTableIncludedByMapping("\"FooBar\""));
+        assertThat(exception.getMessage(), containsString("E-PGVS-6"));
     }
 }

@@ -7,6 +7,7 @@ import com.exasol.adapter.dialects.*;
 import com.exasol.adapter.metadata.ColumnMetadata;
 import com.exasol.adapter.metadata.TableMetadata;
 import com.exasol.adapter.sql.*;
+import com.exasol.errorreporting.ExaError;
 
 /**
  * This class generates SQL queries for the {@link PostgreSQLSqlDialect}.
@@ -87,8 +88,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             }
             return false;
         } catch (final AdapterException exception) {
-            throw new SqlGenerationVisitorException("Exception during deserialization of ColumnAdapterNotes. ",
-                    exception);
+            throw new SqlGenerationVisitorException(ExaError.messageBuilder("E-PGVS-7")
+                    .message("Exception during deserialization of ColumnAdapterNotes.").toString(), exception);
         }
     };
 
@@ -283,8 +284,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             builder.append(") ");
             return builder.toString();
         } else {
-            throw new SqlGenerationVisitorException(
-                    "List of arguments of SqlFunctionAggregateGroupConcat should have one argument.");
+            throw new SqlGenerationVisitorException(ExaError.messageBuilder("E-PGVS-8")
+                    .message("List of arguments of SqlFunctionAggregateGroupConcat should have one argument.")
+                    .toString());
         }
     }
 }

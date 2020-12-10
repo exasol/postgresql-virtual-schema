@@ -7,8 +7,7 @@ import static com.exasol.adapter.capabilities.MainCapability.*;
 import static com.exasol.adapter.capabilities.PredicateCapability.*;
 import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -120,7 +119,9 @@ class PostgreSQLSqlDialectTest {
                 SQL_DIALECT_PROPERTY, "POSTGRESQL", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT")));
-        assertThrows(PropertyValidationException.class, sqlDialect::validateProperties);
+        final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
+                sqlDialect::validateProperties);
+        assertThat(exception.getMessage(), containsString("E-PGVS-4"));
     }
 
     @Test
@@ -129,7 +130,9 @@ class PostgreSQLSqlDialectTest {
                 SQL_DIALECT_PROPERTY, "postgresql", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "IGNORE_ERRORS", "ORACLE_ERROR")));
-        assertThrows(PropertyValidationException.class, sqlDialect::validateProperties);
+        final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
+                sqlDialect::validateProperties);
+        assertThat(exception.getMessage(), containsString("E-PGVS-5"));
     }
 
     @Test
