@@ -32,7 +32,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
     private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.0.5";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:9.6.2";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
     private static final String DOCKER_IP_ADDRESS = "172.17.0.1";
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
