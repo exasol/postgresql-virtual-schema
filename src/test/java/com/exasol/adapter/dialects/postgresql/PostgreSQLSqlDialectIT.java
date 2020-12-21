@@ -1,116 +1,68 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static com.exasol.dbbuilder.dialects.exasol.AdapterScript.Language.JAVA;
 import static com.exasol.matcher.ResultSetMatcher.matchesResultSet;
+import static com.exasol.matcher.ResultSetStructureMatcher.table;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.exasol.bucketfs.Bucket;
-import com.exasol.bucketfs.BucketAccessException;
-import com.exasol.containers.ExasolContainer;
+import com.exasol.closeafterall.CloseAfterAll;
+import com.exasol.closeafterall.CloseAfterAllExtension;
 import com.exasol.dbbuilder.dialects.DatabaseObjectException;
-import com.exasol.dbbuilder.dialects.exasol.*;
+import com.exasol.dbbuilder.dialects.Schema;
+import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
+import com.exasol.matcher.TypeMatchMode;
 
 @Tag("integration")
-@Testcontainers
+@ExtendWith({ CloseAfterAllExtension.class })
 class PostgreSQLSqlDialectIT {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLSqlDialectIT.class);
-    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "exasol/docker-db:6.2.11-d1";
-    private static final String JDBC_CONNECTION_NAME = "JDBC";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:9.6.2";
-    private static final String DOCKER_IP_ADDRESS = "172.17.0.1";
-    private static final int POSTGRES_PORT = 5432;
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-8.0.0-postgresql-1.0.0.jar";
-    private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
-    private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
-    private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
-    private static final String POSTGRES_DRIVER_NAME_AND_VERSION = "postgresql-42.2.5.jar";
-    private static final Path PATH_TO_POSTGRES_DRIVER = Path.of("src", "test", "resources", "integration", "driver",
-            "postgres", POSTGRES_DRIVER_NAME_AND_VERSION);
+    @CloseAfterAll
+    static final PostgresVirtualSchemaIntegrationTestSetup setup = new PostgresVirtualSchemaIntegrationTestSetup();
     private static final String SCHEMA_POSTGRES = "schema_postgres";
     private static final String SCHEMA_POSTGRES_UPPERCASE_TABLE = "schema_postgres_upper";
     private static final String TABLE_POSTGRES_SIMPLE = "table_postgres_simple";
     private static final String TABLE_POSTGRES_MIXED_CASE = "Table_Postgres_Mixed_Case";
     private static final String TABLE_POSTGRES_LOWER_CASE = "table_postgres_lower_case";
     private static final String TABLE_POSTGRES_ALL_DATA_TYPES = "table_postgres_all_data_types";
-    private static final String VIRTUAL_SCHEMA_POSTGRES = "VIRTUAL_SCHEMA_POSTGRES";
-    private static final String VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE = "VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE";
-    private static final String VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE = "VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE";
+    private static Schema exasolSchema;
+    private static VirtualSchema virtualSchemaPostgres;
+    private static VirtualSchema virtualSchemaPostgresUppercaseTable;
     private static final String TABLE_JOIN_1 = "TABLE_JOIN_1";
     private static final String TABLE_JOIN_2 = "TABLE_JOIN_2";
-    private static final String QUALIFIED_TABLE_JOIN_NAME_1 = VIRTUAL_SCHEMA_POSTGRES + "." + TABLE_JOIN_1;
-    private static final String QUALIFIED_TABLE_JOIN_NAME_2 = VIRTUAL_SCHEMA_POSTGRES + "." + TABLE_JOIN_2;
-
-    @Container
-    private static final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
-            POSTGRES_CONTAINER_NAME);
-    @Container
-    private static final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
-            EXASOL_DOCKER_IMAGE_REFERENCE) //
-                    .withLogConsumer(new Slf4jLogConsumer(LOGGER));
+    private static VirtualSchema virtualSchemaPostgresPreserveOriginalCase;
+    private static String QUALIFIED_TABLE_JOIN_NAME_1;
+    private static String QUALIFIED_TABLE_JOIN_NAME_2;
     private static Statement statementExasol;
-    private static ExasolObjectFactory exasolFactory;
-    private static ConnectionDefinition connectionDefinition;
-    private static AdapterScript adapterScript;
 
     @BeforeAll
-    static void beforeAll() throws InterruptedException, BucketAccessException, TimeoutException, SQLException {
-        final Bucket bucket = exasolContainer.getDefaultBucket();
-        bucket.uploadFile(PATH_TO_POSTGRES_DRIVER, POSTGRES_DRIVER_NAME_AND_VERSION);
-        uploadVsJarToBucket(bucket);
-        try (final Connection postgresConnection = postgresqlContainer.createConnection("")) {
-            final Statement statementPostgres = postgresConnection.createStatement();
-            statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES);
-            statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES_UPPERCASE_TABLE);
-            createPostgresTestTableSimple(statementPostgres);
-            createPostgresTestTableAllDataTypes(statementPostgres);
-            createPostgresTestTableMixedCase(statementPostgres);
-            createPostgresTestTableLowerCase(statementPostgres);
-            createTestTablesForJoinTests(postgresConnection, SCHEMA_POSTGRES);
-        }
-        statementExasol = exasolContainer.createConnection("").createStatement();
-        exasolFactory = new ExasolObjectFactory(exasolContainer.createConnection(""));
-        final ExasolSchema exasolSchema = exasolFactory.createSchema(SCHEMA_EXASOL);
-        adapterScript = createAdapterScript(exasolSchema);
-        final String connectionString = "jdbc:postgresql://" + DOCKER_IP_ADDRESS + ":"
-                + postgresqlContainer.getMappedPort(POSTGRES_PORT) + "/" + postgresqlContainer.getDatabaseName();
-        connectionDefinition = exasolFactory.createConnectionDefinition(JDBC_CONNECTION_NAME, connectionString,
-                postgresqlContainer.getUsername(), postgresqlContainer.getPassword());
-        exasolFactory.createVirtualSchemaBuilder(VIRTUAL_SCHEMA_POSTGRES).adapterScript(adapterScript)
-                .connectionDefinition(connectionDefinition).dialectName("POSTGRESQL")
-                .properties(Map.of("CATALOG_NAME", postgresqlContainer.getDatabaseName(), //
-                        "SCHEMA_NAME", SCHEMA_POSTGRES))
-                .build();
-        exasolFactory.createVirtualSchemaBuilder(VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE).adapterScript(adapterScript)
-                .connectionDefinition(connectionDefinition).dialectName("POSTGRESQL")
-                .properties(Map.of("CATALOG_NAME", postgresqlContainer.getDatabaseName(), //
-                        "SCHEMA_NAME", SCHEMA_POSTGRES_UPPERCASE_TABLE, //
-                        "IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"))
-                .build();
-        exasolFactory.createVirtualSchemaBuilder(VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE)
-                .adapterScript(adapterScript).connectionDefinition(connectionDefinition).dialectName("POSTGRESQL")
-                .properties(Map.of("CATALOG_NAME", postgresqlContainer.getDatabaseName(), //
-                        "SCHEMA_NAME", SCHEMA_POSTGRES_UPPERCASE_TABLE, //
-                        "POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"))
-                .build();
+    static void beforeAll() throws SQLException {
+        final Statement statementPostgres = setup.getPostgresqlStatement();
+        statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES);
+        statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES_UPPERCASE_TABLE);
+        createPostgresTestTableSimple(statementPostgres);
+        createPostgresTestTableAllDataTypes(statementPostgres);
+        createPostgresTestTableMixedCase(statementPostgres);
+        createPostgresTestTableLowerCase(statementPostgres);
+        createTestTablesForJoinTests(SCHEMA_POSTGRES);
+        statementExasol = setup.getExasolStatement();
+        virtualSchemaPostgres = setup.createVirtualSchema(SCHEMA_POSTGRES, Map.of());
+        virtualSchemaPostgresUppercaseTable = setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
+                Map.of("IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"));
+        virtualSchemaPostgresPreserveOriginalCase = setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
+                Map.of("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"));
+        QUALIFIED_TABLE_JOIN_NAME_1 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_1;
+        QUALIFIED_TABLE_JOIN_NAME_2 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_2;
+        exasolSchema = setup.getExasolFactory().createSchema("EXASOL_TEST_SCHEMA");
     }
 
     private static void createPostgresTestTableSimple(final Statement statementPostgres) throws SQLException {
@@ -211,30 +163,21 @@ class PostgreSQLSqlDialectIT {
         statementPostgres.execute("CREATE TABLE " + qualifiedTableName + " (x INT, y INT)");
     }
 
-    private static AdapterScript createAdapterScript(final ExasolSchema schema) {
-        final String content = "%scriptclass com.exasol.adapter.RequestDispatcher;\n" //
-                + "%jar /buckets/bfsdefault/default/" + VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION + ";\n";
-        return schema.createAdapterScript(ADAPTER_SCRIPT_EXASOL, JAVA, content);
+    private static void createTestTablesForJoinTests(final String schemaName) throws SQLException {
+        final Statement statement = setup.getPostgresqlStatement();
+        statement.execute("CREATE TABLE " + schemaName + "." + TABLE_JOIN_1 + "(x INT, y VARCHAR(100))");
+        statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (1,'aaa')");
+        statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (2,'bbb')");
+        statement.execute("CREATE TABLE " + schemaName + "." + TABLE_JOIN_2 + "(x INT, y VARCHAR(100))");
+        statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_2 + " VALUES (2,'bbb')");
+        statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_2 + " VALUES (3,'ccc')");
     }
 
     @Test
     void testSelectSingleColumn() throws SQLException {
-        final String qualifiedExpectedTableName = SCHEMA_EXASOL + ".TABLE_POSTGRES_SIMPLE_EXPECTED";
-        statementExasol.execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + " (x INT)");
-        statementExasol.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES (1)");
-        final ResultSet expectedResultSet = statementExasol.executeQuery("SELECT * FROM " + qualifiedExpectedTableName);
         final ResultSet actualResultSet = statementExasol
-                .executeQuery("SELECT * FROM " + VIRTUAL_SCHEMA_POSTGRES + "." + TABLE_POSTGRES_SIMPLE);
-        assertThat(actualResultSet, matchesResultSet(expectedResultSet));
-    }
-
-    @Test
-    void testCountAll() throws SQLException {
-        final String qualifiedExpectedTableName = VIRTUAL_SCHEMA_POSTGRES + "." + TABLE_POSTGRES_SIMPLE;
-        final String query = "SELECT COUNT(*) FROM " + qualifiedExpectedTableName;
-        final ResultSet expected = getExpectedResultSet(List.of("x DECIMAL(19,0)"), //
-                List.of("1.00000"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+                .executeQuery("SELECT * FROM " + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_SIMPLE);
+        assertThat(actualResultSet, table().row(1).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
     }
 
     @Test
@@ -308,85 +251,86 @@ class PostgreSQLSqlDialectIT {
     }
 
     @Test
+    void testCountAll() throws SQLException {
+        final String qualifiedExpectedTableName = virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_SIMPLE;
+        final String query = "SELECT COUNT(*) FROM " + qualifiedExpectedTableName;
+        final ResultSet expected = getExpectedResultSet(List.of("x DECIMAL(19,0)"), //
+                List.of("1.00000"));
+        assertThat(getActualResultSet(query), matchesResultSet(expected));
+    }
+
+    @Test
     void testCreateSchemaWithUpperCaseTablesThrowsException() {
-        final VirtualSchema.Builder builder = exasolFactory.createVirtualSchemaBuilder("WRONG_VIRTUAL_SCHEMA")
-                .adapterScript(adapterScript).connectionDefinition(connectionDefinition).dialectName("POSTGRESQL")
-                .properties(Map.of("CATALOG_NAME", postgresqlContainer.getDatabaseName(), //
-                        "SCHEMA_NAME", SCHEMA_POSTGRES_UPPERCASE_TABLE));
-        final Exception exception = assertThrows(DatabaseObjectException.class, builder::build);
+        final Exception exception = assertThrows(DatabaseObjectException.class,
+                () -> setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE, Map.of()));
         assertThat(exception.getMessage(), containsString("Failed to write to object"));
     }
 
-    @Test
+    @Test // TODO what has this test to do with postgres?
     void testQueryUpperCaseTableQuotedThrowsException() {
         final Exception exception = assertThrows(SQLException.class, () -> statementExasol
-                .execute("SELECT x FROM  " + SCHEMA_EXASOL + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
+                .execute("SELECT x FROM  " + exasolSchema.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
         assertThat(exception.getMessage(),
-                containsString("object \"" + SCHEMA_EXASOL + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
+                containsString("object \"" + exasolSchema + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
     }
 
     @Test
-    void testQueryUpperCaseTableThrowsException() {
+    void testQueryUpperCaseTableThrowsException() { // TODO what has this test to do with postgres?
         final Exception exception = assertThrows(SQLException.class,
-                () -> statementExasol.execute("SELECT x FROM  " + SCHEMA_EXASOL + "." + TABLE_POSTGRES_MIXED_CASE));
+                () -> statementExasol.execute("SELECT x FROM  " + exasolSchema + "." + TABLE_POSTGRES_MIXED_CASE));
         assertThat(exception.getMessage(), containsString(
-                "object " + SCHEMA_EXASOL + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
+                "object " + exasolSchema + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
     }
 
     @Test
     void testQueryLowerCaseTable() throws SQLException {
         final ResultSet result = statementExasol.executeQuery(
-                "SELECT x FROM " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE + "." + TABLE_POSTGRES_LOWER_CASE);
+                "SELECT x FROM " + virtualSchemaPostgresUppercaseTable.getName() + "." + TABLE_POSTGRES_LOWER_CASE);
         assertThat(result.next(), equalTo(false));
     }
 
     @Test
     void testUnsetIgnoreUpperCaseTablesAndRefreshThrowsException() throws SQLException {
-        statementExasol
-                .execute("ALTER VIRTUAL SCHEMA " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE + " set ignore_errors=''");
-        statementExasol.execute("ALTER VIRTUAL SCHEMA " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE
+        statementExasol.execute(
+                "ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName() + " set ignore_errors=''");
+        statementExasol.execute("ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName()
                 + " set POSTGRESQL_IDENTIFIER_MAPPING = 'CONVERT_TO_UPPER'");
         final Exception exception = assertThrows(SQLException.class, () -> statementExasol
-                .execute("ALTER VIRTUAL SCHEMA " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE + " REFRESH"));
+                .execute("ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName() + " REFRESH"));
         assertThat(exception.getMessage(), containsString("Table " + TABLE_POSTGRES_MIXED_CASE
                 + " cannot be used in virtual schema. Set property IGNORE_ERRORS to POSTGRESQL_UPPERCASE_TABLES to enforce schema creation."));
     }
 
     @Test
     void testSetIgnoreUpperCaseTablesAndRefresh() throws SQLException {
-        statementExasol.execute("ALTER VIRTUAL SCHEMA " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE
+        statementExasol.execute("ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName()
                 + " set ignore_errors='POSTGRESQL_UPPERCASE_TABLES'");
-        final String refresh_schema_query = "ALTER VIRTUAL SCHEMA " + VIRTUAL_SCHEMA_POSTGRES_UPPERCASE_TABLE
+        final String refresh_schema_query = "ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName()
                 + " REFRESH";
         assertDoesNotThrow(() -> statementExasol.execute(refresh_schema_query));
     }
 
     @Test
     void testPreserveCaseQueryLowerCaseTableThrowsException() {
-        final SQLException exception = assertThrows(SQLException.class, () -> statementExasol.executeQuery(
-                "SELECT x FROM  " + VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE + "." + TABLE_POSTGRES_LOWER_CASE));
-        assertThat(exception.getMessage(), containsString("object " + VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE
-                + "." + TABLE_POSTGRES_LOWER_CASE.toUpperCase() + " not found"));
+        final SQLException exception = assertThrows(SQLException.class,
+                () -> statementExasol.executeQuery("SELECT x FROM  "
+                        + virtualSchemaPostgresPreserveOriginalCase.getName() + "." + TABLE_POSTGRES_LOWER_CASE));
+        assertThat(exception.getMessage(),
+                containsString("object " + virtualSchemaPostgresPreserveOriginalCase.getName() + "."
+                        + TABLE_POSTGRES_LOWER_CASE.toUpperCase() + " not found"));
     }
 
     @Test
     void testPreserveCaseQueryLowerCaseTableWithQuotes() throws SQLException {
         final ResultSet result = statementExasol.executeQuery("SELECT \"x\" FROM  "
-                + VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE + ".\"" + TABLE_POSTGRES_LOWER_CASE + "\"");
+                + virtualSchemaPostgresPreserveOriginalCase.getName() + ".\"" + TABLE_POSTGRES_LOWER_CASE + "\"");
         assertThat(result.next(), equalTo(false));
     }
 
     @Test
     void testPreserveCaseQueryUpperCaseTableWithQuotes() throws SQLException {
         final ResultSet result = statementExasol.executeQuery("SELECT \"Y\" FROM  "
-                + VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\"");
-        assertThat(result.next(), equalTo(false));
-    }
-
-    @Test
-    void testPreserveCaseQueryUpperCaseTableWithQuotesLowerCaseColumn() throws SQLException {
-        final ResultSet result = statementExasol.executeQuery("SELECT \"x\" FROM  "
-                + VIRTUAL_SCHEMA_POSTGRES_PRESERVE_ORIGINAL_CASE + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\"");
+                + virtualSchemaPostgresPreserveOriginalCase.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\"");
         assertThat(result.next(), equalTo(false));
     }
 
@@ -395,16 +339,11 @@ class PostgreSQLSqlDialectIT {
         assertSingleValue("myBigint", "DECIMAL(19,0)", "10000000000");
     }
 
-    private void assertSingleValue(final String columnName, final String expectedColumnType, final String expectedValue)
-            throws SQLException {
-        final String qualifiedExpectedTableName = SCHEMA_EXASOL + "." + "EXPECTED";
-        statementExasol
-                .execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "(x " + expectedColumnType + ")");
-        statementExasol.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES(" + expectedValue + ")");
-        final ResultSet expected = statementExasol.executeQuery("SELECT * FROM " + qualifiedExpectedTableName);
-        final ResultSet actual = statementExasol.executeQuery(
-                "SELECT " + columnName + " FROM " + VIRTUAL_SCHEMA_POSTGRES + "." + TABLE_POSTGRES_ALL_DATA_TYPES);
-        MatcherAssert.assertThat(actual, matchesResultSet(expected));
+    @Test
+    void testPreserveCaseQueryUpperCaseTableWithQuotesLowerCaseColumn() throws SQLException {
+        final ResultSet result = statementExasol.executeQuery("SELECT \"x\" FROM  "
+                + virtualSchemaPostgresPreserveOriginalCase.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\"");
+        assertThat(result.next(), equalTo(false));
     }
 
     @Test
@@ -592,46 +531,27 @@ class PostgreSQLSqlDialectIT {
                 "'<?xml version=\"1.0\"?><book><title>Manual</title><chapter>...</chapter></book>'");
     }
 
-    private Connection getExasolConnection() throws SQLException {
-        return exasolContainer.createConnection("");
-    }
-
-    private static void uploadVsJarToBucket(final Bucket bucket)
-            throws InterruptedException, BucketAccessException, TimeoutException {
-        bucket.uploadFile(PATH_TO_VIRTUAL_SCHEMAS_JAR, VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
-    }
-
-    private static void createTestTablesForJoinTests(final Connection connection, final String schemaName)
+    private void assertSingleValue(final String columnName, final String expectedColumnType, final String expectedValue)
             throws SQLException {
-        try (final Statement statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE " + schemaName + "." + TABLE_JOIN_1 + "(x INT, y VARCHAR(100))");
-            statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (1,'aaa')");
-            statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (2,'bbb')");
-            statement.execute("CREATE TABLE " + schemaName + "." + TABLE_JOIN_2 + "(x INT, y VARCHAR(100))");
-            statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_2 + " VALUES (2,'bbb')");
-            statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_2 + " VALUES (3,'ccc')");
-        }
+        final ResultSet actual = statementExasol.executeQuery("SELECT " + columnName + " FROM "
+                + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES);
+        MatcherAssert.assertThat(actual, table().row(expectedValue).matches());
     }
 
+    // TODO refactor to use table().row().matches()
     private ResultSet getExpectedResultSet(final List<String> expectedColumns, final List<String> expectedRows)
             throws SQLException {
-        final Connection connection = getExasolConnection();
-        try (final Statement statement = connection.createStatement()) {
-            final String expectedValues = expectedRows.stream().map(row -> "(" + row + ")")
-                    .collect(Collectors.joining(","));
-            final String qualifiedExpectedTableName = SCHEMA_EXASOL + ".EXPECTED";
-            statement.execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
-                    + String.join(", ", expectedColumns) + ")");
-            statement.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES" + expectedValues);
-            return statement.executeQuery("SELECT * FROM " + qualifiedExpectedTableName);
-        }
+        final String expectedValues = expectedRows.stream().map(row -> "(" + row + ")")
+                .collect(Collectors.joining(","));
+        final String qualifiedExpectedTableName = exasolSchema + ".EXPECTED";
+        statementExasol.execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
+                + String.join(", ", expectedColumns) + ")");
+        statementExasol.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES" + expectedValues);
+        return statementExasol.executeQuery("SELECT * FROM " + qualifiedExpectedTableName);
     }
 
     private ResultSet getActualResultSet(final String query) throws SQLException {
-        final Connection connection = getExasolConnection();
-        try (final Statement statement = connection.createStatement()) {
-            return statement.executeQuery(query);
-        }
+        return statementExasol.executeQuery(query);
     }
 
 }
