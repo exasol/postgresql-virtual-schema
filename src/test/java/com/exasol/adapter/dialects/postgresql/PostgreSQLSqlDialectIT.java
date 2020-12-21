@@ -9,7 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
@@ -270,16 +273,16 @@ class PostgreSQLSqlDialectIT {
     void testQueryUpperCaseTableQuotedThrowsException() {
         final Exception exception = assertThrows(SQLException.class, () -> statementExasol
                 .execute("SELECT x FROM  " + exasolSchema.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
-        assertThat(exception.getMessage(),
-                containsString("object \"" + exasolSchema + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
+        assertThat(exception.getMessage(), containsString(
+                "object \"" + exasolSchema.getName() + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
     }
 
     @Test
     void testQueryUpperCaseTableThrowsException() { // TODO what has this test to do with postgres?
-        final Exception exception = assertThrows(SQLException.class,
-                () -> statementExasol.execute("SELECT x FROM  " + exasolSchema + "." + TABLE_POSTGRES_MIXED_CASE));
+        final Exception exception = assertThrows(SQLException.class, () -> statementExasol
+                .execute("SELECT x FROM  " + exasolSchema.getName() + "." + TABLE_POSTGRES_MIXED_CASE));
         assertThat(exception.getMessage(), containsString(
-                "object " + exasolSchema + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
+                "object " + exasolSchema.getName() + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
     }
 
     @Test
@@ -353,7 +356,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeBit() throws SQLException {
-        assertSingleValue("myBit", "BOOLEAN", "TRUE");
+        assertSingleValue("myBit", "BOOLEAN", true);
     }
 
     @Test
@@ -363,44 +366,45 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeBoolean() throws SQLException {
-        assertSingleValue("myBoolean", "BOOLEAN", "FALSE");
+        assertSingleValue("myBoolean", "BOOLEAN", false);
     }
 
     @Test
     void testDatatypeBox() throws SQLException {
-        assertSingleValue("myBox", "VARCHAR(2000000) UTF8", "'(4,16),(1,8)'");
+        assertSingleValue("myBox", "VARCHAR(2000000) UTF8", "(4,16),(1,8)");
     }
 
     @Test
     void testDatatypeBytea() throws SQLException {
-        assertSingleValue("myBytea", "VARCHAR(2000000) UTF8", "'bytea NOT SUPPORTED'");
+        assertSingleValue("myBytea", "VARCHAR(2000000) UTF8", "bytea NOT SUPPORTED");
     }
 
     @Test
     void testDatatypeCharacter() throws SQLException {
         final String empty = " ";
         final String expected = "hajksdf" + String.join("", Collections.nCopies(993, empty));
-        assertSingleValue("myCharacter", "CHAR(1000) ASCII", "'" + expected + "'");
+        assertSingleValue("myCharacter", "CHAR(1000) ASCII", expected);
     }
 
     @Test
     void testDatatypeCharacterVar() throws SQLException {
-        assertSingleValue("myCharactervar", "VARCHAR(1000) ASCII", "'hjkdhjgfh'");
+        assertSingleValue("myCharactervar", "VARCHAR(1000) ASCII", "hjkdhjgfh");
     }
 
     @Test
     void testDatatypeCidr() throws SQLException {
-        assertSingleValue("myCidr", "VARCHAR(2000000) UTF8", "'192.168.100.128/25'");
+        assertSingleValue("myCidr", "VARCHAR(2000000) UTF8", "192.168.100.128/25");
     }
 
     @Test
     void testDatatypeCircle() throws SQLException {
-        assertSingleValue("myCircle", "VARCHAR(2000000) UTF8", "'<(1,5),3>'");
+        assertSingleValue("myCircle", "VARCHAR(2000000) UTF8", "<(1,5),3>");
     }
 
     @Test
-    void testDatatypeDate() throws SQLException {
-        assertSingleValue("myDate", "DATE", "'2010-01-01'");
+    void testDatatypeDate() throws SQLException, ParseException {
+        final Date expectedDate = new SimpleDateFormat("yyyy-MM-dd").parse("2010-01-01");
+        assertSingleValue("myDate", "DATE", expectedDate);
     }
 
     @Test
@@ -410,7 +414,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeInet() throws SQLException {
-        assertSingleValue("myInet", "VARCHAR(2000000) UTF8", "'192.168.100.128/32'");
+        assertSingleValue("myInet", "VARCHAR(2000000) UTF8", "192.168.100.128/32");
     }
 
     @Test
@@ -420,122 +424,126 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeIntervalYM() throws SQLException {
-        assertSingleValue("myInterval", "VARCHAR(2000000) UTF8", "'1 year'");
+        assertSingleValue("myInterval", "VARCHAR(2000000) UTF8", "1 year");
     }
 
     @Test
     void testDatatypeJSON() throws SQLException {
         assertSingleValue("myJson", "VARCHAR(2000000) UTF8",
-                "'{\"bar\": \"baz\", \"balance\": 7.77, \"active\": false}'");
+                "{\"bar\": \"baz\", \"balance\": 7.77, \"active\": false}");
     }
 
     @Test
     void testDatatypeJSONB() throws SQLException {
         assertSingleValue("myJsonb", "VARCHAR(2000000) UTF8",
-                "'{\"bar\": \"baz\", \"active\": false, \"balance\": 7.77}'");
+                "{\"bar\": \"baz\", \"active\": false, \"balance\": 7.77}");
     }
 
     @Test
     void testDatatypeLine() throws SQLException {
-        assertSingleValue("myLine", "VARCHAR(2000000) UTF8", "'{1,2,3}'");
+        assertSingleValue("myLine", "VARCHAR(2000000) UTF8", "{1,2,3}");
     }
 
     @Test
     void testDatatypeLSeg() throws SQLException {
-        assertSingleValue("myLseg", "VARCHAR(2000000) UTF8", "'[(1,2),(3,4)]'");
+        assertSingleValue("myLseg", "VARCHAR(2000000) UTF8", "[(1,2),(3,4)]");
     }
 
     @Test
     void testDatatypeMACAddr() throws SQLException {
-        assertSingleValue("myMacaddr", "VARCHAR(2000000) UTF8", "'08:00:2b:01:02:03'");
+        assertSingleValue("myMacaddr", "VARCHAR(2000000) UTF8", "08:00:2b:01:02:03");
     }
 
     @Test
     void testDatatypeMoney() throws SQLException {
-        assertSingleValue("myMoney", "DOUBLE", "100.01");
+        assertSingleValue("myMoney", "DOUBLE", 100.01);
     }
 
     @Test
     void testDatatypeNumeric() throws SQLException {
-        assertSingleValue("myNumeric", "VARCHAR(2000000) UTF8", "'24.2300000000'");
+        assertSingleValue("myNumeric", "VARCHAR(2000000) UTF8", 24.2300000000);
     }
 
     @Test
     void testDatatypePath() throws SQLException {
-        assertSingleValue("myPath", "VARCHAR(2000000) UTF8", "'[(1,2),(3,4)]'");
+        assertSingleValue("myPath", "VARCHAR(2000000) UTF8", "[(1,2),(3,4)]");
     }
 
     @Test
     void testDatatypePoint() throws SQLException {
-        assertSingleValue("myPoint", "VARCHAR(2000000) UTF8", "'(1,3)'");
+        assertSingleValue("myPoint", "VARCHAR(2000000) UTF8", "(1,3)");
     }
 
     @Test
     void testDatatypePolygon() throws SQLException {
-        assertSingleValue("myPolygon", "VARCHAR(2000000) UTF8", "'((1,2),(2,4),(3,7))'");
+        assertSingleValue("myPolygon", "VARCHAR(2000000) UTF8", "((1,2),(2,4),(3,7))");
     }
 
     @Test
     void testDatatypeReal() throws SQLException {
-        assertSingleValue("myReal", "DOUBLE", "10.1199999");
+        assertSingleValue("myReal", "DOUBLE", 10.12);
     }
 
     @Test
     void testDatatypeSmallInt() throws SQLException {
-        assertSingleValue("mySmallint", "DECIMAL(5,0)", "100");
+        assertSingleValue("mySmallint", "DECIMAL(5,0)", 100);
     }
 
     @Test
     void testDatatypeText() throws SQLException {
-        assertSingleValue("myText", "VARCHAR(2000000) ASCII", "'This cat is super cute'");
+        assertSingleValue("myText", "VARCHAR(2000000) ASCII", "This cat is super cute");
     }
 
     @Test
     void testDatatypeTime() throws SQLException {
-        assertSingleValue("myTime", "VARCHAR(2000000) UTF8", "'1970-01-01 11:11:11.0'");
+        assertSingleValue("myTime", "VARCHAR(2000000) UTF8", "1970-01-01 11:11:11.0");
     }
 
     @Test
     void testDatatypeTimeWithTimezone() throws SQLException {
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "'1970-01-01 11:11:11.0'");
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 11:11:11.0");
     }
 
     @Test
-    void testDatatypeTimestamp() throws SQLException {
-        assertSingleValue("myTimestamp", "TIMESTAMP", "'2010-01-01 11:11:11.000000'");
+    void testDatatypeTimestamp() throws SQLException, ParseException {
+        final Timestamp expectedDate = new Timestamp(
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2010-01-01 11:11:11").getTime());
+        assertSingleValue("myTimestamp", "TIMESTAMP", expectedDate);
     }
 
     @Test
-    void testDatatypeTimestampWithTimezone() throws SQLException {
-        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", "'2010-01-01 11:11:11.000000'");
+    void testDatatypeTimestampWithTimezone() throws SQLException, ParseException {
+        final Timestamp expectedDate = new Timestamp(
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2010-01-01 11:11:11").getTime());
+        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", expectedDate);
     }
 
     @Test
     void testDatatypeTsQuery() throws SQLException {
-        assertSingleValue("myTsquery", "VARCHAR(2000000) UTF8", "'''fat'' & ''rat'''");
+        assertSingleValue("myTsquery", "VARCHAR(2000000) UTF8", "'fat' & 'rat'");
     }
 
     @Test
     void testDatatypeTsvector() throws SQLException {
-        assertSingleValue("myTsvector", "VARCHAR(2000000) UTF8", "'''fat'':2 ''rat'':3'");
+        assertSingleValue("myTsvector", "VARCHAR(2000000) UTF8", "'fat':2 'rat':3");
     }
 
     @Test
     void testDatatypeUUID() throws SQLException {
-        assertSingleValue("myUuid", "VARCHAR(2000000) UTF8", "'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'");
+        assertSingleValue("myUuid", "VARCHAR(2000000) UTF8", "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
     }
 
     @Test
     void testDatatypeXML() throws SQLException {
         assertSingleValue("myXml", "VARCHAR(2000000) UTF8",
-                "'<?xml version=\"1.0\"?><book><title>Manual</title><chapter>...</chapter></book>'");
+                "<?xml version=\"1.0\"?><book><title>Manual</title><chapter>...</chapter></book>");
     }
 
-    private void assertSingleValue(final String columnName, final String expectedColumnType, final String expectedValue)
+    private void assertSingleValue(final String columnName, final String expectedColumnType, final Object expectedValue)
             throws SQLException {
         final ResultSet actual = statementExasol.executeQuery("SELECT " + columnName + " FROM "
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES);
-        MatcherAssert.assertThat(actual, table().row(expectedValue).matches());
+        MatcherAssert.assertThat(actual, table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
     }
 
     // TODO refactor to use table().row().matches()
@@ -543,7 +551,7 @@ class PostgreSQLSqlDialectIT {
             throws SQLException {
         final String expectedValues = expectedRows.stream().map(row -> "(" + row + ")")
                 .collect(Collectors.joining(","));
-        final String qualifiedExpectedTableName = exasolSchema + ".EXPECTED";
+        final String qualifiedExpectedTableName = exasolSchema.getName() + ".EXPECTED";
         statementExasol.execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
                 + String.join(", ", expectedColumns) + ")");
         statementExasol.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES" + expectedValues);

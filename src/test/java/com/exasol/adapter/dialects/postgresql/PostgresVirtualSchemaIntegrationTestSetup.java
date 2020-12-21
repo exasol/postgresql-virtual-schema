@@ -33,7 +33,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             "postgres", POSTGRES_DRIVER_NAME_AND_VERSION);
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLSqlDialectIT.class);
     private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.0.5";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:9.6.2";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
     private static final String DOCKER_IP_ADDRESS = "172.17.0.1";
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
