@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.sql.Date;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public abstract class ScalarFunctionsAbstractIT {
      * These have a special syntax, so we define explicit test for them below.
      */
     private static final Set<ScalarFunctionCapability> EXCLUDES = Set.of(CASE, FLOAT_DIV, SESSION_PARAMETER, RAND, ADD,
-            SUB, MULT);
+            SUB, MULT, NEG, SYS_GUID, SYSTIMESTAMP);
 
     /**
      * These functions are tested separately in {@link #testFunctionsWithNoParenthesis(ScalarFunctionCapability)}
@@ -103,6 +104,7 @@ public abstract class ScalarFunctionsAbstractIT {
      * is a string with comma separated parameters.
      */
     private static final List<List<String>> PARAMETER_COMBINATIONS = generateParameterCombinations();
+    private static final int BATCH_SIZE = 500;
 
     private Supplier<Connection> connectionSupplier;
     private String fullyQualifiedNameOfArbitraryVsTable;
@@ -224,15 +226,28 @@ public abstract class ScalarFunctionsAbstractIT {
         }
     }
 
-    private void assertFunctionBehavesSameOnVs(final Collection<ExasolRun> runsOnExasol, final Statement statement) {
-        final String selectList = runsOnExasol.stream().map(run -> run.functionCall).collect(Collectors.joining(", "));
-        final String virtualSchemaQuery = getVirtualSchemaQuery(selectList);
-        try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
-            assertThat(actualResult, table()
-                    .row(runsOnExasol.stream().map(ExasolRun::getResult).map(this::buildMatcher).toArray()).matches());
-        } catch (final SQLException exception) {
-            fail("Virtual Schema query failed while Exasol query did not. (query: " + virtualSchemaQuery + ")",
-                    exception);
+    /**
+     * Assert that the function behaves same on the virtual schema as it died on the Exasol table.
+     * 
+     * @implNote The testing is executed in batches, since some databases have a limit in the amount of columns that can
+     *           be queried in a singel query.
+     * 
+     * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
+     * @param statement    statement to use.
+     */
+    private void assertFunctionBehavesSameOnVs(final List<ExasolRun> runsOnExasol, final Statement statement) {
+        for (int batchNr = 0; batchNr * BATCH_SIZE < runsOnExasol.size(); batchNr++) {
+            final List<ExasolRun> batch = runsOnExasol.subList(batchNr * BATCH_SIZE,
+                    Math.min(runsOnExasol.size(), (batchNr + 1) * BATCH_SIZE));
+            final String selectList = batch.stream().map(run -> run.functionCall).collect(Collectors.joining(", "));
+            final String virtualSchemaQuery = getVirtualSchemaQuery(selectList);
+            try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
+                assertThat(actualResult, table()
+                        .row(batch.stream().map(ExasolRun::getResult).map(this::buildMatcher).toArray()).matches());
+            } catch (final SQLException exception) {
+                fail("Virtual Schema query failed while Exasol query did not. (query: " + virtualSchemaQuery + ")",
+                        exception);
+            }
         }
     }
 
@@ -306,6 +321,13 @@ public abstract class ScalarFunctionsAbstractIT {
     }
 
     @Test
+    void testSysGUID() {
+        runOnExasol(statement -> {
+            assertDoesNotThrow(() -> statement.executeQuery(getVirtualSchemaQuery("SYS_GUID()")).close());
+        });
+    }
+
+    @Test
     void testAdd() {
         runOnExasol(statement -> {
             try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("1 + 3"))) {
@@ -337,6 +359,27 @@ public abstract class ScalarFunctionsAbstractIT {
         runOnExasol(statement -> {
             try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("4 * 2"))) {
                 assertThat(result, table().row(8).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+            }
+        });
+    }
+
+    @Test
+    void testNeg() {
+        runOnExasol(statement -> {
+            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("NOT TRUE"))) {
+                assertThat(result, table().row(false).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+            }
+        });
+    }
+
+    @Test
+    void testSystimestamp() {
+        runOnExasol(statement -> {
+            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("SYSTIMESTAMP"))) {
+                result.next();
+                final Date date = result.getDate(1);
+                final long difference = Math.abs(date.getTime() - new java.util.Date().getTime());
+                assertThat("difference is less than 5 minutes.", difference, lessThan(5 * 60 * 1000L));
             }
         });
     }
