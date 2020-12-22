@@ -88,6 +88,12 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     }
 
     @Override
+    public boolean omitParentheses(ScalarFunction function) {
+        return function.name().equals("CURRENT_DATE") || function.name().equals("CURRENT_TIMESTAMP") ||
+                function.name().equals("LOCALTIMESTAMP");
+    }
+
+    @Override
     public Capabilities getCapabilities() {
         return CAPABILITIES;
     }
@@ -105,6 +111,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         final Map<ScalarFunction, String> scalarAliases = new EnumMap<>(ScalarFunction.class);
         scalarAliases.put(ScalarFunction.SUBSTR, "SUBSTRING");
         scalarAliases.put(ScalarFunction.HASH_MD5, "MD5");
+        scalarAliases.put(ScalarFunction.RAND, "RANDOM");
         return scalarAliases;
     }
 
