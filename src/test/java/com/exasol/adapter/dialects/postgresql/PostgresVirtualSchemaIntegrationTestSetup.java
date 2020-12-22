@@ -41,7 +41,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             POSTGRES_CONTAINER_NAME);
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
             EXASOL_DOCKER_IMAGE_REFERENCE) //
-            .withLogConsumer(new Slf4jLogConsumer(LOGGER)).withReuse(true);
+                    .withLogConsumer(new Slf4jLogConsumer(LOGGER)).withReuse(true);
     private final Connection exasolConection;
     private final Statement exasolStatement;
     private final AdapterScript adapterScript;
@@ -101,7 +101,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     }
 
     public VirtualSchema createVirtualSchema(final String forPostgresSchema,
-                                             final Map<String, String> additionalProperties) {
+            final Map<String, String> additionalProperties) {
         final Map<String, String> properties = new HashMap<>(
                 Map.of("CATALOG_NAME", this.postgresqlContainer.getDatabaseName(), //
                         "SCHEMA_NAME", forPostgresSchema));
