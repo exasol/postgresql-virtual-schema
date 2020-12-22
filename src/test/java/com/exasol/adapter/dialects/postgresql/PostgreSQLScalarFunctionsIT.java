@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.sql.*;
 import java.util.Map;
 
-@ExtendWith({CloseAfterAllExtension.class})
+@ExtendWith({ CloseAfterAllExtension.class })
 class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     private static final String SCHEMA_POSTGRES = "schema_postgres";
     private static final String EMPTY_POSTGRES_TABLE = "empty_postgres_table";
@@ -27,7 +27,6 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
         final VirtualSchema virtualSchema = this.setup.createVirtualSchema(SCHEMA_POSTGRES, Map.of());
         return virtualSchema.getFullyQualifiedName() + "." + EMPTY_POSTGRES_TABLE;
     }
-
 
     protected Connection createExasolConnection() throws SQLException {
         return this.setup.getExasolContainer().createConnection();

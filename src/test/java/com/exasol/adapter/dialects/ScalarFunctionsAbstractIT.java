@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @TestInstance(PER_CLASS)
 @Testcontainers
 @Execution(value = ExecutionMode.CONCURRENT) // use -Djunit.jupiter.execution.parallel.enabled=true to enable parallel
-@SuppressWarnings("java:S5786") // class is public since it is an abstract test
+// class is public since it is an abstract test
 public abstract class ScalarFunctionsAbstractIT {
     /**
      * These have a special syntax, so we define explicit test for them below.
@@ -121,9 +121,9 @@ public abstract class ScalarFunctionsAbstractIT {
         for (int numParameters = 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
             final List<String> previousIterationParameters = combinations.get(numParameters - 1);
             combinations.add(previousIterationParameters.stream().flatMap(smallerCombination -> //
-                    LITERALS.stream()
-                            .map(literal -> smallerCombination.isEmpty() || literal.isEmpty() ? smallerCombination + literal
-                                    : smallerCombination + ", " + literal)//
+            LITERALS.stream()
+                    .map(literal -> smallerCombination.isEmpty() || literal.isEmpty() ? smallerCombination + literal
+                            : smallerCombination + ", " + literal)//
             ).collect(Collectors.toList()));
         }
         return combinations;
@@ -137,10 +137,9 @@ public abstract class ScalarFunctionsAbstractIT {
     /**
      * Prepare an empty table in the source database.
      *
-     * @return the fully qualified name of an arbitrary table in a virtual
-     * schema. The table might be empty. The table is only use to cause
-     * the Exasol database to invoke the virtual schema. The actual data
-     * is sent to the functions using literals.
+     * @return the fully qualified name of an arbitrary table in a virtual schema. The table might be empty. The table
+     *         is only use to cause the Exasol database to invoke the virtual schema. The actual data is sent to the
+     *         functions using literals.
      */
     protected abstract String setupDatabase() throws SQLException;
 
@@ -168,7 +167,7 @@ public abstract class ScalarFunctionsAbstractIT {
 
     private void runOnExasol(final ExasolExecutable exasolExecutable) {
         try (final Connection connection = createExasolConnection();
-             final Statement statement = connection.createStatement()) {
+                final Statement statement = connection.createStatement()) {
             exasolExecutable.runOnExasol(statement);
         } catch (final SQLException exception) {
             throw new IllegalStateException("Error during testScalarFunctions.", exception);
@@ -176,7 +175,7 @@ public abstract class ScalarFunctionsAbstractIT {
     }
 
     private List<ExasolRun> findOrGetFittingParameters(final ScalarFunctionCapability function,
-                                                       final Statement statement) {
+            final Statement statement) {
         if (EXPLICIT_PARAMETERS.containsKey(function)) {
             return findFittingParameters(function, EXPLICIT_PARAMETERS.get(function).stream(), statement);
         } else {
@@ -212,14 +211,14 @@ public abstract class ScalarFunctionsAbstractIT {
     }
 
     private List<ExasolRun> findFittingParameters(final ScalarFunctionCapability function,
-                                                  final Stream<String> possibleParameters, final Statement statement) {
+            final Stream<String> possibleParameters, final Statement statement) {
         return possibleParameters
                 .map(parameterCombination -> this.runFunctionOnExasol(function, parameterCombination, statement))
                 .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private ExasolRun runFunctionOnExasol(final ScalarFunctionCapability function, final String parameters,
-                                          final Statement statement) {
+            final Statement statement) {
         final String functionCall = buildFunctionCall(function, parameters);
         try (final ResultSet expectedResult = statement.executeQuery("SELECT " + functionCall + " FROM DUAL")) {
             expectedResult.next();
@@ -235,7 +234,7 @@ public abstract class ScalarFunctionsAbstractIT {
      * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
      * @param statement    statement to use.
      * @implNote The testing is executed in batches, since some databases have a limit in the amount of columns that can
-     * be queried in a singel query.
+     *           be queried in a singel query.
      */
     private void assertFunctionBehavesSameOnVs(final List<ExasolRun> runsOnExasol, final Statement statement) {
         for (int batchNr = 0; batchNr * BATCH_SIZE < runsOnExasol.size(); batchNr++) {
@@ -379,7 +378,7 @@ public abstract class ScalarFunctionsAbstractIT {
     @CsvSource({ //
             "1, a", //
             "2, b", //
-            "5, c"  //
+            "5, c" //
     })
     void testCase(final int input, final String expectedResult) {
         runOnExasol(statement -> {
