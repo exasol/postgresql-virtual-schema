@@ -368,8 +368,8 @@ public abstract class ScalarFunctionsAbstractIT {
             try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("SYSTIMESTAMP"))) {
                 result.next();
                 final LocalDateTime timestamp = result.getTimestamp(1).toLocalDateTime();
-                assertAll(() -> assertTrue(timestamp.isAfter(LocalDateTime.now().minusMinutes(5))),
-                        () -> assertTrue(timestamp.isBefore(LocalDateTime.now())));
+                assertAll(() -> assertTrue(timestamp.isAfter(LocalDateTime.now().minusMinutes(20))),
+                        () -> assertTrue(timestamp.isBefore(LocalDateTime.now().plusMinutes(1))));
             }
         });
     }
