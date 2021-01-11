@@ -17,6 +17,7 @@ import com.exasol.bucketfs.Bucket;
 import com.exasol.bucketfs.BucketAccessException;
 import com.exasol.containers.ExasolContainer;
 import com.exasol.dbbuilder.dialects.exasol.*;
+import com.exasol.dbbuilder.dialects.postgres.PostgreSqlObjectFactory;
 import com.exasol.errorreporting.ExaError;
 
 /**
@@ -44,6 +45,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private final AdapterScript adapterScript;
     private final ConnectionDefinition connectionDefinition;
     private final ExasolObjectFactory exasolFactory;
+    private final PostgreSqlObjectFactory postgresFactory;
     private final Connection postgresConnection;
     private int virtualSchemaCounter = 0;
 
@@ -60,6 +62,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             this.postgresStatement = this.postgresConnection.createStatement();
             this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""));
             final ExasolSchema exasolSchema = this.exasolFactory.createSchema(SCHEMA_EXASOL);
+            this.postgresFactory = new PostgreSqlObjectFactory(this.postgresConnection);
             this.adapterScript = createAdapterScript(exasolSchema);
             final String connectionString = "jdbc:postgresql://" + DOCKER_IP_ADDRESS + ":"
                     + this.postgresqlContainer.getMappedPort(POSTGRES_PORT) + "/"
@@ -97,6 +100,10 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         final String content = "%scriptclass com.exasol.adapter.RequestDispatcher;\n" //
                 + "%jar /buckets/bfsdefault/default/" + VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION + ";\n";
         return schema.createAdapterScript(ADAPTER_SCRIPT_EXASOL, JAVA, content);
+    }
+
+    public PostgreSqlObjectFactory getPostgresFactory() {
+        return this.postgresFactory;
     }
 
     public Statement getPostgresqlStatement() {
