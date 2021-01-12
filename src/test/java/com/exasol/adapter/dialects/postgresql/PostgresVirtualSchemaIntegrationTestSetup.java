@@ -13,7 +13,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import com.exasol.bucketfs.Bucket;
 import com.exasol.bucketfs.BucketAccessException;
@@ -41,8 +40,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
             POSTGRES_CONTAINER_NAME);
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
-            EXASOL_DOCKER_IMAGE_REFERENCE) //
-                    .withLogConsumer(new Slf4jLogConsumer(LOGGER)).withReuse(true);
+            EXASOL_DOCKER_IMAGE_REFERENCE).withReuse(true);
     private final Connection exasolConection;
     private final Statement exasolStatement;
     private final AdapterScript adapterScript;

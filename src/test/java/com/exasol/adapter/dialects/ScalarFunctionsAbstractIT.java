@@ -1,15 +1,11 @@
 package com.exasol.adapter.dialects;
 
-import com.exasol.adapter.capabilities.ScalarFunctionCapability;
-import com.exasol.matcher.CellMatcherFactory;
-import com.exasol.matcher.TypeMatchMode;
-import org.hamcrest.Matcher;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.*;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
+import static com.exasol.matcher.ResultSetStructureMatcher.table;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -18,12 +14,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
-import static com.exasol.matcher.ResultSetStructureMatcher.table;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import org.hamcrest.Matcher;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.*;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.exasol.adapter.capabilities.ScalarFunctionCapability;
+import com.exasol.matcher.CellMatcherFactory;
+import com.exasol.matcher.TypeMatchMode;
 
 /**
  * This is an abstract smoke test for all scalar functions.
@@ -89,18 +90,13 @@ public abstract class ScalarFunctionsAbstractIT {
     );
 
     private static final int MAX_NUM_PARAMETERS = 4;
-    private static final List<String> LITERALS = List.of("0.5", "2", "TRUE", "'a'", "DATE '2007-03-31'",
-            "TIMESTAMP '2007-03-31 12:59:30.123'", "INTERVAL '1 12:00:30.123' DAY TO SECOND", "'POINT (1 2)'",
-            "'LINESTRING (0 0, 0 1, 1 1)'", "'GEOMETRYCOLLECTION(POINT(2 5), POINT(3 5))'",
-            "'POLYGON((5 1, 5 5, 9 7, 10 1, 5 1),(6 2, 6 3, 7 3, 7 2, 6 2))'",
-            "'MULTIPOLYGON(((0 0, 0 2, 2 2, 3 1, 0 0)), ((4 6, 8 9, 12 5, 4 6), (8 6, 9 6, 9 7, 8 7, 8 6)))'",
-            "'MULTILINESTRING((0 1, 2 3, 1 6), (4 4, 5 5))'");
+    private static final String LOCAL_COPY_TABLE_NAME = "EXASOL.LOCAL_COPY";
 
     /**
      * One list for each level of parameters, that contains a list of parameter permutations. Each parameter permutation
      * is a string with comma separated parameters.
      */
-    private static final List<List<String>> PARAMETER_COMBINATIONS = generateParameterCombinations();
+    private static List<List<String>> parameterCombinations;
     private static final int BATCH_SIZE = 500;
     private String fullyQualifiedNameOfArbitraryVsTable;
 
@@ -115,13 +111,13 @@ public abstract class ScalarFunctionsAbstractIT {
      *
      * @return permutations
      */
-    private static List<List<String>> generateParameterCombinations() {
+    private static List<List<String>> generateParameterCombinations(final List<String> atoms) {
         final List<List<String>> combinations = new ArrayList<>(MAX_NUM_PARAMETERS + 1);
         combinations.add(List.of(""));
         for (int numParameters = 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
             final List<String> previousIterationParameters = combinations.get(numParameters - 1);
             combinations.add(previousIterationParameters.stream().flatMap(smallerCombination -> //
-            LITERALS.stream()
+            atoms.stream()
                     .map(literal -> smallerCombination.isEmpty() || literal.isEmpty() ? smallerCombination + literal
                             : smallerCombination + ", " + literal)//
             ).collect(Collectors.toList()));
@@ -132,6 +128,22 @@ public abstract class ScalarFunctionsAbstractIT {
     @BeforeAll
     final void beforeAll() throws SQLException {
         this.fullyQualifiedNameOfArbitraryVsTable = setupDatabase();
+        runOnExasol(statement -> {
+            statement.executeUpdate("CREATE SCHEMA EXASOL");
+            statement.executeUpdate("CREATE TABLE " + LOCAL_COPY_TABLE_NAME + " as SELECT * FROM "
+                    + this.fullyQualifiedNameOfArbitraryVsTable);
+            final List<String> columnNames = getColumnNames(statement, LOCAL_COPY_TABLE_NAME);
+            parameterCombinations = generateParameterCombinations(columnNames);
+        });
+    }
+
+    private List<String> getColumnNames(final Statement statement, final String table) throws SQLException {
+        final ResultSetMetaData metaData = statement.executeQuery("SELECT * FROM " + table).getMetaData();
+        final List<String> columnNames = new ArrayList<>(metaData.getColumnCount());
+        for (int columnIndex = 0; columnIndex < metaData.getColumnCount(); columnIndex++) {
+            columnNames.add("\"" + metaData.getColumnName(columnIndex + 1) + "\"");
+        }
+        return columnNames;
     }
 
     /**
@@ -170,7 +182,7 @@ public abstract class ScalarFunctionsAbstractIT {
                 final Statement statement = connection.createStatement()) {
             exasolExecutable.runOnExasol(statement);
         } catch (final SQLException exception) {
-            throw new IllegalStateException("Error during testScalarFunctions.", exception);
+            throw new IllegalStateException("Failed to execute command on exasol.", exception);
         }
     }
 
@@ -193,7 +205,7 @@ public abstract class ScalarFunctionsAbstractIT {
      */
     private List<ExasolRun> findFittingParameters(final ScalarFunctionCapability function, final Statement statement) {
         final int fastThreshold = 3; // with three parameters the search is still fast; with 4 it gets slow
-        final List<List<String>> fastCombinationLists = PARAMETER_COMBINATIONS.subList(0, fastThreshold + 1);
+        final List<List<String>> fastCombinationLists = parameterCombinations.subList(0, fastThreshold + 1);
         final List<ExasolRun> fastParameters = findFittingParameters(function,
                 fastCombinationLists.stream().flatMap(Collection::stream), statement);
         if (!fastParameters.isEmpty()) {
@@ -201,7 +213,7 @@ public abstract class ScalarFunctionsAbstractIT {
         } else {
             for (int numParameters = fastThreshold + 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
                 final List<ExasolRun> result = findFittingParameters(function,
-                        PARAMETER_COMBINATIONS.get(numParameters).stream(), statement);
+                        parameterCombinations.get(numParameters).stream(), statement);
                 if (!result.isEmpty()) {
                     return result;
                 }
@@ -220,7 +232,8 @@ public abstract class ScalarFunctionsAbstractIT {
     private ExasolRun runFunctionOnExasol(final ScalarFunctionCapability function, final String parameters,
             final Statement statement) {
         final String functionCall = buildFunctionCall(function, parameters);
-        try (final ResultSet expectedResult = statement.executeQuery("SELECT " + functionCall + " FROM DUAL")) {
+        try (final ResultSet expectedResult = statement
+                .executeQuery("SELECT " + functionCall + " FROM " + LOCAL_COPY_TABLE_NAME)) {
             expectedResult.next();
             return new ExasolRun(functionCall, expectedResult.getObject(1));
         } catch (final SQLException exception) {
