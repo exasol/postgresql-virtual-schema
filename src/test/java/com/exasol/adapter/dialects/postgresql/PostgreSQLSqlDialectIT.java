@@ -12,14 +12,12 @@ import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -28,11 +26,12 @@ import com.exasol.bucketfs.BucketAccessException;
 import com.exasol.containers.ExasolContainer;
 import com.exasol.dbbuilder.dialects.DatabaseObjectException;
 import com.exasol.dbbuilder.dialects.exasol.*;
+import com.exasol.errorreporting.ExaError;
 
 @Tag("integration")
 @Testcontainers
 class PostgreSQLSqlDialectIT {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLSqlDialectIT.class);
+    private static final Logger LOGGER = Logger.getLogger(PostgreSQLSqlDialectIT.class.getName());
     private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "exasol/docker-db:6.2.11-d1";
     private static final String JDBC_CONNECTION_NAME = "JDBC";
     private static final String POSTGRES_CONTAINER_NAME = "postgres:9.6.2";
@@ -42,9 +41,8 @@ class PostgreSQLSqlDialectIT {
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
-    private static final String POSTGRES_DRIVER_NAME_AND_VERSION = "postgresql-42.2.5.jar";
-    private static final Path PATH_TO_POSTGRES_DRIVER = Path.of("src", "test", "resources", "integration", "driver",
-            "postgres", POSTGRES_DRIVER_NAME_AND_VERSION);
+    private static final String JDBC_DRIVER_NAME = "postgresql.jar";
+    static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
     private static final String SCHEMA_POSTGRES = "schema_postgres";
     private static final String SCHEMA_POSTGRES_UPPERCASE_TABLE = "schema_postgres_upper";
     private static final String TABLE_POSTGRES_SIMPLE = "table_postgres_simple";
@@ -64,8 +62,7 @@ class PostgreSQLSqlDialectIT {
             POSTGRES_CONTAINER_NAME);
     @Container
     private static final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
-            EXASOL_DOCKER_IMAGE_REFERENCE) //
-                    .withLogConsumer(new Slf4jLogConsumer(LOGGER));
+            EXASOL_DOCKER_IMAGE_REFERENCE).withReuse(true);
     private static Statement statementExasol;
     private static ExasolObjectFactory exasolFactory;
     private static ConnectionDefinition connectionDefinition;
@@ -74,7 +71,7 @@ class PostgreSQLSqlDialectIT {
     @BeforeAll
     static void beforeAll() throws InterruptedException, BucketAccessException, TimeoutException, SQLException {
         final Bucket bucket = exasolContainer.getDefaultBucket();
-        bucket.uploadFile(PATH_TO_POSTGRES_DRIVER, POSTGRES_DRIVER_NAME_AND_VERSION);
+        uploadDriverToBucket(bucket);
         uploadVsJarToBucket(bucket);
         try (final Connection postgresConnection = postgresqlContainer.createConnection("")) {
             final Statement statementPostgres = postgresConnection.createStatement();
@@ -111,6 +108,20 @@ class PostgreSQLSqlDialectIT {
                         "SCHEMA_NAME", SCHEMA_POSTGRES_UPPERCASE_TABLE, //
                         "POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"))
                 .build();
+    }
+
+    private static void uploadDriverToBucket(final Bucket bucket)
+            throws InterruptedException, TimeoutException, BucketAccessException {
+        try {
+            bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
+        } catch (final BucketAccessException exception) {
+            LOGGER.severe(ExaError.messageBuilder("S-PGVS-8")
+                    .message("An error occured while uploading the jdbc driver to the bucket.")
+                    .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
+                    .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
+                    .mitigation("You can generate it by executing the integration test with maven.").toString());
+            throw exception;
+        }
     }
 
     private static void createPostgresTestTableSimple(final Statement statementPostgres) throws SQLException {

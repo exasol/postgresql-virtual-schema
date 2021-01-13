@@ -11,6 +11,7 @@
 		<surefire.and.failsafe.plugin.version>3.0.0-M3</surefire.and.failsafe.plugin.version>
 		<vscjdbc.version>8.0.0</vscjdbc.version>
 		<org.testcontainers.version>1.15.0</org.testcontainers.version>
+		<org.postgresql.version>42.2.18</org.postgresql.version>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
 		</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
@@ -47,7 +48,7 @@
 			<version>${vscjdbc.version}</version>
 		</dependency>
 		<dependency>
-			<!-- Next error code: E-PSVS-8 -->
+			<!-- Next error code: 9 -->
 			<groupId>com.exasol</groupId>
 			<artifactId>error-reporting-java</artifactId>
 			<version>0.2.0</version>
@@ -100,7 +101,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.2.18</version>
+			<version>${org.postgresql.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.exasol</groupId>
@@ -307,6 +308,38 @@
 						<module>integration_tests</module>
 					</modules>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-jacoco</id>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<includeArtifactIds>org.jacoco.agent</includeArtifactIds>
+							<includeClassifiers>runtime</includeClassifiers>
+							<outputDirectory>${project.build.directory}/jacoco-agent</outputDirectory>
+							<stripVersion>true</stripVersion>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-postgresql-driver</id>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<includeGroupIds>org.postgresql</includeGroupIds>
+							<includeArtifactIds>postgresql</includeArtifactIds>
+							<outputDirectory>${project.build.directory}/postgresql-driver</outputDirectory>
+							<stripVersion>true</stripVersion>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
