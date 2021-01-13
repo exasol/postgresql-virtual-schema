@@ -115,7 +115,7 @@ class PostgreSQLSqlDialectIT {
         try {
             bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
         } catch (final BucketAccessException exception) {
-            LOGGER.severe(ExaError.messageBuilder("S-PGVS-8")
+            LOGGER.severe(ExaError.messageBuilder("F-PGVS-8")
                     .message("An error occured while uploading the jdbc driver to the bucket.")
                     .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                     .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
