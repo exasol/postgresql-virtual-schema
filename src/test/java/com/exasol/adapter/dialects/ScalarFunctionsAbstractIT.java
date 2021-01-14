@@ -47,7 +47,7 @@ import com.exasol.matcher.TypeMatchMode;
 @TestInstance(PER_CLASS)
 @Testcontainers
 @Execution(value = ExecutionMode.CONCURRENT) // use -Djunit.jupiter.execution.parallel.enabled=true to enable parallel
-// class is public since it is an abstract test
+@SuppressWarnings("java:S5786") // class is public since it is an abstract test
 public abstract class ScalarFunctionsAbstractIT {
     /**
      * These have a special syntax, so we define explicit test for them below.
@@ -98,6 +98,7 @@ public abstract class ScalarFunctionsAbstractIT {
      */
     private static List<List<String>> parameterCombinations;
     private String fullyQualifiedNameOfArbitraryVsTable;
+    private ScalarFunctionsParameterCache parameterCache;
 
     static Stream<Arguments> getScalarFunctions() {
         return Arrays.stream(ScalarFunctionCapability.values())//
@@ -134,6 +135,7 @@ public abstract class ScalarFunctionsAbstractIT {
                     + this.fullyQualifiedNameOfArbitraryVsTable);
             final List<String> columnNames = getColumnNames(statement, LOCAL_COPY_TABLE_NAME);
             parameterCombinations = generateParameterCombinations(columnNames);
+            this.parameterCache = new ScalarFunctionsParameterCache();
         });
     }
 
@@ -172,7 +174,8 @@ public abstract class ScalarFunctionsAbstractIT {
             if (successfulExasolRuns.isEmpty()) {
                 throw new IllegalStateException("Non of the parameter combinations lead to a successful run.");
             } else {
-                assertFunctionBehavesSameOnVs(successfulExasolRuns, statement);
+                this.parameterCache.removeFunction(function.name());
+                assertFunctionBehavesSameOnVs(function, successfulExasolRuns, statement);
             }
         });
     }
@@ -190,6 +193,9 @@ public abstract class ScalarFunctionsAbstractIT {
             final Statement statement) {
         if (EXPLICIT_PARAMETERS.containsKey(function)) {
             return findFittingParameters(function, EXPLICIT_PARAMETERS.get(function).stream(), statement);
+        } else if (this.parameterCache.hasParametersForFunction(function.name())) {
+            return findFittingParameters(function,
+                    this.parameterCache.getFunctionsValidParameterCombinations(function.name()).stream(), statement);
         } else {
             return findFittingParameters(function, statement);
         }
@@ -235,7 +241,7 @@ public abstract class ScalarFunctionsAbstractIT {
         try (final ResultSet expectedResult = statement
                 .executeQuery("SELECT " + functionCall + " FROM " + LOCAL_COPY_TABLE_NAME)) {
             expectedResult.next();
-            return new ExasolRun(functionCall, expectedResult.getObject(1));
+            return new ExasolRun(parameters, expectedResult.getObject(1));
         } catch (final SQLException exception) {
             return null;
         }
@@ -249,11 +255,13 @@ public abstract class ScalarFunctionsAbstractIT {
      * @implNote The testing is executed in batches, since some databases have a limit in the amount of columns that can
      *           be queried in a singel query.
      */
-    private void assertFunctionBehavesSameOnVs(final List<ExasolRun> runsOnExasol, final Statement statement) {
+    private void assertFunctionBehavesSameOnVs(final ScalarFunctionCapability function,
+            final List<ExasolRun> runsOnExasol, final Statement statement) {
+        this.parameterCache.removeFunction(function.name());
         final List<String> successParameters = new ArrayList<>();
         final List<String> failedQueries = new ArrayList<>();
         for (final ExasolRun exasolRun : runsOnExasol) {
-            final String virtualSchemaQuery = getVirtualSchemaQuery(exasolRun.functionCall);
+            final String virtualSchemaQuery = getVirtualSchemaQuery(buildFunctionCall(function, exasolRun.parameters));
             try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
                 // check if the results are equal; Otherwise abort - wrong results are unacceptable
                 try {
@@ -262,7 +270,7 @@ public abstract class ScalarFunctionsAbstractIT {
                     throw new IllegalStateException("Different output for query " + virtualSchemaQuery, assertionError);
                 }
 
-                successParameters.add(exasolRun.functionCall);
+                successParameters.add(exasolRun.parameters);
             } catch (final SQLException exception) {
                 failedQueries.add(virtualSchemaQuery);
                 // ignore; probably just a strange parameter combination
@@ -271,6 +279,9 @@ public abstract class ScalarFunctionsAbstractIT {
         if (successParameters.isEmpty()) {
             fail("Non of the combinations that worked on a native Exasol table worked on the Virtual Schema table. Here is what was tried:\n"
                     + String.join("\n", failedQueries));
+        } else {
+            this.parameterCache.setFunctionsValidParameterCombinations(function.name(), successParameters);
+            this.parameterCache.flush();
         }
     }
 
@@ -417,11 +428,11 @@ public abstract class ScalarFunctionsAbstractIT {
     }
 
     private static class ExasolRun {
-        private final String functionCall;
+        private final String parameters;
         private final Object result;
 
-        private ExasolRun(final String functionCall, final Object result) {
-            this.functionCall = functionCall;
+        private ExasolRun(final String parameters, final Object result) {
+            this.parameters = parameters;
             this.result = result;
         }
 
