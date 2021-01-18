@@ -7,6 +7,10 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.exasol.errorreporting.ExaError;
 
+/**
+ * This class caches the parameters for runs that were passed the tests. By that in upcoming test runs can only test
+ * these runs and by that are a lot faster.
+ */
 public class ScalarFunctionsParameterCache {
     private static final String CACHE_FILE_NAME = "src/test/resources/scalarFunctionsParameterCache.yml";
     private final Map<String, List<String>> parameterCache;

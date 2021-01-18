@@ -20,6 +20,8 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
@@ -27,11 +29,12 @@ import com.exasol.matcher.CellMatcherFactory;
 import com.exasol.matcher.TypeMatchMode;
 
 /**
- * This is an abstract smoke test for all scalar functions.
+ * This is an abstract smoke test for all scalar functions, except the geospacial functions (ST_*).
  * <p>
- * It automatically finds parameters combinations by permuting all possible literals. Then it verifies that all
- * parameter combinations that did not cause an exception in on a regular Exasol table, behave the same on a virtual
- * schema table.
+ * It automatically finds parameters combinations by permuting a set of different values. Then it verifies that on of
+ * the parameter combinations that did not cause an exception in on a regular Exasol table, succeeds on the virtual
+ * schema tale. In addition this test asserts that all queries that succeed on the virtual and the regular table have
+ * the same result.
  * </p>
  * <p>
  * By default JUnit creates on instance of this class per test method. Using the {@code @TestInstance(PER_CLASS)}
@@ -90,7 +93,9 @@ public abstract class ScalarFunctionsAbstractIT {
     );
 
     private static final int MAX_NUM_PARAMETERS = 4;
+    private static final int BATCH_SIZE = 500;
     private static final String LOCAL_COPY_TABLE_NAME = "EXASOL.LOCAL_COPY";
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScalarFunctionsAbstractIT.class);
 
     /**
      * One list for each level of parameters, that contains a list of parameter permutations. Each parameter permutation
@@ -174,8 +179,10 @@ public abstract class ScalarFunctionsAbstractIT {
             if (successfulExasolRuns.isEmpty()) {
                 throw new IllegalStateException("Non of the parameter combinations lead to a successful run.");
             } else {
-                this.parameterCache.removeFunction(function.name());
-                assertFunctionBehavesSameOnVs(function, successfulExasolRuns, statement);
+                if (!quickCheckIfFunctionBehavesSameOnVs(function, successfulExasolRuns, statement)) {
+                    LOGGER.info("Quick test failed for {}. Running full checks.", function);
+                    assertFunctionBehavesSameOnVs(function, successfulExasolRuns, statement);
+                }
             }
         });
     }
@@ -192,18 +199,25 @@ public abstract class ScalarFunctionsAbstractIT {
     private List<ExasolRun> findOrGetFittingParameters(final ScalarFunctionCapability function,
             final Statement statement) {
         if (EXPLICIT_PARAMETERS.containsKey(function)) {
+            LOGGER.info("Using explicit parameters for function {}.", function.name());
             return findFittingParameters(function, EXPLICIT_PARAMETERS.get(function).stream(), statement);
         } else if (this.parameterCache.hasParametersForFunction(function.name())) {
+            LOGGER.info("Using parameters from parameter cache for function {}.", function.name());
             return findFittingParameters(function,
                     this.parameterCache.getFunctionsValidParameterCombinations(function.name()).stream(), statement);
         } else {
+            LOGGER.info("Using generated parameters for function {}.", function.name());
             return findFittingParameters(function, statement);
         }
     }
 
     /**
-     * Try to find fitting parameters combinations by permuting the Literals and try if try if they produce an exception
-     * on Exasol.
+     * Try to find fitting parameters combinations by permuting a set simple values and try if they produce an exception
+     * on a regular Exasol table.
+     * <p>
+     * This method first tries to find fitting combinations with only 3 literals and only if that has no results,
+     * increases the number of literals (which leads to an exponential growth of possible combinations).
+     * </p>
      *
      * @param function  function to test
      * @param statement exasol statement
@@ -217,15 +231,20 @@ public abstract class ScalarFunctionsAbstractIT {
         if (!fastParameters.isEmpty()) {
             return fastParameters;
         } else {
-            for (int numParameters = fastThreshold + 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
-                final List<ExasolRun> result = findFittingParameters(function,
-                        parameterCombinations.get(numParameters).stream(), statement);
-                if (!result.isEmpty()) {
-                    return result;
-                }
-            }
-            return Collections.emptyList();
+            return findCostyFittingParameters(function, statement, fastThreshold);
         }
+    }
+
+    private List<ExasolRun> findCostyFittingParameters(final ScalarFunctionCapability function,
+            final Statement statement, final int fastThreshold) {
+        for (int numParameters = fastThreshold + 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
+            final List<ExasolRun> result = findFittingParameters(function,
+                    parameterCombinations.get(numParameters).stream(), statement);
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+        return Collections.emptyList();
     }
 
     private List<ExasolRun> findFittingParameters(final ScalarFunctionCapability function,
@@ -252,8 +271,6 @@ public abstract class ScalarFunctionsAbstractIT {
      *
      * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
      * @param statement    statement to use.
-     * @implNote The testing is executed in batches, since some databases have a limit in the amount of columns that can
-     *           be queried in a singel query.
      */
     private void assertFunctionBehavesSameOnVs(final ScalarFunctionCapability function,
             final List<ExasolRun> runsOnExasol, final Statement statement) {
@@ -283,6 +300,41 @@ public abstract class ScalarFunctionsAbstractIT {
             this.parameterCache.setFunctionsValidParameterCombinations(function.name(), successParameters);
             this.parameterCache.flush();
         }
+    }
+
+    /**
+     * Quick check if the function behaves same on the virtual schema as it did on the Exasol table.
+     * <p>
+     * In contrast to {@link #assertFunctionBehavesSameOnVs(ScalarFunctionCapability, List, Statement)} this function
+     * does not check each parameter combination in a separate query but combines them into a single query. By that this
+     * function is a lot fast. On the other hand, if a single combination leads to an error, the whole query fails. So
+     * you can only use this function as a shortcut if it returns true.
+     * </p>
+     *
+     * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
+     * @param statement    statement to use.
+     * @implNote The testing is executed in batches, since some databases have a limit in the amount of columns that can
+     *           be queried in a singel query.
+     * @return {@code true} if all parameter combinations behaved same. {@code false} otherwise
+     */
+    private boolean quickCheckIfFunctionBehavesSameOnVs(final ScalarFunctionCapability function,
+            final List<ExasolRun> runsOnExasol, final Statement statement) {
+        for (int batchNr = 0; batchNr * BATCH_SIZE < runsOnExasol.size(); batchNr++) {
+            final List<ExasolRun> batch = runsOnExasol.subList(batchNr * BATCH_SIZE,
+                    Math.min(runsOnExasol.size(), (batchNr + 1) * BATCH_SIZE));
+            final String selectList = batch.stream().map(run -> buildFunctionCall(function, run.parameters))
+                    .collect(Collectors.joining(", "));
+            final String virtualSchemaQuery = getVirtualSchemaQuery(selectList);
+            try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
+                if (!table().row(batch.stream().map(ExasolRun::getResult).map(this::buildMatcher).toArray()).matches()
+                        .matches(actualResult)) {
+                    return false;
+                }
+            } catch (final SQLException exception) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String getVirtualSchemaQuery(final String functionCall) {
