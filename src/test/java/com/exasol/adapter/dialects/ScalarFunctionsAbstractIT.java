@@ -4,11 +4,13 @@ import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
 import static com.exasol.matcher.ResultSetStructureMatcher.table;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
+import com.exasol.errorreporting.ExaError;
 import com.exasol.matcher.CellMatcherFactory;
 import com.exasol.matcher.TypeMatchMode;
 
@@ -57,32 +60,22 @@ public abstract class ScalarFunctionsAbstractIT {
      */
     private static final Set<ScalarFunctionCapability> EXCLUDES = Set.of(CASE, FLOAT_DIV, SESSION_PARAMETER, RAND, ADD,
             SUB, MULT, NEG, SYS_GUID, SYSTIMESTAMP);
+    private static final String LOCAL_COPY_TABLE_NAME = "LOCAL_COPY";
+    private static final String LOCAL_COPY_SCHEMA = "EXASOL";
 
     /**
      * These functions are tested separately in {@link #testFunctionsWithNoParenthesis(ScalarFunctionCapability)}
      */
     private static final Set<ScalarFunctionCapability> FUNCTIONS_WITH_NO_PARENTHESIS = Set.of(LOCALTIMESTAMP, SYSDATE,
             CURRENT_SCHEMA, CURRENT_STATEMENT, CURRENT_SESSION, CURRENT_DATE, CURRENT_USER, CURRENT_TIMESTAMP);
-
-    /**
-     * For sum functions we just can guess the parameters because they only work for very specific input. For those we
-     * define explicit parameters here. You can define multiple parameter combinations here (by adding multiple list
-     * entries). By that you can test a function with different values.
-     */
-    private static final Map<ScalarFunctionCapability, List<String>> EXPLICIT_PARAMETERS = Map.of(//
-            TO_YMINTERVAL, List.of("'3-11'"), //
-            NUMTODSINTERVAL, List.of("3.2, 'HOUR'"), //
-            NUMTOYMINTERVAL, List.of("3.5, 'YEAR'"), //
-            CONVERT_TZ, List.of("TIMESTAMP '2012-05-10 12:00:00', 'UTC', 'Europe/Berlin'"), //
-            JSON_VALUE, List.of("'{\"name\" : \"Smith\"}', '$.name'"), //
-            EXTRACT,
-            List.of("SECOND FROM TIMESTAMP '2000-10-01 12:22:59.123'", "MONTH FROM TIMESTAMP '2000-10-01 12:22:59.123'",
-                    "DAY FROM TIMESTAMP '2000-10-01 12:22:59.123'"), //
-            DATE_TRUNC, List.of("'month', DATE '2006-12-31'", "'day', DATE '2006-12-31'"), //
-            POSIX_TIME, List.of("'1970-01-01 00:00:01'"), //
-            ST_TRANSFORM, List.of("CAST('POINT(1 2)' AS GEOMETRY (4326)), 2163"), //
-            CAST, List.of("'1' as INTEGER")// TODO add a better test here
-    );
+    private static final String LOCAL_COPY_FULL_TABLE_NAME = LOCAL_COPY_SCHEMA + "." + LOCAL_COPY_TABLE_NAME;
+    private static final Map<String, Object> EXPECTED_TEST_TABLE_VALUES = Map.of(//
+            "FLOATING_POINT", 0.5, //
+            "INTEGER", 2, //
+            "STRING", "a", //
+            "EMPTY_STRING", "", //
+            "DATE", new Date(1000), //
+            "TIMESTAMP", new Timestamp(1001));
 
     /**
      * Some functions have different names than their capabilities. For that we define a mapping here. If a function is
@@ -94,7 +87,14 @@ public abstract class ScalarFunctionsAbstractIT {
 
     private static final int MAX_NUM_PARAMETERS = 4;
     private static final int BATCH_SIZE = 500;
-    private static final String LOCAL_COPY_TABLE_NAME = "EXASOL.LOCAL_COPY";
+    private Map<String, String> columnsWithType;
+    /**
+     * For sum functions we just can guess the parameters because they only work for very specific input. For those we
+     * define explicit parameters here. You can define multiple parameter combinations here (by adding multiple list
+     * entries). By that you can test a function with different values.
+     */
+    private Map<ScalarFunctionCapability, List<String>> explicitParameters;
+    private String fullyQualifiedNameOfVsTable;
     private static final Logger LOGGER = LoggerFactory.getLogger(ScalarFunctionsAbstractIT.class);
 
     /**
@@ -102,59 +102,112 @@ public abstract class ScalarFunctionsAbstractIT {
      * is a string with comma separated parameters.
      */
     private static List<List<String>> parameterCombinations;
-    private String fullyQualifiedNameOfArbitraryVsTable;
-    private ScalarFunctionsParameterCache parameterCache;
-
-    static Stream<Arguments> getScalarFunctions() {
-        return Arrays.stream(ScalarFunctionCapability.values())//
-                .filter(function -> !EXCLUDES.contains(function) && !FUNCTIONS_WITH_NO_PARENTHESIS.contains(function)
-                        && !function.name().startsWith("ST_"))//
-                .map(Arguments::of);
-    }
 
     /**
      * Permute the literals.
      *
      * @return permutations
      */
-    private static List<List<String>> generateParameterCombinations(final List<String> atoms) {
+    private static List<List<String>> generateParameterCombinations(final Collection<String> atoms) {
         final List<List<String>> combinations = new ArrayList<>(MAX_NUM_PARAMETERS + 1);
         combinations.add(List.of(""));
         for (int numParameters = 1; numParameters <= MAX_NUM_PARAMETERS; numParameters++) {
             final List<String> previousIterationParameters = combinations.get(numParameters - 1);
             combinations.add(previousIterationParameters.stream().flatMap(smallerCombination -> //
-            atoms.stream()
-                    .map(literal -> smallerCombination.isEmpty() || literal.isEmpty() ? smallerCombination + literal
-                            : smallerCombination + ", " + literal)//
+            atoms.stream().map(literal -> joinWithCommaIfNecessary(smallerCombination, literal))//
             ).collect(Collectors.toList()));
         }
         return combinations;
     }
 
-    @BeforeAll
-    final void beforeAll() throws SQLException {
-        this.fullyQualifiedNameOfArbitraryVsTable = setupDatabase();
-        runOnExasol(statement -> {
-            statement.executeUpdate("CREATE SCHEMA EXASOL");
-            statement.executeUpdate("CREATE TABLE " + LOCAL_COPY_TABLE_NAME + " as SELECT * FROM "
-                    + this.fullyQualifiedNameOfArbitraryVsTable);
-            final List<String> columnNames = getColumnNames(statement, LOCAL_COPY_TABLE_NAME);
-            parameterCombinations = generateParameterCombinations(columnNames);
-            this.parameterCache = new ScalarFunctionsParameterCache();
-        });
-    }
+    private ScalarFunctionsParameterCache parameterCache;
 
-    private List<String> getColumnNames(final Statement statement, final String table) throws SQLException {
-        final ResultSetMetaData metaData = statement.executeQuery("SELECT * FROM " + table).getMetaData();
-        final List<String> columnNames = new ArrayList<>(metaData.getColumnCount());
-        for (int columnIndex = 0; columnIndex < metaData.getColumnCount(); columnIndex++) {
-            columnNames.add("\"" + metaData.getColumnName(columnIndex + 1) + "\"");
+    private static String joinWithCommaIfNecessary(final String smallerCombination, final String literal) {
+        if (smallerCombination.isEmpty() || literal.isEmpty()) {
+            return smallerCombination + literal;
+        } else {
+            return smallerCombination + ", " + literal;
         }
-        return columnNames;
     }
 
     /**
-     * Prepare an empty table in the source database.
+     * Returns a set of scalar functions that should not be tested for this dialect.
+     * 
+     * @return set of functions
+     */
+    protected abstract Set<ScalarFunctionCapability> getDialectSpecificExcludes();
+
+    private void initExplicitParameters() {
+        this.explicitParameters = Map.of(//
+                TO_YMINTERVAL, List.of("'3-11'"), // TODO
+                NUMTODSINTERVAL, List.of("3.2, 'HOUR'"), // TODO
+                NUMTOYMINTERVAL, List.of("3.5, 'YEAR'"), // TODO
+                CONVERT_TZ, List.of(getColumnForType("TIMESTAMP") + ", 'UTC', 'Europe/Berlin'"), //
+                JSON_VALUE, List.of("CONCAT('{\"name\" : \"', " + getColumnForType("VARCHAR") + ", '\"}'), '$.name'"), //
+                EXTRACT,
+                List.of("SECOND FROM TIMESTAMP " + getColumnForType("TIMESTAMP"),
+                        "MONTH FROM TIMESTAMP " + getColumnForType("TIMESTAMP"),
+                        "DAY FROM TIMESTAMP " + getColumnForType("TIMESTAMP")), //
+                DATE_TRUNC, List.of("'month', " + getColumnForType("DATE"), "'day', " + getColumnForType("DATE")), //
+                POSIX_TIME, List.of("'1970-01-01 00:00:01'"), // TODO
+                CAST, List.of("(CAST " + getColumnForType("DECIMAL") + " as VARCHAR(254) UTF8) as INTEGER"));
+    }
+
+    Stream<Arguments> getScalarFunctions() {
+        final Set<ScalarFunctionCapability> dialectSpecificExcludes = getDialectSpecificExcludes();
+        return Arrays.stream(ScalarFunctionCapability.values())//
+                .filter(function -> !EXCLUDES.contains(function) && !dialectSpecificExcludes.contains(function)
+                        && !FUNCTIONS_WITH_NO_PARENTHESIS.contains(function) && !function.name().startsWith("ST_"))//
+                .map(Arguments::of);
+    }
+
+    @BeforeAll
+    final void beforeAll() throws SQLException {
+        this.fullyQualifiedNameOfVsTable = setupDatabase();
+        runOnExasol(statement -> {
+            statement.executeUpdate("CREATE SCHEMA " + LOCAL_COPY_SCHEMA);
+            statement.executeUpdate("CREATE TABLE " + LOCAL_COPY_FULL_TABLE_NAME + " as SELECT * FROM "
+                    + this.fullyQualifiedNameOfVsTable);
+            this.columnsWithType = getTestTablesColumns(statement);
+            parameterCombinations = generateParameterCombinations(this.columnsWithType.keySet());
+            this.parameterCache = new ScalarFunctionsParameterCache();
+            initExplicitParameters();
+        });
+    }
+
+    /**
+     * Find a column of the test table for a specific type.
+     * 
+     * @param requestedTypePrefix prefix for the requested type e.g. VARCHAR
+     * @return quoted column name
+     */
+    private String getColumnForType(final String requestedTypePrefix) {
+        return this.columnsWithType.entrySet().stream()
+                .filter(entry -> entry.getValue().startsWith(requestedTypePrefix))//
+                .map(Map.Entry::getKey)//
+                .map(column -> "\"" + column + "\"")//
+                .findAny()
+                .orElseThrow(() -> new IllegalStateException(ExaError.messageBuilder("E-PGVS-16").message(
+                        "The dialect specific example table had no column for the requested type starting with {{type}}. Available column: {{available columns}}.")
+                        .parameter("type", requestedTypePrefix)//
+                        .parameter("available columns", this.columnsWithType).toString()));
+    }
+
+    private Map<String, String> getTestTablesColumns(final Statement statement) throws SQLException {
+        try (final ResultSet resultSet = statement
+                .executeQuery("SELECT COLUMN_NAME, COLUMN_TYPE FROM EXA_ALL_COLUMNS WHERE COLUMN_TABLE = '"
+                        + LOCAL_COPY_TABLE_NAME + "' AND COLUMN_SCHEMA = '" + LOCAL_COPY_SCHEMA + "'")) {
+            final Map<String, String> columnsWithType = new LinkedHashMap<>();
+            while (resultSet.next()) {
+                columnsWithType.put(resultSet.getString("COLUMN_NAME"), resultSet.getString("COLUMN_TYPE"));
+            }
+            return columnsWithType;
+        }
+    }
+
+    /**
+     * Prepare a Virtual Schema with one table that contains columns for the following types: floating point, integer, 0
+     * named ZERO, string(not empty), string(empty) named EMPTY_STRING, date, timestamp
      *
      * @return the fully qualified name of an arbitrary table in a virtual schema. The table might be empty. The table
      *         is only use to cause the Exasol database to invoke the virtual schema. The actual data is sent to the
@@ -177,11 +230,12 @@ public abstract class ScalarFunctionsAbstractIT {
         runOnExasol(statement -> {
             final List<ExasolRun> successfulExasolRuns = findOrGetFittingParameters(function, statement);
             if (successfulExasolRuns.isEmpty()) {
-                throw new IllegalStateException("Non of the parameter combinations lead to a successful run.");
+                throw new IllegalStateException(ExaError.messageBuilder("E-PGVS-14")
+                        .message("Non of the parameter combinations lead to a successful run.").toString());
             } else {
                 if (!quickCheckIfFunctionBehavesSameOnVs(function, successfulExasolRuns, statement)) {
                     LOGGER.info("Quick test failed for {}. Running full checks.", function);
-                    assertFunctionBehavesSameOnVs(function, successfulExasolRuns, statement);
+                    assertFunctionBehavesSameOnVirtualSchema(function, successfulExasolRuns, statement);
                 }
             }
         });
@@ -192,21 +246,23 @@ public abstract class ScalarFunctionsAbstractIT {
                 final Statement statement = connection.createStatement()) {
             exasolExecutable.runOnExasol(statement);
         } catch (final SQLException exception) {
-            throw new IllegalStateException("Failed to execute command on exasol.", exception);
+            throw new IllegalStateException(
+                    ExaError.messageBuilder("E-PGVS-12").message("Failed to execute command on Exasol.").toString(),
+                    exception);
         }
     }
 
     private List<ExasolRun> findOrGetFittingParameters(final ScalarFunctionCapability function,
             final Statement statement) {
-        if (EXPLICIT_PARAMETERS.containsKey(function)) {
-            LOGGER.info("Using explicit parameters for function {}.", function.name());
-            return findFittingParameters(function, EXPLICIT_PARAMETERS.get(function).stream(), statement);
+        if (this.explicitParameters.containsKey(function)) {
+            LOGGER.debug("Using explicit parameters for function {}.", function.name());
+            return findFittingParameters(function, this.explicitParameters.get(function).stream(), statement);
         } else if (this.parameterCache.hasParametersForFunction(function.name())) {
-            LOGGER.info("Using parameters from parameter cache for function {}.", function.name());
+            LOGGER.debug("Using parameters from parameter cache for function {}.", function.name());
             return findFittingParameters(function,
                     this.parameterCache.getFunctionsValidParameterCombinations(function.name()).stream(), statement);
         } else {
-            LOGGER.info("Using generated parameters for function {}.", function.name());
+            LOGGER.debug("Using generated parameters for function {}.", function.name());
             return findFittingParameters(function, statement);
         }
     }
@@ -257,8 +313,7 @@ public abstract class ScalarFunctionsAbstractIT {
     private ExasolRun runFunctionOnExasol(final ScalarFunctionCapability function, final String parameters,
             final Statement statement) {
         final String functionCall = buildFunctionCall(function, parameters);
-        try (final ResultSet expectedResult = statement
-                .executeQuery("SELECT " + functionCall + " FROM " + LOCAL_COPY_TABLE_NAME)) {
+        try (final ResultSet expectedResult = statement.executeQuery(getLocalTableQuery(functionCall))) {
             expectedResult.next();
             return new ExasolRun(parameters, expectedResult.getObject(1));
         } catch (final SQLException exception) {
@@ -272,43 +327,54 @@ public abstract class ScalarFunctionsAbstractIT {
      * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
      * @param statement    statement to use.
      */
-    private void assertFunctionBehavesSameOnVs(final ScalarFunctionCapability function,
+    private void assertFunctionBehavesSameOnVirtualSchema(final ScalarFunctionCapability function,
             final List<ExasolRun> runsOnExasol, final Statement statement) {
         this.parameterCache.removeFunction(function.name());
         final List<String> successParameters = new ArrayList<>();
         final List<String> failedQueries = new ArrayList<>();
         for (final ExasolRun exasolRun : runsOnExasol) {
             final String virtualSchemaQuery = getVirtualSchemaQuery(buildFunctionCall(function, exasolRun.parameters));
-            try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
-                // check if the results are equal; Otherwise abort - wrong results are unacceptable
-                try {
-                    assertThat(actualResult, table().row(buildMatcher(exasolRun.result)).matches());
-                } catch (final AssertionError assertionError) {
-                    throw new IllegalStateException("Different output for query " + virtualSchemaQuery, assertionError);
-                }
-
-                successParameters.add(exasolRun.parameters);
-            } catch (final SQLException exception) {
-                failedQueries.add(virtualSchemaQuery);
-                // ignore; probably just a strange parameter combination
-            }
+            assertSingleRunBehavesSameOnVirtualSchema(statement, successParameters, failedQueries, exasolRun,
+                    virtualSchemaQuery);
         }
         if (successParameters.isEmpty()) {
-            fail("Non of the combinations that worked on a native Exasol table worked on the Virtual Schema table. Here is what was tried:\n"
-                    + String.join("\n", failedQueries));
+            fail(ExaError.messageBuilder("E-PGVS-15").message(
+                    "Non of the combinations that worked on a native Exasol table worked on the Virtual Schema table. Here is what was tried:\n{{queries}}")
+                    .unquotedParameter("queries", String.join("\n", failedQueries)).toString());
         } else {
             this.parameterCache.setFunctionsValidParameterCombinations(function.name(), successParameters);
             this.parameterCache.flush();
         }
     }
 
+    private void assertSingleRunBehavesSameOnVirtualSchema(final Statement statement,
+            final List<String> successParameters, final List<String> failedQueries, final ExasolRun exasolRun,
+            final String virtualSchemaQuery) {
+        try (final ResultSet actualResult = statement.executeQuery(virtualSchemaQuery)) {
+            // check if the results are equal; Otherwise abort - wrong results are unacceptable
+            try {
+                assertThat(actualResult, table().row(buildMatcher(exasolRun.result)).matches());
+            } catch (final AssertionError assertionError) {
+                throw new IllegalStateException(
+                        ExaError.messageBuilder("E-PGVS-13").message("Different output for query {{query}}")
+                                .parameter("query", virtualSchemaQuery).toString(),
+                        assertionError);
+            }
+
+            successParameters.add(exasolRun.parameters);
+        } catch (final SQLException exception) {
+            failedQueries.add(virtualSchemaQuery);
+            // ignore; probably just a strange parameter combination
+        }
+    }
+
     /**
      * Quick check if the function behaves same on the virtual schema as it did on the Exasol table.
      * <p>
-     * In contrast to {@link #assertFunctionBehavesSameOnVs(ScalarFunctionCapability, List, Statement)} this function
-     * does not check each parameter combination in a separate query but combines them into a single query. By that this
-     * function is a lot fast. On the other hand, if a single combination leads to an error, the whole query fails. So
-     * you can only use this function as a shortcut if it returns true.
+     * In contrast to {@link #assertFunctionBehavesSameOnVirtualSchema(ScalarFunctionCapability, List, Statement)} this
+     * function does not check each parameter combination in a separate query but combines them into a single query. By
+     * that this function is a lot fast. On the other hand, if a single combination leads to an error, the whole query
+     * fails. So you can only use this function as a shortcut if it returns true.
      * </p>
      *
      * @param runsOnExasol Exasol runs (parameter - result pairs) to compare to
@@ -337,16 +403,16 @@ public abstract class ScalarFunctionsAbstractIT {
         return true;
     }
 
+    private String getLocalTableQuery(final String functionCall) {
+        return "SELECT " + functionCall + " FROM " + LOCAL_COPY_FULL_TABLE_NAME;
+    }
+
     private String getVirtualSchemaQuery(final String functionCall) {
-        return "SELECT " + functionCall + " FROM " + this.fullyQualifiedNameOfArbitraryVsTable;
+        return "SELECT " + functionCall + " FROM " + this.fullyQualifiedNameOfVsTable;
     }
 
     private String getFunctionName(final ScalarFunctionCapability function) {
-        if (RENAME_FUNCTIONS.containsKey(function)) {
-            return RENAME_FUNCTIONS.get(function);
-        } else {
-            return function.name();
-        }
+        return RENAME_FUNCTIONS.getOrDefault(function, function.name());
     }
 
     private String buildFunctionCall(final ScalarFunctionCapability function, final String parameters) {
@@ -402,51 +468,38 @@ public abstract class ScalarFunctionsAbstractIT {
         });
     }
 
-    @Test
-    void testAdd() {
+    // TODO improve hamcrest matcher to fuzzy match result against result and then change this
+    @ParameterizedTest
+    @ValueSource(strings = { "+", "-", "*", "/" })
+    void testSimpleArithmeticFunctions(final String operator) {
+        final String numberColumn = getColumnForType("DECIMAL");
+        final String query = numberColumn + " " + operator + " " + numberColumn;
         runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("1 + 3"))) {
-                assertThat(result, table().row(4).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+            try (final ResultSet nativeTableResult = statement.executeQuery(getLocalTableQuery(query));
+                    final ResultSet virtualSchemaTableResult = statement.executeQuery(getVirtualSchemaQuery(query))) {
+                nativeTableResult.next();
+                assertThat(virtualSchemaTableResult,
+                        table().row(nativeTableResult.getDouble(1)).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
             }
         });
     }
 
-    @Test
-    void testSub() {
-        runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("3 - 1"))) {
-                assertThat(result, table().row(2).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-            }
-        });
-    }
-
-    @Test
-    void testDiv() {
-        runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("3 / 2"))) {
-                assertThat(result, table().row(1.5).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-            }
-        });
-    }
-
-    @Test
-    void testMult() {
-        runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("4 * 2"))) {
-                assertThat(result, table().row(8).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-            }
-        });
-    }
-
+    // TODO improve hamcrest matcher to fuzzy match result against result and then change this to use common method
     @Test
     void testNeg() {
+        final String booleanColumn = getColumnForType("BOOLEAN");
+        final String query = "NOT " + booleanColumn;
         runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(getVirtualSchemaQuery("NOT TRUE"))) {
-                assertThat(result, table().row(false).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+            try (final ResultSet nativeTableResult = statement.executeQuery(getLocalTableQuery(query));
+                    final ResultSet virtualSchemaTableResult = statement.executeQuery(getVirtualSchemaQuery(query))) {
+                nativeTableResult.next();
+                assertThat(virtualSchemaTableResult,
+                        table().row(nativeTableResult.getBoolean(1)).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
             }
         });
     }
 
+    // TODO rewrite; right now it tests exasol against exasol
     @Test
     void testSystimestamp() {
         runOnExasol(statement -> {
@@ -459,6 +512,16 @@ public abstract class ScalarFunctionsAbstractIT {
         });
     }
 
+    /**
+     * Test the SQL CASE statement.
+     * 
+     * @implNote This test does some unnecessary math on a column of the virtual schema to make sure that this case
+     *           statement is sent to the virtual schema if possible and not evaluated before. If, however, the virtual
+     *           schema does not have the FLOAT_DIV or ADD capability this does not work.
+     * 
+     * @param input          input value
+     * @param expectedResult expected output
+     */
     @ParameterizedTest
     @CsvSource({ //
             "1, a", //
@@ -466,10 +529,12 @@ public abstract class ScalarFunctionsAbstractIT {
             "5, c" //
     })
     void testCase(final int input, final String expectedResult) {
+        final String numberColumn = getColumnForType("DECIMAL");
         runOnExasol(statement -> {
-            try (final ResultSet result = statement.executeQuery(
-                    getVirtualSchemaQuery("CASE " + input + " WHEN 1 THEN 'a' WHEN 2 THEN 'b' ELSE 'c' END"))) {
-                assertThat(result, table().row(expectedResult).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+            final String virtualSchemaQuery = getVirtualSchemaQuery("CASE (" + numberColumn + " / " + numberColumn
+                    + ") * " + input + " WHEN 1 THEN 'a' WHEN 2 THEN 'b' ELSE 'c' END");
+            try (final ResultSet result = statement.executeQuery(virtualSchemaQuery)) {
+                assertThat(result, table().row(startsWith(expectedResult)).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
             }
         });
     }

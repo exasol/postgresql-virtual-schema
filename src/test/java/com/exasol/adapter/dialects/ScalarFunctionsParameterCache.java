@@ -12,7 +12,7 @@ import com.exasol.errorreporting.ExaError;
  * these runs and by that are a lot faster.
  */
 public class ScalarFunctionsParameterCache {
-    private static final String CACHE_FILE_NAME = "src/test/resources/scalarFunctionsParameterCache.yml";
+    private static final String CACHE_FILE_NAME = "src/test/resources/integration/scalarFunctionsParameterCache.yml";
     private final Map<String, List<String>> parameterCache;
     private final Yaml yaml;
 
@@ -55,8 +55,11 @@ public class ScalarFunctionsParameterCache {
     synchronized public void flush() {
         try (final FileWriter fileWriter = new FileWriter(CACHE_FILE_NAME)) {
             this.yaml.dump(this.parameterCache, fileWriter);
-        } catch (final IOException e) {
-            e.printStackTrace();
+        } catch (final IOException exception) {
+            throw new IllegalStateException(
+                    ExaError.messageBuilder("E-PGVS-11")
+                            .message("Failed to write scalar functions parameter to the cache file.").toString(),
+                    exception);
         }
     }
 }

@@ -52,7 +52,6 @@ CONVERT_TZ: [ 'TIMESTAMP ''2012-05-10 12:00:00'', ''UTC'', ''Europe/Berlin''' ]
 COS: [ '"FLOATING_POINT"', '"NUMBER"' ]
 COSH: [ '"FLOATING_POINT"', '"NUMBER"' ]
 COT: [ '"FLOATING_POINT"', '"NUMBER"' ]
-DATE_TRUNC: [ '''month'', DATE ''2006-12-31''', '''day'', DATE ''2006-12-31''' ]
 DAY: [ '"DATE"', '"TIMESTAMP"' ]
 DAYS_BETWEEN: [ '"DATE", "DATE"', '"DATE", "TIMESTAMP"', '"TIMESTAMP", "DATE"', '"TIMESTAMP",
     "TIMESTAMP"' ]
