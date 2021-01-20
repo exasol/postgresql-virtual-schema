@@ -1,4 +1,4 @@
-package com.exasol.adapter.dialects;
+package com.exasol.adapter.dialects.scalarfunction;
 
 import java.io.*;
 import java.util.*;
