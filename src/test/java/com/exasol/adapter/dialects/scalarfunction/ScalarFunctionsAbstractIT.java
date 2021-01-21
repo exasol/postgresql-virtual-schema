@@ -58,6 +58,7 @@ public abstract class ScalarFunctionsAbstractIT {
      * entries). By that you can test a function with different values.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(ScalarFunctionsAbstractIT.class);
+    private Set<ScalarFunctionCapability> dialectSpecificExcludes;
 
     /**
      * Returns a set of scalar functions that should not be tested for this dialect.
@@ -125,6 +126,22 @@ public abstract class ScalarFunctionsAbstractIT {
     @FunctionalInterface
     private interface ExasolExecutable {
         void runOnExasol(Statement statement) throws SQLException;
+    }
+
+    /**
+     * This is a workaround to disable tests. The proper method would be to add these tests to the failsafe plugins
+     * excludes. This is however not possible due to a bug: https://issues.apache.org/jira/browse/SUREFIRE-1880
+     * 
+     * @param function function to test
+     * @return {@code true} if test is disabled by dialect
+     */
+    private boolean isTestDisabled(final ScalarFunctionCapability function) {
+        this.dialectSpecificExcludes = getDialectSpecificExcludes();
+        if (this.dialectSpecificExcludes.contains(function)) {
+            LOGGER.info("Skipping test for {} since it was disabled for this dialect.", function.name());
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -199,9 +216,8 @@ public abstract class ScalarFunctionsAbstractIT {
         }
 
         Stream<Arguments> getScalarFunctions() {
-            final Set<ScalarFunctionCapability> dialectSpecificExcludes = getDialectSpecificExcludes();
             return Arrays.stream(ScalarFunctionCapability.values())//
-                    .filter(function -> !EXCLUDES.contains(function) && !dialectSpecificExcludes.contains(function)
+                    .filter(function -> !EXCLUDES.contains(function) && !isTestDisabled(function)
                             && !FUNCTIONS_WITH_NO_PARENTHESIS.contains(function) && !function.name().startsWith("ST_"))//
                     .map(Arguments::of);
         }
@@ -214,7 +230,8 @@ public abstract class ScalarFunctionsAbstractIT {
         private ScalarFunctionQueryBuilder queryBuilder;
 
         private Stream<Arguments> getScalarFunctionWithNoParameters() {
-            return FUNCTIONS_WITH_NO_PARENTHESIS.stream().map(Arguments::of);
+            return FUNCTIONS_WITH_NO_PARENTHESIS.stream().filter(function -> !isTestDisabled(function))
+                    .map(Arguments::of);
         }
 
         @BeforeAll
@@ -247,7 +264,10 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testSystimestamp() {
+            if (isTestDisabled(SYSTIMESTAMP))
+                return;
             runOnExasol(statement -> {
+                statement.executeUpdate("ALTER SESSION SET TIME_ZONE='UTC';");
                 try (final ResultSet result = statement
                         .executeQuery(this.queryBuilder.buildQueryFor(("SYSTIMESTAMP")))) {
                     result.next();
@@ -264,6 +284,8 @@ public abstract class ScalarFunctionsAbstractIT {
          */
         @Test
         void testRand() {
+            if (isTestDisabled(RAND))
+                return;
             runOnExasol(statement -> {
                 final String query = this.queryBuilder.buildQueryFor("RAND()");
                 try (final ResultSet result = statement.executeQuery(query)) {
@@ -276,6 +298,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testSysGUID() {
+            if (isTestDisabled(SYS_GUID))
+                return;
             runOnExasol(statement -> {
                 assertDoesNotThrow(() -> statement.executeQuery(this.queryBuilder.buildQueryFor("SYS_GUID()")).close());
             });
@@ -303,8 +327,11 @@ public abstract class ScalarFunctionsAbstractIT {
         }
 
         @ParameterizedTest
-        @CsvSource({ "+, 4", "-, 0", "*, 4", "/, 1" })
-        void testSimpleArithmeticFunctions(final String operator, final int expectedResult) {
+        @CsvSource({ "ADD, +, 4", "SUB, -, 0", "MULT, *, 4", "FLOAT_DIV, /, 1" })
+        void testSimpleArithmeticFunctions(final ScalarFunctionCapability function, final String operator,
+                final int expectedResult) {
+            if (isTestDisabled(function))
+                return;
             final String query = this.columnName + " " + operator + " " + this.columnName;
             runOnExasol(statement -> {
                 try (final ResultSet virtualSchemaTableResult = statement
@@ -317,6 +344,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testCast() {
+            if (isTestDisabled(CAST))
+                return;
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("CAST(" + this.columnName + " AS VARCHAR(254) UTF8)");
@@ -348,6 +377,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testNeg() {
+            if (isTestDisabled(NEG))
+                return;
             final String query = "NOT " + this.columnName;
             runOnExasol(statement -> {
                 try (final ResultSet virtualSchemaTableResult = statement
@@ -396,6 +427,8 @@ public abstract class ScalarFunctionsAbstractIT {
                 "c, 3" //
         })
         void testCase(final String input, final int expectedResult) throws SQLException {
+            if (isTestDisabled(CASE))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow(input);
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -408,6 +441,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testConvertTz() throws SQLException, ParseException {
+            if (isTestDisabled(CONVERT_TZ))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("UTC");
             final Timestamp expected = new Timestamp(
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-03-25 04:30:00").getTime());
@@ -422,6 +457,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testDateTrunc() throws SQLException, ParseException {
+            if (isTestDisabled(DATE_TRUNC))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("month");
             final Timestamp expected = new Timestamp(
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2006-12-01 00:00:00.0").getTime());
@@ -436,6 +473,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testNumToDsInterval() throws SQLException {
+            if (isTestDisabled(NUMTODSINTERVAL))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("HOUR");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -449,6 +488,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testNumToYmInterval() throws SQLException {
+            if (isTestDisabled(NUMTOYMINTERVAL))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("YEAR");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -461,6 +502,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testToYmInterval() throws SQLException {
+            if (isTestDisabled(TO_YMINTERVAL))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("3-11");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -473,6 +516,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testToDsInterval() throws SQLException {
+            if (isTestDisabled(TO_DSINTERVAL))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("3 10:59:59.123");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -486,6 +531,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testJsonValue() throws SQLException {
+            if (isTestDisabled(JSON_VALUE))
+                return;
             this.tableRowValueSetter.setValueOfSoleRow("{\"name\" : \"Test\"}");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
@@ -518,6 +565,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @Test
         void testExtract() {
+            if (isTestDisabled(EXTRACT))
+                return;
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("EXTRACT(MONTH FROM " + this.columnName + ")");
@@ -527,13 +576,20 @@ public abstract class ScalarFunctionsAbstractIT {
             });
         }
 
-        @Test
-        void testPosixTime() {
+        @ParameterizedTest
+        @CsvSource({ //
+                "UTC, 1", //
+                "Europe/Berlin, -3599",//
+        })
+        void testPosixTime(final String timeZone, final long expectedResult) {
+            if (isTestDisabled(POSIX_TIME))
+                return;
             runOnExasol(statement -> {
+                statement.executeUpdate("ALTER SESSION SET TIME_ZONE='" + timeZone + "';");
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("POSIX_TIME(" + this.columnName + ")");
                 try (final ResultSet result = statement.executeQuery(virtualSchemaQuery)) {
-                    assertThat(result, table().row(3601).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+                    assertThat(result, table().row(expectedResult).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
                 }
             });
         }
