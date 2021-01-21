@@ -4,13 +4,14 @@ import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
 import static com.exasol.matcher.ResultSetStructureMatcher.table;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -268,12 +269,14 @@ public abstract class ScalarFunctionsAbstractIT {
                 return;
             runOnExasol(statement -> {
                 statement.executeUpdate("ALTER SESSION SET TIME_ZONE='UTC';");
-                try (final ResultSet result = statement
-                        .executeQuery(this.queryBuilder.buildQueryFor(("SYSTIMESTAMP")))) {
-                    result.next();
-                    final LocalDateTime timestamp = result.getTimestamp(1).toLocalDateTime();
-                    assertAll(() -> assertTrue(timestamp.isAfter(LocalDateTime.now().minusMinutes(20))),
-                            () -> assertTrue(timestamp.isBefore(LocalDateTime.now().plusMinutes(1))));
+                try (final ResultSet actualResult = statement
+                        .executeQuery(this.queryBuilder.buildQueryFor(("SYSTIMESTAMP")));
+                        final ResultSet expectedResult = statement.executeQuery("SELECT SYSTIMESTAMP FROM DUAL;")) {
+                    expectedResult.next();
+                    actualResult.next();
+                    final Duration difference = Duration.between(expectedResult.getTimestamp(1).toInstant(),
+                            actualResult.getTimestamp(1).toInstant());
+                    assertThat(difference.toSeconds(), lessThan(10L));
                 }
             });
         }
