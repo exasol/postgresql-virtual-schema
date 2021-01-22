@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.exasol.bucketfs.Bucket;
@@ -25,7 +23,6 @@ import com.exasol.errorreporting.ExaError;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLSqlDialectIT.class.getName());
     private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-8.0.0-postgresql-1.0.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
@@ -85,7 +82,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         } catch (final BucketAccessException exception) {
             throw new IllegalStateException(
                     ExaError.messageBuilder("F-PGVS-8")
-                            .message("An error occured while uploading the jdbc driver to the bucket.")
+                            .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
                             .mitigation("You can generate it by executing the integration test with maven.").toString(),

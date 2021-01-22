@@ -59,7 +59,6 @@ public abstract class ScalarFunctionsAbstractIT {
      * entries). By that you can test a function with different values.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(ScalarFunctionsAbstractIT.class);
-    private Set<ScalarFunctionCapability> dialectSpecificExcludes;
 
     /**
      * Returns a set of scalar functions that should not be tested for this dialect.
@@ -83,17 +82,17 @@ public abstract class ScalarFunctionsAbstractIT {
 
     protected abstract String createAnyVirtualSchemaTable() throws SQLException;
 
-    protected abstract String createDateVirtualSchemaTableWithSoleValue(Timestamp soleValue) throws SQLException;
+    protected abstract String createDateVirtualSchemaTableWithSingleValue(Timestamp soleValue) throws SQLException;
 
     /**
      * Create a table with only one integer column, and only one row with given value.
      * 
-     * @param soleRowValue value.
+     * @param singleRowValue value.
      * @return the fully qualified name of the table in the virtual schema.
      */
-    protected abstract String createIntegerVirtualSchemaTableWithSoleRowValue(int soleRowValue) throws SQLException;
+    protected abstract String createIntegerVirtualSchemaTableWithSingleRowValue(int singleRowValue) throws SQLException;
 
-    protected abstract String createBooleanVirtualSchemaTableWithSoleTrueValue() throws SQLException;
+    protected abstract String createBooleanVirtualSchemaTableWithSingleTrueValue() throws SQLException;
 
     protected abstract StringTestTable createStringVirtualSchemaTable() throws SQLException;
 
@@ -137,8 +136,8 @@ public abstract class ScalarFunctionsAbstractIT {
      * @return {@code true} if test is disabled by dialect
      */
     private boolean isTestDisabled(final ScalarFunctionCapability function) {
-        this.dialectSpecificExcludes = getDialectSpecificExcludes();
-        if (this.dialectSpecificExcludes.contains(function)) {
+        final Set<ScalarFunctionCapability> dialectSpecificExcludes = getDialectSpecificExcludes();
+        if (dialectSpecificExcludes.contains(function)) {
             LOGGER.info("Skipping test for {} since it was disabled for this dialect.", function.name());
             return true;
         }
@@ -227,6 +226,7 @@ public abstract class ScalarFunctionsAbstractIT {
     @Nested
     @TestInstance(PER_CLASS)
     @Tag("WithNoParameters") // workaround since IDEA can find the test otherwise
+    @Execution(value = ExecutionMode.SAME_THREAD)
     class WithNoParameters {
         private ScalarFunctionQueryBuilder queryBuilder;
 
@@ -319,7 +319,7 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @BeforeAll
         void beforeAll() throws SQLException {
-            final String tableName = createIntegerVirtualSchemaTableWithSoleRowValue(2);
+            final String tableName = createIntegerVirtualSchemaTableWithSingleRowValue(2);
             this.queryBuilder = new ScalarFunctionQueryBuilder(tableName);
             this.columnName = getColumnsOfTable(tableName).get(0);
         }
@@ -368,7 +368,7 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @BeforeAll
         void beforeAll() throws SQLException {
-            final String tableName = createBooleanVirtualSchemaTableWithSoleTrueValue();
+            final String tableName = createBooleanVirtualSchemaTableWithSingleTrueValue();
             this.queryBuilder = new ScalarFunctionQueryBuilder(tableName);
             this.columnName = getColumnsOfTable(tableName).get(0);
         }
@@ -432,7 +432,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testCase(final String input, final int expectedResult) throws SQLException {
             if (isTestDisabled(CASE))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow(input);
+            this.tableRowValueSetter.setValueOfSingleRow(input);
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("CASE " + this.columnName + " WHEN 'a' THEN 1 WHEN 'b' THEN 2 ELSE 3 END");
@@ -446,7 +446,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testConvertTz() throws SQLException, ParseException {
             if (isTestDisabled(CONVERT_TZ))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("UTC");
+            this.tableRowValueSetter.setValueOfSingleRow("UTC");
             final Timestamp expected = new Timestamp(
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2012-03-25 04:30:00").getTime());
             runOnExasol(statement -> {
@@ -462,7 +462,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testDateTrunc() throws SQLException, ParseException {
             if (isTestDisabled(DATE_TRUNC))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("month");
+            this.tableRowValueSetter.setValueOfSingleRow("month");
             final Timestamp expected = new Timestamp(
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2006-12-01 00:00:00.0").getTime());
             runOnExasol(statement -> {
@@ -478,7 +478,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testNumToDsInterval() throws SQLException {
             if (isTestDisabled(NUMTODSINTERVAL))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("HOUR");
+            this.tableRowValueSetter.setValueOfSingleRow("HOUR");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("NUMTODSINTERVAL(3.2, " + this.columnName + ")");
@@ -493,7 +493,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testNumToYmInterval() throws SQLException {
             if (isTestDisabled(NUMTOYMINTERVAL))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("YEAR");
+            this.tableRowValueSetter.setValueOfSingleRow("YEAR");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("NUMTOYMINTERVAL(3.5, " + this.columnName + ")");
@@ -507,7 +507,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testToYmInterval() throws SQLException {
             if (isTestDisabled(TO_YMINTERVAL))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("3-11");
+            this.tableRowValueSetter.setValueOfSingleRow("3-11");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("TO_YMINTERVAL(" + this.columnName + ")");
@@ -521,7 +521,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testToDsInterval() throws SQLException {
             if (isTestDisabled(TO_DSINTERVAL))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("3 10:59:59.123");
+            this.tableRowValueSetter.setValueOfSingleRow("3 10:59:59.123");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("TO_DSINTERVAL(" + this.columnName + ")");
@@ -536,7 +536,7 @@ public abstract class ScalarFunctionsAbstractIT {
         void testJsonValue() throws SQLException {
             if (isTestDisabled(JSON_VALUE))
                 return;
-            this.tableRowValueSetter.setValueOfSoleRow("{\"name\" : \"Test\"}");
+            this.tableRowValueSetter.setValueOfSingleRow("{\"name\" : \"Test\"}");
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("JSON_VALUE(" + this.columnName + ", '$.name')");
@@ -556,7 +556,7 @@ public abstract class ScalarFunctionsAbstractIT {
 
         @BeforeAll
         void beforeAll() throws SQLException {
-            final String tableName = createDateVirtualSchemaTableWithSoleValue(new Timestamp(1000));
+            final String tableName = createDateVirtualSchemaTableWithSingleValue(new Timestamp(1000));
             this.queryBuilder = new ScalarFunctionQueryBuilder(tableName);
             this.columnName = getColumnsOfTable(tableName).get(0);
         }

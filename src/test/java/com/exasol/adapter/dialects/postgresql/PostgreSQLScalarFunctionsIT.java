@@ -70,7 +70,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected String createDateVirtualSchemaTableWithSoleValue(final Timestamp soleValue) throws SQLException {
+    protected String createDateVirtualSchemaTableWithSingleValue(final Timestamp soleValue) throws SQLException {
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
                 .column("timestamp", "TIMESTAMP").build()//
                 .insert(soleValue);
@@ -80,17 +80,17 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected String createIntegerVirtualSchemaTableWithSoleRowValue(final int soleRowValue) throws SQLException {
+    protected String createIntegerVirtualSchemaTableWithSingleRowValue(final int singleRowValue) throws SQLException {
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
                 .column("number", "integer").build()//
-                .insert(soleRowValue);
+                .insert(singleRowValue);
         this.createdTables.add(table);
         refreshVirtualSchema();
         return virtualSchema.getFullyQualifiedName() + "." + POSTGRES_TABLE_NAME;
     }
 
     @Override
-    protected String createBooleanVirtualSchemaTableWithSoleTrueValue() throws SQLException {
+    protected String createBooleanVirtualSchemaTableWithSingleTrueValue() throws SQLException {
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
                 .column("boolean", "boolean").build()//
                 .insert(true);

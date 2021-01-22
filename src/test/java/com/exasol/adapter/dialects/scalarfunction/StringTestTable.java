@@ -27,6 +27,6 @@ public class StringTestTable {
 
     @FunctionalInterface
     public interface ValueSetter {
-        void setValueOfSoleRow(String value) throws SQLException;
+        void setValueOfSingleRow(String value) throws SQLException;
     }
 }
