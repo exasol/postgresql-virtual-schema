@@ -36,17 +36,19 @@ class PostgresSQLSqlGenerationVisitorTest {
         this.visitor = new PostgresSQLSqlGenerationVisitor(dialect, context);
     }
 
-    @CsvSource({ "ADD_DAYS, day", //
-            "ADD_HOURS, hour", //
-            "ADD_MINUTES, minute", //
-            "ADD_SECONDS, second", //
-            "ADD_YEARS, year", //
-            "ADD_WEEKS, week" })
+    @CsvSource({ "ADD_DAYS, days", //
+            "ADD_HOURS, hours", //
+            "ADD_MINUTES, mins", //
+            "ADD_SECONDS, secs", //
+            "ADD_YEARS, years", //
+            "ADD_WEEKS, weeks", //
+            "ADD_MONTHS, months" })
     @ParameterizedTest
     void testVisitSqlFunctionScalarAddDate(final ScalarFunction scalarFunction, final String expected)
             throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(scalarFunction, 10);
-        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("\"test_column\" +  interval '10 " + expected + "'"));
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("\"test_column\" + make_interval(" + expected + " => 10)"));
     }
 
     private SqlFunctionScalar createSqlFunctionScalarForDateTest(final ScalarFunction scalarFunction,

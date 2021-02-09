@@ -10,7 +10,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
-        <surefire.and.failsafe.plugin.version>3.0.0-M3</surefire.and.failsafe.plugin.version>
+        <surefire.and.failsafe.plugin.version>3.0.0-M5</surefire.and.failsafe.plugin.version>
         <vscjdbc.version>8.0.0</vscjdbc.version>
         <org.testcontainers.version>1.15.0</org.testcontainers.version>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
@@ -113,7 +113,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>hamcrest-resultset-matcher</artifactId>
-            <version>1.3.0</version>
+            <version>1.4.0</version>
             <scope>test</scope>
         </dependency>
         <!-- Overrides Junit 4.12 which is used in test containers but contains
@@ -128,6 +128,13 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.27</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.exasol</groupId>
+            <artifactId>udf-debugging-java</artifactId>
+            <version>0.3.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -213,6 +220,7 @@
                     <!-- Set the highest log level for coverage testing, so that we have
                         a chance to reach branches <property> in the logging lambdas too. -->
                     <argLine>-Djava.util.logging.config.file=src/test/resources/logging.properties ${argLine}</argLine>
+                    <forkCount>0</forkCount>
                 </configuration>
                 <executions>
                     <execution>

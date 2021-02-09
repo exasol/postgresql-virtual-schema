@@ -25,8 +25,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
      * These functions are known to be broken in this dialect. We will remove them once they are fixed.
      */
     private static final Set<ScalarFunctionCapability> KNOWN_BROKEN = Set.of(GREATEST, LEAST, ROUND, CONCAT, INSTR,
-            UNICODECHR, UNICODE, ADD_DAYS, ADD_HOURS, ADD_MINUTES, ADD_MONTHS, HOURS_BETWEEN, ADD_SECONDS, ADD_WEEKS,
-            ADD_YEARS, SECONDS_BETWEEN, MINUTES_BETWEEN, SECOND, TO_CHAR, POSIX_TIME);
+            UNICODECHR, UNICODE, HOURS_BETWEEN, SECONDS_BETWEEN, MINUTES_BETWEEN, SECOND, TO_CHAR, POSIX_TIME);
     @CloseAfterAll
     private static final PostgresVirtualSchemaIntegrationTestSetup SETUP = new PostgresVirtualSchemaIntegrationTestSetup();
     private static Schema postgresSchema;
