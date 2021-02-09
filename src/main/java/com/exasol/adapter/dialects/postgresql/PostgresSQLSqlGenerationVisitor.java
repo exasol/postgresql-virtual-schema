@@ -129,13 +129,6 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             return getAddDateTime(argumentsSql, "years");
         case ADD_MONTHS:
             return getAddDateTime(argumentsSql, "months");
-        case SECONDS_BETWEEN:
-        case MINUTES_BETWEEN:
-        case HOURS_BETWEEN:
-        case DAYS_BETWEEN:
-        case MONTHS_BETWEEN:
-        case YEARS_BETWEEN:
-            return getDateTimeBetween(argumentsSql, scalarFunction);
         case SECOND:
         case MINUTE:
         case DAY:
@@ -188,9 +181,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             break;
         }
         builder.append(", AGE(");
-        builder.append(argumentsSql.get(1));
-        builder.append(",");
         builder.append(argumentsSql.get(0));
+        builder.append(",");
+        builder.append(argumentsSql.get(1));
         builder.append("))");
         return builder.toString();
     }

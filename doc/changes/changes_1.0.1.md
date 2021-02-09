@@ -10,7 +10,7 @@ Code name:
 
 ## Bugfixes
 
-* #24: Fixed broken scalar functions: `ADD_DAYS`, `ADD_HOURS`, `ADD_MINUTES`, `ADD_MONTHS`, `ADD_SECONDS`, `ADD_WEEKS`, `ADD_YEARS`.
+* #24: Fixed broken scalar functions: `ADD_DAYS`, `ADD_HOURS`, `ADD_MINUTES`, `ADD_MONTHS`, `ADD_SECONDS`, `ADD_WEEKS`, `ADD_YEARS`, `HOURS_BETWEEN`, `SECONDS_BETWEEN`, `MINUTES_BETWEEN`.
 
 ## Dependency updates
 
@@ -22,3 +22,5 @@ Code name:
 * Updated `com.exasol:hamcrest-resultset-matcher:1.3.0` to 1.4.0
 * Updated `org.apache.maven.plugins.maven-surefire-plugin:3.0.0-M3` to 3.0.0-M5
 * Updated `org.apache.maven.plugins.maven-failsafe-plugin:3.0.0-M3` to 3.0.0-M5
+* Updated `org.testcontainers:junit-jupiter:1.15.0` to 1.15.1
+* Updated `org.testcontainers:postgresql:1.15.0` to 1.15.1

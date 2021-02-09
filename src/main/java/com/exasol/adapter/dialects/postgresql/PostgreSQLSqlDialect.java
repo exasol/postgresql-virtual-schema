@@ -30,6 +30,10 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final PostgreSQLIdentifierMapping DEFAULT_POSTGRESS_IDENTIFIER_MAPPING = PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
     private static final Capabilities CAPABILITIES = createCapabilityList();
 
+    /*
+     * IMPORTANT! Before adding new capabilities, check the doc/design.md if there is a note why we explicitly not add
+     * it.
+     */
     private static Capabilities createCapabilityList() {
         return Capabilities.builder()
                 .addMain(SELECTLIST_PROJECTION, SELECTLIST_EXPRESSIONS, FILTER_EXPRESSIONS, AGGREGATE_SINGLE_GROUP,
@@ -49,9 +53,8 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
                         SINH, SQRT, TAN, TANH, TRUNC, ASCII, BIT_LENGTH, CHR, CONCAT, INSTR, LENGTH, LOWER, LPAD, LTRIM,
                         OCTET_LENGTH, REGEXP_REPLACE, REPEAT, REPLACE, REVERSE, RIGHT, RPAD, RTRIM, SUBSTR, TRANSLATE,
                         TRIM, UNICODE, UNICODECHR, UPPER, ADD_DAYS, ADD_HOURS, ADD_MINUTES, ADD_MONTHS, ADD_SECONDS,
-                        ADD_WEEKS, ADD_YEARS, SECONDS_BETWEEN, MINUTES_BETWEEN, HOURS_BETWEEN, DAYS_BETWEEN,
-                        MONTHS_BETWEEN, YEARS_BETWEEN, MINUTE, SECOND, DAY, WEEK, MONTH, YEAR, CURRENT_DATE,
-                        CURRENT_TIMESTAMP, DATE_TRUNC, EXTRACT, LOCALTIMESTAMP, POSIX_TIME, TO_CHAR, CASE, HASH_MD5)
+                        ADD_WEEKS, ADD_YEARS, MINUTE, SECOND, DAY, WEEK, MONTH, YEAR, CURRENT_DATE, CURRENT_TIMESTAMP,
+                        DATE_TRUNC, EXTRACT, LOCALTIMESTAMP, POSIX_TIME, TO_CHAR, CASE, HASH_MD5)
                 .build();
     }
 
@@ -88,9 +91,9 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     }
 
     @Override
-    public boolean omitParentheses(ScalarFunction function) {
-        return function.name().equals("CURRENT_DATE") || function.name().equals("CURRENT_TIMESTAMP") ||
-                function.name().equals("LOCALTIMESTAMP");
+    public boolean omitParentheses(final ScalarFunction function) {
+        return function.name().equals("CURRENT_DATE") || function.name().equals("CURRENT_TIMESTAMP")
+                || function.name().equals("LOCALTIMESTAMP");
     }
 
     @Override

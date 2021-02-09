@@ -62,20 +62,6 @@ class PostgresSQLSqlGenerationVisitorTest {
         return new SqlFunctionScalar(scalarFunction, arguments);
     }
 
-    @CsvSource({ "SECONDS_BETWEEN, SECOND", //
-            "MINUTES_BETWEEN, MINUTE", //
-            "HOURS_BETWEEN, HOUR", //
-            "DAYS_BETWEEN, DAY", //
-            "MONTHS_BETWEEN, MONTH", //
-            "YEARS_BETWEEN, YEAR" })
-    @ParameterizedTest
-    void testVisitSqlFunctionScalarTimeBetween(final ScalarFunction scalarFunction, final String expected)
-            throws AdapterException {
-        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(scalarFunction, 10);
-        assertThat(this.visitor.visit(sqlFunctionScalar),
-                equalTo("DATE_PART('" + expected + "', AGE(10,\"test_column\"))"));
-    }
-
     @CsvSource({ "SECOND, SECOND", //
             "MINUTE, MINUTE", //
             "DAY, DAY", //
