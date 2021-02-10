@@ -8,7 +8,7 @@ Exasol supports multiple functions that get the diff of a date in a specific uni
 
 PostgreSQL does not have such functions.
 
-**Design**: Do not support this capabilities.
+**Design**: Do not support these capabilities.
 
 #### Other considered options:
 
@@ -16,4 +16,6 @@ PostgreSQL does not have such functions.
   This approach does only return the minutes-part of the interval, not the total minutes.
 
 * Use custom math. We could try to do things like dividing the interval by 60 to get it in minutes. This is however dangerous, especially concerning leap seconds.
+
+
 

@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 1.0.1, released 2020-??-??
+# Virtual Schema for PostgreSQL 1.1.0, released 2021-??-??
 
 Code name:
 
@@ -10,7 +10,7 @@ Code name:
 
 ## Bugfixes
 
-* #24: Fixed broken scalar functions: `ADD_DAYS`, `ADD_HOURS`, `ADD_MINUTES`, `ADD_MONTHS`, `ADD_SECONDS`, `ADD_WEEKS`, `ADD_YEARS`, `HOURS_BETWEEN`, `SECONDS_BETWEEN`, `MINUTES_BETWEEN`.
+* #24: Fixed broken scalar functions + updated scalar function capabilities.
 
 ## Dependency updates
 

@@ -41,7 +41,7 @@ public abstract class ScalarFunctionsAbstractIT {
      */
     private static final Set<ScalarFunctionCapability> EXCLUDES = Set.of(CASE, CAST, FLOAT_DIV, SESSION_PARAMETER, RAND,
             ADD, SUB, MULT, NEG, SYS_GUID, SYSTIMESTAMP, CONVERT_TZ, DATE_TRUNC, NUMTODSINTERVAL, NUMTOYMINTERVAL,
-            TO_YMINTERVAL, TO_DSINTERVAL, JSON_VALUE, EXTRACT, POSIX_TIME);
+            TO_YMINTERVAL, TO_DSINTERVAL, JSON_VALUE, EXTRACT, POSIX_TIME, GREATEST);
     private static final String LOCAL_COPY_TABLE_NAME = "LOCAL_COPY";
     private static final String LOCAL_COPY_SCHEMA = "EXASOL";
 
@@ -84,17 +84,13 @@ public abstract class ScalarFunctionsAbstractIT {
 
     protected abstract String createDateVirtualSchemaTableWithSingleValue(Timestamp soleValue) throws SQLException;
 
-    /**
-     * Create a table with only one integer column, and only one row with given value.
-     * 
-     * @param singleRowValue value.
-     * @return the fully qualified name of the table in the virtual schema.
-     */
-    protected abstract String createIntegerVirtualSchemaTableWithSingleRowValue(int singleRowValue) throws SQLException;
+    protected abstract VirtualSchemaTestTable<Integer> createIntegerVirtualSchemaTable() throws SQLException;
+
+    protected abstract VirtualSchemaTestTable<Double> createDoubleVirtualSchemaTable() throws SQLException;
 
     protected abstract String createBooleanVirtualSchemaTableWithSingleTrueValue() throws SQLException;
 
-    protected abstract StringTestTable createStringVirtualSchemaTable() throws SQLException;
+    protected abstract VirtualSchemaTestTable<String> createStringVirtualSchemaTable() throws SQLException;
 
     protected abstract void deleteCreatedTables();
 
@@ -316,12 +312,14 @@ public abstract class ScalarFunctionsAbstractIT {
 
         private ScalarFunctionQueryBuilder queryBuilder;
         private String columnName;
+        private VirtualSchemaTestTable.ValueSetter<Integer> valueSetter;
 
         @BeforeAll
         void beforeAll() throws SQLException {
-            final String tableName = createIntegerVirtualSchemaTableWithSingleRowValue(2);
-            this.queryBuilder = new ScalarFunctionQueryBuilder(tableName);
-            this.columnName = getColumnsOfTable(tableName).get(0);
+            final VirtualSchemaTestTable<Integer> testTable = createIntegerVirtualSchemaTable();
+            this.queryBuilder = new ScalarFunctionQueryBuilder(testTable.getFullyQualifiedName());
+            this.columnName = getColumnsOfTable(testTable.getFullyQualifiedName()).get(0);
+            this.valueSetter = testTable.getValueSetter();
         }
 
         @AfterAll
@@ -332,9 +330,11 @@ public abstract class ScalarFunctionsAbstractIT {
         @ParameterizedTest
         @CsvSource({ "ADD, +, 4", "SUB, -, 0", "MULT, *, 4", "FLOAT_DIV, /, 1" })
         void testSimpleArithmeticFunctions(final ScalarFunctionCapability function, final String operator,
-                final int expectedResult) {
-            if (isTestDisabled(function))
+                final int expectedResult) throws SQLException {
+            if (isTestDisabled(function)) {
                 return;
+            }
+            this.valueSetter.setValueOfSingleRow(2);
             final String query = this.columnName + " " + operator + " " + this.columnName;
             runOnExasol(statement -> {
                 try (final ResultSet virtualSchemaTableResult = statement
@@ -346,14 +346,67 @@ public abstract class ScalarFunctionsAbstractIT {
         }
 
         @Test
-        void testCast() {
+        void testCast() throws SQLException {
             if (isTestDisabled(CAST))
                 return;
+            this.valueSetter.setValueOfSingleRow(2);
             runOnExasol(statement -> {
                 final String virtualSchemaQuery = this.queryBuilder
                         .buildQueryFor("CAST(" + this.columnName + " AS VARCHAR(254) UTF8)");
                 try (final ResultSet result = statement.executeQuery(virtualSchemaQuery)) {
-                    assertThat(result, table().row("2").matches(TypeMatchMode.STRICT));
+                    assertThat(result, table().row(String.valueOf(2)).matches(TypeMatchMode.STRICT));
+                }
+            });
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "-2, 0", "2, 2" })
+        void testGreatest(final int input, final int expectedOutput) throws SQLException {
+            if (isTestDisabled(GREATEST))
+                return;
+            this.valueSetter.setValueOfSingleRow(input);
+            runOnExasol(statement -> {
+                final String virtualSchemaQuery = this.queryBuilder
+                        .buildQueryFor("GREATEST(" + this.columnName + ", 0)");
+                try (final ResultSet result = statement.executeQuery(virtualSchemaQuery)) {
+                    assertThat(result, table().row(expectedOutput).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+                }
+            });
+        }
+    }
+
+    @Nested
+    @TestInstance(PER_CLASS)
+    @Tag("WithDoubleParameter") // workaround since IDEA can find the test otherwise
+    class WithDoubleParameter {
+
+        private ScalarFunctionQueryBuilder queryBuilder;
+        private String columnName;
+        private VirtualSchemaTestTable.ValueSetter<Double> valueSetter;
+
+        @BeforeAll
+        void beforeAll() throws SQLException {
+            final VirtualSchemaTestTable<Double> testTable = createDoubleVirtualSchemaTable();
+            this.queryBuilder = new ScalarFunctionQueryBuilder(testTable.getFullyQualifiedName());
+            this.columnName = getColumnsOfTable(testTable.getFullyQualifiedName()).get(0);
+            this.valueSetter = testTable.getValueSetter();
+        }
+
+        @AfterAll
+        void afterAll() {
+            deleteCreatedTables();
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "0.1, 0", "0.5, 1", "0.9, 1" })
+        void testRound(final double input, final double expectedOutput) throws SQLException {
+            if (isTestDisabled(ROUND))
+                return;
+            this.valueSetter.setValueOfSingleRow(input);
+            runOnExasol(statement -> {
+                final String virtualSchemaQuery = this.queryBuilder.buildQueryFor("ROUND(" + this.columnName + ")");
+                try (final ResultSet result = statement.executeQuery(virtualSchemaQuery)) {
+                    assertThat(result, table().row(expectedOutput).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
                 }
             });
         }
@@ -398,11 +451,11 @@ public abstract class ScalarFunctionsAbstractIT {
     class WithStringParameter {
         private ScalarFunctionQueryBuilder queryBuilder;
         private String columnName;
-        private StringTestTable.ValueSetter tableRowValueSetter;
+        private VirtualSchemaTestTable.ValueSetter tableRowValueSetter;
 
         @BeforeAll
         void beforeAll() throws SQLException {
-            final StringTestTable table = createStringVirtualSchemaTable();
+            final VirtualSchemaTestTable table = createStringVirtualSchemaTable();
             this.tableRowValueSetter = table.getValueSetter();
             this.queryBuilder = new ScalarFunctionQueryBuilder(table.getFullyQualifiedName());
             this.columnName = getColumnsOfTable(table.getFullyQualifiedName()).get(0);

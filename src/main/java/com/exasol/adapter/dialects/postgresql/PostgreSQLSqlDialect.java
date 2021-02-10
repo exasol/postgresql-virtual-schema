@@ -12,6 +12,7 @@ import java.util.*;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
+import com.exasol.adapter.capabilities.ScalarFunctionCapability;
 import com.exasol.adapter.dialects.*;
 import com.exasol.adapter.jdbc.*;
 import com.exasol.adapter.sql.ScalarFunction;
@@ -28,6 +29,22 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final String POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE = "PRESERVE_ORIGINAL_CASE";
     private static final String POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE = "CONVERT_TO_UPPER";
     private static final PostgreSQLIdentifierMapping DEFAULT_POSTGRESS_IDENTIFIER_MAPPING = PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
+    private static final Set<ScalarFunctionCapability> DISABLED_SCALAR_FUNCTION = Set.of(
+            /* implementation is very hard. See design.md. */
+            SECONDS_BETWEEN, MINUTES_BETWEEN, HOURS_BETWEEN, DAYS_BETWEEN, MONTHS_BETWEEN, YEARS_BETWEEN, //
+            ROUND, // PostgreSQL rounds 0.5 down while exasol rounds it up
+            SECOND, // Seems to have some issues with precision
+            COLOGNE_PHONETIC, // No PostgreSQL equivalent
+            CONCAT, // fails for boolean since different to string behaviour
+            INSTR, // not implemented; probably possible using strpos
+            // simply not implemented:
+            DUMP, EDIT_DISTANCE, INSERT, LOCATE, REGEXP_INSTR, REGEXP_SUBSTR, SOUNDEX, SPACE, UNICODE, UNICODECHR,
+            DBTIMEZONE, FROM_POSIX_TIME, HOUR, SESSIONTIMEZONE, IS_NUMBER, IS_BOOLEAN, IS_DATE, IS_DSINTERVAL,
+            IS_YMINTERVAL, IS_TIMESTAMP, TO_CHAR, TO_DATE, TO_NUMBER, TO_TIMESTAMP, BIT_AND, BIT_CHECK, BIT_LROTATE,
+            BIT_LSHIFT, BIT_NOT, BIT_OR, BIT_RROTATE, BIT_RSHIFT, BIT_SET, BIT_TO_NUM, BIT_XOR, HASHTYPE_MD5, HASH_SHA1,
+            HASHTYPE_SHA1, HASH_SHA256, HASHTYPE_SHA256, HASH_SHA512, HASHTYPE_SHA512, HASH_TIGER, HASHTYPE_TIGER,
+            NULLIFZERO, ZEROIFNULL, MIN_SCALE//
+    );
     private static final Capabilities CAPABILITIES = createCapabilityList();
 
     /*
@@ -48,14 +65,14 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
                         MEDIAN, FIRST_VALUE, LAST_VALUE, STDDEV, STDDEV_DISTINCT, STDDEV_POP, STDDEV_POP_DISTINCT,
                         STDDEV_SAMP, STDDEV_SAMP_DISTINCT, VARIANCE, VARIANCE_DISTINCT, VAR_POP, VAR_POP_DISTINCT,
                         VAR_SAMP, VAR_SAMP_DISTINCT, GROUP_CONCAT)
-                .addScalarFunction(ADD, SUB, MULT, FLOAT_DIV, NEG, ABS, ACOS, ASIN, ATAN, ATAN2, CEIL, COS, COSH, COT,
-                        DEGREES, DIV, EXP, FLOOR, GREATEST, LEAST, LN, LOG, MOD, POWER, RADIANS, RAND, ROUND, SIGN, SIN,
-                        SINH, SQRT, TAN, TANH, TRUNC, ASCII, BIT_LENGTH, CHR, CONCAT, INSTR, LENGTH, LOWER, LPAD, LTRIM,
-                        OCTET_LENGTH, REGEXP_REPLACE, REPEAT, REPLACE, REVERSE, RIGHT, RPAD, RTRIM, SUBSTR, TRANSLATE,
-                        TRIM, UNICODE, UNICODECHR, UPPER, ADD_DAYS, ADD_HOURS, ADD_MINUTES, ADD_MONTHS, ADD_SECONDS,
-                        ADD_WEEKS, ADD_YEARS, MINUTE, SECOND, DAY, WEEK, MONTH, YEAR, CURRENT_DATE, CURRENT_TIMESTAMP,
-                        DATE_TRUNC, EXTRACT, LOCALTIMESTAMP, POSIX_TIME, TO_CHAR, CASE, HASH_MD5)
+                .addScalarFunction(Arrays.stream(ScalarFunctionCapability.values())
+                        .filter(function -> !isGeospatial(function) && !DISABLED_SCALAR_FUNCTION.contains(function))
+                        .toArray(ScalarFunctionCapability[]::new))
                 .build();
+    }
+
+    private static boolean isGeospatial(final ScalarFunctionCapability function) {
+        return function.name().startsWith("ST_");
     }
 
     /**
