@@ -37,13 +37,15 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
             COLOGNE_PHONETIC, // No PostgreSQL equivalent
             CONCAT, // fails for boolean since different to string behaviour
             INSTR, // not implemented; probably possible using strpos
+            POSIX_TIME, // did not respect exasol session timezone
             // simply not implemented:
             DUMP, EDIT_DISTANCE, INSERT, LOCATE, REGEXP_INSTR, REGEXP_SUBSTR, SOUNDEX, SPACE, UNICODE, UNICODECHR,
             DBTIMEZONE, FROM_POSIX_TIME, HOUR, SESSIONTIMEZONE, IS_NUMBER, IS_BOOLEAN, IS_DATE, IS_DSINTERVAL,
             IS_YMINTERVAL, IS_TIMESTAMP, TO_CHAR, TO_DATE, TO_NUMBER, TO_TIMESTAMP, BIT_AND, BIT_CHECK, BIT_LROTATE,
             BIT_LSHIFT, BIT_NOT, BIT_OR, BIT_RROTATE, BIT_RSHIFT, BIT_SET, BIT_TO_NUM, BIT_XOR, HASHTYPE_MD5, HASH_SHA1,
             HASHTYPE_SHA1, HASH_SHA256, HASHTYPE_SHA256, HASH_SHA512, HASHTYPE_SHA512, HASH_TIGER, HASHTYPE_TIGER,
-            NULLIFZERO, ZEROIFNULL, MIN_SCALE//
+            NULLIFZERO, ZEROIFNULL, MIN_SCALE, NUMTOYMINTERVAL, JSON_VALUE, TO_DSINTERVAL, CONVERT_TZ, NUMTODSINTERVAL,
+            TO_YMINTERVAL, CAST, SYS_GUID, SYSTIMESTAMP, CURRENT_STATEMENT, CURRENT_USER, SYSDATE, CURRENT_SESSION//
     );
     private static final Capabilities CAPABILITIES = createCapabilityList();
 

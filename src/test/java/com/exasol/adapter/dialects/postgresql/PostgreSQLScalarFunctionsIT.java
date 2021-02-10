@@ -63,6 +63,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
     @Override
     protected String createDateVirtualSchemaTableWithSingleValue(final Timestamp soleValue) throws SQLException {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
                 .column("timestamp", "TIMESTAMP").build()//
                 .insert(soleValue);
