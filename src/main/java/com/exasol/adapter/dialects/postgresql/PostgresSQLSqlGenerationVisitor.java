@@ -147,45 +147,12 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         final StringBuilder builder = new StringBuilder();
         builder.append(argumentsSql.get(0));
         builder.append(" + ");
-        appendInterval(argumentsSql, builder, unit);
+        builder.append(buildInterval(argumentsSql, unit));
         return builder.toString();
     }
 
-    private void appendInterval(final List<String> argumentsSql, final StringBuilder builder, final String unit) {
-        builder.append("make_interval(").append(unit).append(" => ").append(argumentsSql.get(1)).append(")");
-    }
-
-    private String getDateTimeBetween(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("DATE_PART(");
-        switch (scalarFunction) {
-        case SECONDS_BETWEEN:
-            builder.append("'SECOND'");
-            break;
-        case MINUTES_BETWEEN:
-            builder.append("'MINUTE'");
-            break;
-        case HOURS_BETWEEN:
-            builder.append("'HOUR'");
-            break;
-        case DAYS_BETWEEN:
-            builder.append("'DAY'");
-            break;
-        case MONTHS_BETWEEN:
-            builder.append("'MONTH'");
-            break;
-        case YEARS_BETWEEN:
-            builder.append("'YEAR'");
-            break;
-        default:
-            break;
-        }
-        builder.append(", AGE(");
-        builder.append(argumentsSql.get(0));
-        builder.append(",");
-        builder.append(argumentsSql.get(1));
-        builder.append("))");
-        return builder.toString();
+    private String buildInterval(final List<String> argumentsSql, final String unit) {
+        return "make_interval(" + unit + " => " + argumentsSql.get(1) + ")";
     }
 
     private String getDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {

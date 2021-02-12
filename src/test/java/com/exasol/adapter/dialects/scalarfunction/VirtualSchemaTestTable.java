@@ -21,12 +21,19 @@ public class VirtualSchemaTestTable<T> {
         return this.fullyQualifiedName;
     }
 
-    public ValueSetter<T> getValueSetter() {
-        return this.valueSetter;
+    public void setValueOfSingleRow(final T value) throws SQLException {
+        this.valueSetter.setValueOfSingleRow(value);
     }
 
     @FunctionalInterface
     public interface ValueSetter<T> {
+        /**
+         * Set the value of the single row of the table. Typical implementation: truncate table + insert row with the
+         * given value.
+         * 
+         * @param value value for the row
+         * @throws SQLException if something goes wrong
+         */
         void setValueOfSingleRow(T value) throws SQLException;
     }
 }

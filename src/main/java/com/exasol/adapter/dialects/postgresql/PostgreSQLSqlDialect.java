@@ -11,6 +11,7 @@ import static com.exasol.adapter.capabilities.ScalarFunctionCapability.ST_UNION;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Predicate;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
@@ -32,7 +33,10 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final String POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE = "CONVERT_TO_UPPER";
     private static final PostgreSQLIdentifierMapping DEFAULT_POSTGRESS_IDENTIFIER_MAPPING = PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
     private static final Set<ScalarFunctionCapability> DISABLED_SCALAR_FUNCTION = Set.of(
-            /* Implementation for `BETWEEN` time functions is not supported. For more information see `design.md` file, `Scalar Functions` section */
+            /*
+             * Implementation for `BETWEEN` time functions is not supported. For more information see `design.md` file,
+             * `Scalar Functions` section
+             */
             SECONDS_BETWEEN, MINUTES_BETWEEN, HOURS_BETWEEN, DAYS_BETWEEN, MONTHS_BETWEEN, YEARS_BETWEEN, //
             ROUND, // PostgreSQL rounds `0.5` down while Exasol rounds it up
             SECOND, // It presents precision issues
@@ -58,8 +62,8 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final Capabilities CAPABILITIES = createCapabilityList();
 
     /*
-     * IMPORTANT! Before adding new capabilities, check the `doc/design.md` file if there is a note on why the capability is not supported.
-     * it.
+     * IMPORTANT! Before adding new capabilities, check the `doc/design.md` file if there is a note on why the
+     * capability is not supported. it.
      */
     private static Capabilities createCapabilityList() {
         return Capabilities.builder()
@@ -78,10 +82,15 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
                 .addScalarFunction(getEnabledScalarFunctionCapabilities()).build();
     }
 
+    /**
+     * This class gets all {@link ScalarFunctionCapability}s that are not explicitly excluded by
+     * {@link #DISABLED_SCALAR_FUNCTION}.
+     * 
+     * @return list enabled scalar function capabilities
+     */
     private static ScalarFunctionCapability[] getEnabledScalarFunctionCapabilities() {
         return Arrays.stream(ScalarFunctionCapability.values())
-                .filter(Predicate.not(DISABLED_SCALAR_FUNCTION::contains))
-                .toArray(ScalarFunctionCapability[]::new);
+                .filter(Predicate.not(DISABLED_SCALAR_FUNCTION::contains)).toArray(ScalarFunctionCapability[]::new);
     }
 
     /**
