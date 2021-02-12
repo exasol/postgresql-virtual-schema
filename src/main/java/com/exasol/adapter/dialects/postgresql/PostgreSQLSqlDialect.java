@@ -32,15 +32,15 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final String POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE = "CONVERT_TO_UPPER";
     private static final PostgreSQLIdentifierMapping DEFAULT_POSTGRESS_IDENTIFIER_MAPPING = PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
     private static final Set<ScalarFunctionCapability> DISABLED_SCALAR_FUNCTION = Set.of(
-            /* implementation is very hard. See design.md. */
+            /* Implementation for `BETWEEN` time functions is not supported. For more information see `design.md` file, `Scalar Functions` section */
             SECONDS_BETWEEN, MINUTES_BETWEEN, HOURS_BETWEEN, DAYS_BETWEEN, MONTHS_BETWEEN, YEARS_BETWEEN, //
-            ROUND, // PostgreSQL rounds 0.5 down while exasol rounds it up
-            SECOND, // Seems to have some issues with precision
+            ROUND, // PostgreSQL rounds `0.5` down while Exasol rounds it up
+            SECOND, // It presents precision issues
             COLOGNE_PHONETIC, // No PostgreSQL equivalent
-            CONCAT, // fails for boolean since different to string behaviour
+            CONCAT, // It fails for boolean data types
             INSTR, // not implemented; probably possible using strpos
-            POSIX_TIME, // did not respect exasol session timezone
-            // simply not implemented:
+            POSIX_TIME, // Does not follow Exasol session timezone
+            // Currently not implemented:
             DUMP, EDIT_DISTANCE, INSERT, LOCATE, REGEXP_INSTR, REGEXP_SUBSTR, SOUNDEX, SPACE, UNICODE, UNICODECHR,
             DBTIMEZONE, FROM_POSIX_TIME, HOUR, SESSIONTIMEZONE, IS_NUMBER, IS_BOOLEAN, IS_DATE, IS_DSINTERVAL,
             IS_YMINTERVAL, IS_TIMESTAMP, TO_CHAR, TO_DATE, TO_NUMBER, TO_TIMESTAMP, BIT_AND, BIT_CHECK, BIT_LROTATE,
@@ -48,7 +48,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
             HASHTYPE_SHA1, HASH_SHA256, HASHTYPE_SHA256, HASH_SHA512, HASHTYPE_SHA512, HASH_TIGER, HASHTYPE_TIGER,
             NULLIFZERO, ZEROIFNULL, MIN_SCALE, NUMTOYMINTERVAL, JSON_VALUE, TO_DSINTERVAL, CONVERT_TZ, NUMTODSINTERVAL,
             TO_YMINTERVAL, CAST, SYS_GUID, SYSTIMESTAMP, CURRENT_STATEMENT, CURRENT_USER, SYSDATE, CURRENT_SESSION, //
-            // Geospatial:
+            // Geospatial are currently not supported:
             ST_X, ST_Y, ST_ENDPOINT, ST_ISCLOSED, ST_ISRING, ST_LENGTH, ST_NUMPOINTS, ST_POINTN, ST_STARTPOINT, ST_AREA,
             ST_EXTERIORRING, ST_INTERIORRINGN, ST_NUMINTERIORRINGS, ST_GEOMETRYN, ST_NUMGEOMETRIES, ST_BOUNDARY,
             ST_BUFFER, ST_CENTROID, ST_CONTAINS, ST_CONVEXHULL, ST_CROSSES, ST_DIFFERENCE, ST_DIMENSION, ST_DISJOINT,
@@ -58,7 +58,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     private static final Capabilities CAPABILITIES = createCapabilityList();
 
     /*
-     * IMPORTANT! Before adding new capabilities, check the doc/design.md if there is a note why we explicitly not add
+     * IMPORTANT! Before adding new capabilities, check the `doc/design.md` file if there is a note on why the capability is not supported.
      * it.
      */
     private static Capabilities createCapabilityList() {
@@ -80,7 +80,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
 
     private static ScalarFunctionCapability[] getEnabledScalarFunctionCapabilities() {
         return Arrays.stream(ScalarFunctionCapability.values())
-                .filter(function -> !DISABLED_SCALAR_FUNCTION.contains(function))
+                .filter(Predicate.not(DISABLED_SCALAR_FUNCTION::contains))
                 .toArray(ScalarFunctionCapability[]::new);
     }
 

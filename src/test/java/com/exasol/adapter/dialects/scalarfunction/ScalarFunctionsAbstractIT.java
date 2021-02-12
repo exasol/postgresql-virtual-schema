@@ -377,9 +377,8 @@ public abstract class ScalarFunctionsAbstractIT {
 
     @Nested
     @TestInstance(PER_CLASS)
-    @Tag("WithDoubleParameter") // workaround since IDEA can find the test otherwise
+    @Tag("WithDoubleParameter") // workaround since IDEA can't find the test otherwise
     class WithDoubleParameter {
-
         private ScalarFunctionQueryBuilder queryBuilder;
         private String columnName;
         private VirtualSchemaTestTable.ValueSetter<Double> valueSetter;
