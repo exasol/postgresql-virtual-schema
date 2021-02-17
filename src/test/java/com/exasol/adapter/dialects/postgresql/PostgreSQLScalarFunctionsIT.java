@@ -91,7 +91,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
         return new VirtualSchemaTestTable<>(tableName, getTruncateValueSetter(table));
     }
 
-    private <T> VirtualSchemaTestTable.ValueSetter<T> getTruncateValueSetter(final Table table) {
+    private <T> VirtualSchemaTestTable.SingleRowTableProvisioner<T> getTruncateValueSetter(final Table table) {
         return (value) -> {
             truncateTable(table);
             table.insert(value);

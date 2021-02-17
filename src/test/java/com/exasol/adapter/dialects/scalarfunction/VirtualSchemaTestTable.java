@@ -4,17 +4,18 @@ import java.sql.SQLException;
 
 public class VirtualSchemaTestTable<T> {
     private final String fullyQualifiedName;
-    private final ValueSetter<T> valueSetter;
+    private final SingleRowTableProvisioner<T> singleRowTableProvisioner;
 
     /**
      * Create a new instance of {@link VirtualSchemaTestTable}.
      *
-     * @param fullyQualifiedName name of the table in the virtual schema
-     * @param valueSetter        function that can change the value of the single row of the table
+     * @param fullyQualifiedName        name of the table in the virtual schema
+     * @param singleRowTableProvisioner function that can change the value of the single row of the table
      */
-    public VirtualSchemaTestTable(final String fullyQualifiedName, final ValueSetter<T> valueSetter) {
+    public VirtualSchemaTestTable(final String fullyQualifiedName,
+            final SingleRowTableProvisioner<T> singleRowTableProvisioner) {
         this.fullyQualifiedName = fullyQualifiedName;
-        this.valueSetter = valueSetter;
+        this.singleRowTableProvisioner = singleRowTableProvisioner;
     }
 
     public String getFullyQualifiedName() {
@@ -22,11 +23,11 @@ public class VirtualSchemaTestTable<T> {
     }
 
     public void setValueOfSingleRow(final T value) throws SQLException {
-        this.valueSetter.setValueOfSingleRow(value);
+        this.singleRowTableProvisioner.initializedSingleRow(value);
     }
 
     @FunctionalInterface
-    public interface ValueSetter<T> {
+    public interface SingleRowTableProvisioner<T> {
         /**
          * Set the value of the single row of the table. Typical implementation: truncate table + insert row with the
          * given value.
@@ -34,6 +35,6 @@ public class VirtualSchemaTestTable<T> {
          * @param value value for the row
          * @throws SQLException if something goes wrong
          */
-        void setValueOfSingleRow(T value) throws SQLException;
+        void initializedSingleRow(T value) throws SQLException;
     }
 }
