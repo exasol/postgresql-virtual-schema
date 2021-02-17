@@ -10,11 +10,10 @@ PostgreSQL does not support such functions.
 
 **Design**: Do not support these capabilities.
 
-#### Other considered options:
+#### Other considered solutions:
 
 * Use `AGE` and `DATE_PART`:     
   This approach does only return the minutes-part of the interval, not the total minutes.
 
 * Use custom math. We could try to do things like dividing the interval by 60 to get it in minutes. This is however dangerous, especially concerning leap seconds.
-
 
