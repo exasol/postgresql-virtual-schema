@@ -116,19 +116,19 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         final ScalarFunction scalarFunction = function.getFunction();
         switch (scalarFunction) {
         case ADD_DAYS:
+            return getAddDateTime(argumentsSql, "days");
         case ADD_HOURS:
+            return getAddDateTime(argumentsSql, "hours");
         case ADD_MINUTES:
+            return getAddDateTime(argumentsSql, "mins");
         case ADD_SECONDS:
+            return getAddDateTime(argumentsSql, "secs");
         case ADD_WEEKS:
+            return getAddDateTime(argumentsSql, "weeks");
         case ADD_YEARS:
-            return getAddDateTime(argumentsSql, scalarFunction);
-        case SECONDS_BETWEEN:
-        case MINUTES_BETWEEN:
-        case HOURS_BETWEEN:
-        case DAYS_BETWEEN:
-        case MONTHS_BETWEEN:
-        case YEARS_BETWEEN:
-            return getDateTimeBetween(argumentsSql, scalarFunction);
+            return getAddDateTime(argumentsSql, "years");
+        case ADD_MONTHS:
+            return getAddDateTime(argumentsSql, "months");
         case SECOND:
         case MINUTE:
         case DAY:
@@ -143,73 +143,16 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         }
     }
 
-    private String getAddDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
+    private String getAddDateTime(final List<String> argumentsSql, final String unit) {
         final StringBuilder builder = new StringBuilder();
         builder.append(argumentsSql.get(0));
         builder.append(" + ");
-        switch (scalarFunction) {
-        case ADD_DAYS:
-            appendInterval(argumentsSql, builder, " day'");
-            break;
-        case ADD_HOURS:
-            appendInterval(argumentsSql, builder, " hour'");
-            break;
-        case ADD_MINUTES:
-            appendInterval(argumentsSql, builder, " minute'");
-            break;
-        case ADD_SECONDS:
-            appendInterval(argumentsSql, builder, " second'");
-            break;
-        case ADD_WEEKS:
-            appendInterval(argumentsSql, builder, " week'");
-            break;
-        case ADD_YEARS:
-            appendInterval(argumentsSql, builder, " year'");
-            break;
-        default:
-            break;
-        }
+        builder.append(buildInterval(argumentsSql, unit));
         return builder.toString();
     }
 
-    private void appendInterval(final List<String> argumentsSql, final StringBuilder builder,
-            final String stringToAppend) {
-        builder.append(" interval '");
-        builder.append(argumentsSql.get(1));
-        builder.append(stringToAppend);
-    }
-
-    private String getDateTimeBetween(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("DATE_PART(");
-        switch (scalarFunction) {
-        case SECONDS_BETWEEN:
-            builder.append("'SECOND'");
-            break;
-        case MINUTES_BETWEEN:
-            builder.append("'MINUTE'");
-            break;
-        case HOURS_BETWEEN:
-            builder.append("'HOUR'");
-            break;
-        case DAYS_BETWEEN:
-            builder.append("'DAY'");
-            break;
-        case MONTHS_BETWEEN:
-            builder.append("'MONTH'");
-            break;
-        case YEARS_BETWEEN:
-            builder.append("'YEAR'");
-            break;
-        default:
-            break;
-        }
-        builder.append(", AGE(");
-        builder.append(argumentsSql.get(1));
-        builder.append(",");
-        builder.append(argumentsSql.get(0));
-        builder.append("))");
-        return builder.toString();
+    private String buildInterval(final List<String> argumentsSql, final String unit) {
+        return "make_interval(" + unit + " => " + argumentsSql.get(1) + ")";
     }
 
     private String getDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {

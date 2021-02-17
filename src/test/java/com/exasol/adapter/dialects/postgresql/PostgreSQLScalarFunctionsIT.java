@@ -1,7 +1,5 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static com.exasol.adapter.capabilities.ScalarFunctionCapability.*;
-
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
@@ -11,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
 import com.exasol.adapter.dialects.scalarfunction.ScalarFunctionsAbstractIT;
-import com.exasol.adapter.dialects.scalarfunction.StringTestTable;
+import com.exasol.adapter.dialects.scalarfunction.VirtualSchemaTestTable;
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
 import com.exasol.dbbuilder.dialects.Schema;
@@ -21,12 +19,6 @@ import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
 @ExtendWith({ CloseAfterAllExtension.class })
 class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     private static final String POSTGRES_TABLE_NAME = "my_postgres_table";
-    /**
-     * These functions are known to be broken in this dialect. We will remove them once they are fixed.
-     */
-    private static final Set<ScalarFunctionCapability> KNOWN_BROKEN = Set.of(GREATEST, LEAST, ROUND, CONCAT, INSTR,
-            UNICODECHR, UNICODE, ADD_DAYS, ADD_HOURS, ADD_MINUTES, ADD_MONTHS, HOURS_BETWEEN, ADD_SECONDS, ADD_WEEKS,
-            ADD_YEARS, SECONDS_BETWEEN, MINUTES_BETWEEN, SECOND, TO_CHAR, POSIX_TIME);
     @CloseAfterAll
     private static final PostgresVirtualSchemaIntegrationTestSetup SETUP = new PostgresVirtualSchemaIntegrationTestSetup();
     private static Schema postgresSchema;
@@ -35,7 +27,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
     @Override
     protected Set<ScalarFunctionCapability> getDialectSpecificExcludes() {
-        return KNOWN_BROKEN;
+        return Collections.emptySet();
     }
 
     @BeforeAll
@@ -71,6 +63,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
     @Override
     protected String createDateVirtualSchemaTableWithSingleValue(final Timestamp soleValue) throws SQLException {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
                 .column("timestamp", "TIMESTAMP").build()//
                 .insert(soleValue);
@@ -80,13 +73,29 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected String createIntegerVirtualSchemaTableWithSingleRowValue(final int singleRowValue) throws SQLException {
+    protected VirtualSchemaTestTable<Integer> createIntegerVirtualSchemaTable() throws SQLException {
+        return createTestTable("integer");
+    }
+
+    @Override
+    protected VirtualSchemaTestTable<Double> createDoubleVirtualSchemaTable() throws SQLException {
+        return createTestTable("real");
+    }
+
+    private <T> VirtualSchemaTestTable<T> createTestTable(final String type) throws SQLException {
         final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
-                .column("number", "integer").build()//
-                .insert(singleRowValue);
+                .column("my_column", type).build();
         this.createdTables.add(table);
         refreshVirtualSchema();
-        return virtualSchema.getFullyQualifiedName() + "." + POSTGRES_TABLE_NAME;
+        final String tableName = virtualSchema.getFullyQualifiedName() + "." + POSTGRES_TABLE_NAME;
+        return new VirtualSchemaTestTable<>(tableName, getTruncateValueSetter(table));
+    }
+
+    private <T> VirtualSchemaTestTable.SingleRowTableProvisioner<T> getTruncateValueSetter(final Table table) {
+        return (value) -> {
+            truncateTable(table);
+            table.insert(value);
+        };
     }
 
     @Override
@@ -100,18 +109,8 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected StringTestTable createStringVirtualSchemaTable() throws SQLException {
-        final Table table = postgresSchema.createTableBuilder(POSTGRES_TABLE_NAME)//
-                .column("string", "VARCHAR(500)").build()//
-                .insert("");
-        this.createdTables.add(table);
-        refreshVirtualSchema();
-        final String tableName = virtualSchema.getFullyQualifiedName() + "." + POSTGRES_TABLE_NAME;
-        final StringTestTable.ValueSetter valueSetter = (value) -> {
-            truncateTable(table);
-            table.insert(value);
-        };
-        return new StringTestTable(tableName, valueSetter);
+    protected VirtualSchemaTestTable<String> createStringVirtualSchemaTable() throws SQLException {
+        return createTestTable("VARCHAR(500)");
     }
 
     private void truncateTable(final Table table) throws SQLException {

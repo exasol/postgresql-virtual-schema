@@ -36,17 +36,19 @@ class PostgresSQLSqlGenerationVisitorTest {
         this.visitor = new PostgresSQLSqlGenerationVisitor(dialect, context);
     }
 
-    @CsvSource({ "ADD_DAYS, day", //
-            "ADD_HOURS, hour", //
-            "ADD_MINUTES, minute", //
-            "ADD_SECONDS, second", //
-            "ADD_YEARS, year", //
-            "ADD_WEEKS, week" })
+    @CsvSource({ "ADD_DAYS, days", //
+            "ADD_HOURS, hours", //
+            "ADD_MINUTES, mins", //
+            "ADD_SECONDS, secs", //
+            "ADD_YEARS, years", //
+            "ADD_WEEKS, weeks", //
+            "ADD_MONTHS, months" })
     @ParameterizedTest
     void testVisitSqlFunctionScalarAddDate(final ScalarFunction scalarFunction, final String expected)
             throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(scalarFunction, 10);
-        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("\"test_column\" +  interval '10 " + expected + "'"));
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("\"test_column\" + make_interval(" + expected + " => 10)"));
     }
 
     private SqlFunctionScalar createSqlFunctionScalarForDateTest(final ScalarFunction scalarFunction,
@@ -58,20 +60,6 @@ class PostgresSQLSqlGenerationVisitorTest {
                         .type(DataType.createChar(20, DataType.ExaCharset.UTF8)).build()));
         arguments.add(new SqlLiteralExactnumeric(new BigDecimal(numericValue)));
         return new SqlFunctionScalar(scalarFunction, arguments);
-    }
-
-    @CsvSource({ "SECONDS_BETWEEN, SECOND", //
-            "MINUTES_BETWEEN, MINUTE", //
-            "HOURS_BETWEEN, HOUR", //
-            "DAYS_BETWEEN, DAY", //
-            "MONTHS_BETWEEN, MONTH", //
-            "YEARS_BETWEEN, YEAR" })
-    @ParameterizedTest
-    void testVisitSqlFunctionScalarTimeBetween(final ScalarFunction scalarFunction, final String expected)
-            throws AdapterException {
-        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(scalarFunction, 10);
-        assertThat(this.visitor.visit(sqlFunctionScalar),
-                equalTo("DATE_PART('" + expected + "', AGE(10,\"test_column\"))"));
     }
 
     @CsvSource({ "SECOND, SECOND", //

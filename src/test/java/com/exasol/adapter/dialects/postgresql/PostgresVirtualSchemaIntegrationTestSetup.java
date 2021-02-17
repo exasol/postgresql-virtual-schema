@@ -18,12 +18,14 @@ import com.exasol.containers.ExasolContainer;
 import com.exasol.dbbuilder.dialects.exasol.*;
 import com.exasol.dbbuilder.dialects.postgres.PostgreSqlObjectFactory;
 import com.exasol.errorreporting.ExaError;
+import com.exasol.udfdebugging.UdfTestSetup;
+import com.github.dockerjava.api.model.ContainerNetwork;
 
 /**
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-8.0.0-postgresql-1.0.0.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-8.0.0-postgresql-1.1.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
@@ -58,7 +60,10 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             this.exasolStatement = this.exasolConection.createStatement();
             this.postgresConnection = this.postgresqlContainer.createConnection("");
             this.postgresStatement = this.postgresConnection.createStatement();
-            this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""));
+            final UdfTestSetup udfTestSetup = new UdfTestSetup(getTestHostIpFromInsideExasol(),
+                    this.exasolContainer.getDefaultBucket());
+            this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""),
+                    ExasolObjectConfiguration.builder().withJvmOptions(udfTestSetup.getJvmOptions()).build());
             final ExasolSchema exasolSchema = this.exasolFactory.createSchema(SCHEMA_EXASOL);
             this.postgresFactory = new PostgreSqlObjectFactory(this.postgresConnection);
             this.adapterScript = createAdapterScript(exasolSchema);
@@ -144,5 +149,14 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         } catch (final SQLException exception) {
             throw new IllegalStateException("Failed to stop test setup.", exception);
         }
+    }
+
+    private String getTestHostIpFromInsideExasol() {
+        final Map<String, ContainerNetwork> networks = this.exasolContainer.getContainerInfo().getNetworkSettings()
+                .getNetworks();
+        if (networks.size() == 0) {
+            return null;
+        }
+        return networks.values().iterator().next().getGateway();
     }
 }
