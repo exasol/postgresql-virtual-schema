@@ -27,7 +27,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
     @Override
     protected Set<ScalarFunctionCapability> getDialectSpecificExcludes() {
-        return Set.of();
+        return Collections.emptySet();
     }
 
     @BeforeAll
