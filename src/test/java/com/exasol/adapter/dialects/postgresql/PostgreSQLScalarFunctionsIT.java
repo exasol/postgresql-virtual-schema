@@ -40,8 +40,8 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     protected SingleTableVirtualSchemaTestSetup createVirtualSchemaTableWithExamplesForAllDataTypes() {
         return new PostgreSQLSingleTableVirtualSchemaTestSetup() {
             @Override
-            protected Table createTable(final Schema schema) {
-                return schema.createTableBuilder(getUniqueIdentifier())//
+            protected Table createTable() {
+                return this.getPostgresqlSchema().createTableBuilder(getUniqueIdentifier())//
                         .column("floating_point", "real")//
                         .column("number", "integer")//
                         .column("boolean", "boolean")//
@@ -77,8 +77,8 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     private <T> SingleRowSingleTableVirtualSchemaTestSetup<T> createTestTable(final String type) {
         return new SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<>() {
             @Override
-            protected Table createTable(final Schema schema) {
-                return schema.createTableBuilder(getUniqueIdentifier())//
+            protected Table createTable() {
+                return this.getPostgresqlSchema().createTableBuilder(getUniqueIdentifier())//
                         .column("my_column", type).build();
             }
         };
@@ -102,11 +102,11 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
         public PostgreSQLSingleTableVirtualSchemaTestSetup() {
             this.postgresqlSchema = SETUP.getPostgresFactory().createSchema(getUniqueIdentifier());
-            this.table = createTable(this.postgresqlSchema);
+            this.table = createTable();
             this.virtualSchema = SETUP.createVirtualSchema(this.postgresqlSchema.getName(), Map.of());
         }
 
-        protected abstract Table createTable(Schema schema);
+        protected abstract Table createTable();
 
         @Override
         public String getFullyQualifiedName() {
@@ -120,6 +120,10 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
             this.postgresqlSchema.drop();
         }
 
+        public Schema getPostgresqlSchema() {
+            return this.postgresqlSchema;
+        }
+
         public Table getTable() {
             return this.table;
         }
@@ -127,14 +131,15 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
 
     private static abstract class SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<T> extends
             PostgreSQLSingleTableVirtualSchemaTestSetup implements SingleRowSingleTableVirtualSchemaTestSetup<T> {
+
         @Override
-        public void initializeSingleRowWith(final T value) throws SQLException {
-            truncateTable(this.getTable());
-            getTable().insert(value);
+        public void truncateTable() throws SQLException {
+            SETUP.getPostgresqlStatement().executeUpdate("TRUNCATE TABLE " + this.getTable().getFullyQualifiedName());
         }
 
-        private void truncateTable(final Table table) throws SQLException {
-            SETUP.getPostgresqlStatement().executeUpdate("TRUNCATE TABLE " + table.getFullyQualifiedName());
+        @Override
+        public void insertValue(final T value) {
+            getTable().insert(value);
         }
     }
 }

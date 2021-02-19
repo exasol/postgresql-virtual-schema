@@ -14,9 +14,27 @@ public interface SingleRowSingleTableVirtualSchemaTestSetup<T> extends SingleTab
 
     /**
      * Set the value of the single row of the table.
-     * 
+     *
      * @param value value to set
      * @throws SQLException if something goes wrong
      */
-    public void initializeSingleRowWith(final T value) throws SQLException;
+    public default void initializeSingleRowWith(final T value) throws SQLException {
+        truncateTable();
+        insertValue(value);
+    }
+
+    /**
+     * Delete all rows of the table.
+     * 
+     * @throws SQLException if something goes wrong
+     */
+    public void truncateTable() throws SQLException;
+
+    /**
+     * Insert a row into the table.
+     *
+     * @param value value to insert
+     * @throws SQLException if something goes wrong
+     */
+    public void insertValue(T value) throws SQLException;
 }

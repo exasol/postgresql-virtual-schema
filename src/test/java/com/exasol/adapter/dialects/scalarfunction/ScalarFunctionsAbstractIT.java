@@ -31,10 +31,14 @@ import com.exasol.matcher.TypeMatchMode;
 
 /**
  * This is an abstract smoke test for all scalar functions, except the geospacial functions (ST_*).
+ * <p>
+ * These tests can be executed in parallel. In order to do so, add the system property
+ * {@code -Djunit.jupiter.execution.parallel.enabled=true} to your junit JVM.
+ * </p>
  */
 @Testcontainers
 @SuppressWarnings("java:S5786") // class is public since it is an abstract test
-@Execution(value = ExecutionMode.CONCURRENT) // run with -Djunit.jupiter.execution.parallel.enabled=true
+@Execution(value = ExecutionMode.CONCURRENT)
 public abstract class ScalarFunctionsAbstractIT {
     /**
      * These have a special syntax, so we define explicit test for them below.
