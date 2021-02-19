@@ -303,4 +303,3 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | SESSION_PARAMETER   |     ✓     |
 | MIN_SCALE           |           |
 
-
