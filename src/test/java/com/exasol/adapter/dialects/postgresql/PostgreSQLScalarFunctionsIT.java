@@ -37,8 +37,8 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected VirtualSchemaTestTable createVirtualSchemaTableWithExamplesForAllDataTypes() {
-        return new PostgresVirtualSchemaTestTable() {
+    protected SingleTableVirtualSchemaTestSetup createVirtualSchemaTableWithExamplesForAllDataTypes() {
+        return new PostgreSQLSingleTableVirtualSchemaTestSetup() {
             @Override
             protected Table createTable(final Schema schema) {
                 return schema.createTableBuilder(getUniqueIdentifier())//
@@ -54,28 +54,28 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
     }
 
     @Override
-    protected SingleValueVirtualSchemaTestTable<Timestamp> createDateVirtualSchemaTable() {
+    protected SingleRowSingleTableVirtualSchemaTestSetup<Timestamp> createDateVirtualSchemaTable() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return createTestTable("timestamp");
     }
 
     @Override
-    protected SingleValueVirtualSchemaTestTable<Integer> createIntegerVirtualSchemaTable() {
+    protected SingleRowSingleTableVirtualSchemaTestSetup<Integer> createIntegerVirtualSchemaTable() {
         return createTestTable("integer");
     }
 
     @Override
-    protected SingleValueVirtualSchemaTestTable<Double> createDoubleVirtualSchemaTable() {
+    protected SingleRowSingleTableVirtualSchemaTestSetup<Double> createDoubleVirtualSchemaTable() {
         return createTestTable("real");
     }
 
     @Override
-    protected SingleValueVirtualSchemaTestTable<Boolean> createBooleanVirtualSchemaTable() {
+    protected SingleRowSingleTableVirtualSchemaTestSetup<Boolean> createBooleanVirtualSchemaTable() {
         return createTestTable("boolean");
     }
 
-    private <T> SingleValueVirtualSchemaTestTable<T> createTestTable(final String type) {
-        return new SingleValuePostgresVirtualSchemaTestTable<>() {
+    private <T> SingleRowSingleTableVirtualSchemaTestSetup<T> createTestTable(final String type) {
+        return new SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<>() {
             @Override
             protected Table createTable(final Schema schema) {
                 return schema.createTableBuilder(getUniqueIdentifier())//
@@ -84,21 +84,23 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
         };
     }
 
+    @Override
     protected Connection createExasolConnection() throws SQLException {
         return SETUP.getExasolContainer().createConnection();
     }
 
     @Override
-    protected SingleValueVirtualSchemaTestTable<String> createStringVirtualSchemaTable() {
+    protected SingleRowSingleTableVirtualSchemaTestSetup<String> createStringVirtualSchemaTable() {
         return createTestTable("VARCHAR(500)");
     }
 
-    private static abstract class PostgresVirtualSchemaTestTable implements VirtualSchemaTestTable {
+    private static abstract class PostgreSQLSingleTableVirtualSchemaTestSetup
+            implements SingleTableVirtualSchemaTestSetup {
         private final VirtualSchema virtualSchema;
         private final Table table;
         private final Schema postgresqlSchema;
 
-        public PostgresVirtualSchemaTestTable() {
+        public PostgreSQLSingleTableVirtualSchemaTestSetup() {
             this.postgresqlSchema = SETUP.getPostgresFactory().createSchema(getUniqueIdentifier());
             this.table = createTable(this.postgresqlSchema);
             this.virtualSchema = SETUP.createVirtualSchema(this.postgresqlSchema.getName(), Map.of());
@@ -123,10 +125,10 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
         }
     }
 
-    private static abstract class SingleValuePostgresVirtualSchemaTestTable<T> extends PostgresVirtualSchemaTestTable
-            implements SingleValueVirtualSchemaTestTable<T> {
+    private static abstract class SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<T> extends
+            PostgreSQLSingleTableVirtualSchemaTestSetup implements SingleRowSingleTableVirtualSchemaTestSetup<T> {
         @Override
-        public void initializeSingleRow(final T value) throws SQLException {
+        public void initializeSingleRowWith(final T value) throws SQLException {
             truncateTable(this.getTable());
             getTable().insert(value);
         }

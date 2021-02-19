@@ -1,6 +1,6 @@
 package com.exasol.adapter.dialects.scalarfunction;
 
-public interface VirtualSchemaTestTable {
+public interface SingleTableVirtualSchemaTestSetup {
 
     /**
      * Get the fully qualified name of the virtual schema table.

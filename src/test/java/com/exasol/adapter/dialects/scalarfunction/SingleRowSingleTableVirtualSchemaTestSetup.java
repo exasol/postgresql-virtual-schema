@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * 
  * @param <T> type of the value to set
  */
-public interface SingleValueVirtualSchemaTestTable<T> extends VirtualSchemaTestTable {
+public interface SingleRowSingleTableVirtualSchemaTestSetup<T> extends SingleTableVirtualSchemaTestSetup {
 
     /**
      * Set the value of the single row of the table.
@@ -18,5 +18,5 @@ public interface SingleValueVirtualSchemaTestTable<T> extends VirtualSchemaTestT
      * @param value value to set
      * @throws SQLException if something goes wrong
      */
-    public void initializeSingleRow(final T value) throws SQLException;
+    public void initializeSingleRowWith(final T value) throws SQLException;
 }
