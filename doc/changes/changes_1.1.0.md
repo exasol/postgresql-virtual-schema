@@ -12,6 +12,10 @@ Code name:
 
 * #24: Fixed broken scalar functions + updated scalar function capabilities.
 
+## Refactoring:
+
+* #25: Refactored ScalarFunctionTests
+
 ## Dependency updates
 
 * Added `com.exasol:error-reporting-java:0.2.0`
