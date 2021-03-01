@@ -7,6 +7,9 @@ If you want to set up a Virtual Schema for a different database system, please h
 ## Features
 
 * Access a PostgreSQL database using a Virtual Schema.
+* Access PostgreSQL compatible databases:
+  * [Greenplum](https://greenplum.org/)
+  * [AWS Aurora](https://aws.amazon.com/de/rds/aurora/)
 
 ## Table of Contents
 
