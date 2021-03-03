@@ -3,11 +3,10 @@ package com.exasol.adapter.dialects.postgresql;
 import java.util.*;
 
 import com.exasol.adapter.AdapterException;
-import com.exasol.adapter.dialects.*;
-import com.exasol.adapter.metadata.ColumnMetadata;
-import com.exasol.adapter.metadata.TableMetadata;
+import com.exasol.adapter.dialects.SqlDialect;
+import com.exasol.adapter.dialects.rewriting.SqlGenerationContext;
+import com.exasol.adapter.dialects.rewriting.SqlGenerationVisitor;
 import com.exasol.adapter.sql.*;
-import com.exasol.errorreporting.ExaError;
 
 /**
  * This class generates SQL queries for the {@link PostgreSQLSqlDialect}.
@@ -40,58 +39,6 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     protected String representAnyColumnInSelectList() {
         return SqlConstants.ONE;
     }
-
-    @Override
-    protected String representAsteriskInSelectList(final SqlSelectList selectList) throws AdapterException {
-        final List<String> selectStarList = buildSelectStar(selectList);
-        final List<String> selectListElements = new ArrayList<>(selectStarList.size());
-        selectListElements.addAll(selectStarList);
-        return String.join(", ", selectListElements);
-    }
-
-    private List<String> buildSelectStar(final SqlSelectList selectList) throws AdapterException {
-        if (SqlGenerationHelper.selectListRequiresCasts(selectList, this.nodeRequiresCast)) {
-            return buildSelectStarWithNodeCast(selectList);
-        } else {
-            return new ArrayList<>(Collections.singletonList("*"));
-        }
-    }
-
-    private List<String> buildSelectStarWithNodeCast(final SqlSelectList selectList) throws AdapterException {
-        final SqlStatementSelect select = (SqlStatementSelect) selectList.getParent();
-        int columnId = 0;
-        final List<TableMetadata> tableMetadata = new ArrayList<>();
-        SqlGenerationHelper.addMetadata(select.getFromClause(), tableMetadata);
-        final List<String> selectListElements = new ArrayList<>(tableMetadata.size());
-        for (final TableMetadata tableMeta : tableMetadata) {
-            for (final ColumnMetadata columnMeta : tableMeta.getColumns()) {
-                final SqlColumn sqlColumn = new SqlColumn(columnId, columnMeta);
-                selectListElements.add(buildColumnProjectionString(sqlColumn, super.visit(sqlColumn)));
-                ++columnId;
-            }
-        }
-        return selectListElements;
-    }
-
-    private String buildColumnProjectionString(final SqlColumn column, final String projectionString)
-            throws AdapterException {
-        return buildColumnProjectionString(getTypeNameFromColumn(column), projectionString);
-    }
-
-    private final java.util.function.Predicate<SqlNode> nodeRequiresCast = node -> {
-        try {
-            if (node.getType() == SqlNodeType.COLUMN) {
-                final SqlColumn column = (SqlColumn) node;
-                final String typeName = getTypeNameFromColumn(column);
-                return getListOfTypeNamesRequiringCast().contains(typeName)
-                        || getListOfTypeNamesNotSupported().contains(typeName);
-            }
-            return false;
-        } catch (final AdapterException exception) {
-            throw new SqlGenerationVisitorException(ExaError.messageBuilder("E-PGVS-7")
-                    .message("Exception during deserialization of ColumnAdapterNotes.").toString(), exception);
-        }
-    };
 
     @Override
     public String visit(final SqlColumn column) throws AdapterException {

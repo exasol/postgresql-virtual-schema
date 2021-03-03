@@ -17,9 +17,10 @@ import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
 import com.exasol.adapter.dialects.*;
+import com.exasol.adapter.dialects.rewriting.ImportIntoTemporaryTableQueryRewriter;
+import com.exasol.adapter.dialects.rewriting.SqlGenerationContext;
 import com.exasol.adapter.jdbc.*;
 import com.exasol.adapter.sql.ScalarFunction;
-import com.exasol.adapter.sql.SqlNodeVisitor;
 import com.exasol.errorreporting.ExaError;
 
 /**
@@ -85,7 +86,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     /**
      * This class gets all {@link ScalarFunctionCapability}s that are not explicitly excluded by
      * {@link #DISABLED_SCALAR_FUNCTION}.
-     * 
+     *
      * @return list enabled scalar function capabilities
      */
     private static ScalarFunctionCapability[] getEnabledScalarFunctionCapabilities() {
@@ -122,7 +123,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
 
     @Override
     protected QueryRewriter createQueryRewriter() {
-        return new ImportIntoQueryRewriter(this, createRemoteMetadataReader(), this.connectionFactory);
+        return new ImportIntoTemporaryTableQueryRewriter(this, createRemoteMetadataReader(), this.connectionFactory);
     }
 
     @Override
@@ -193,7 +194,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     }
 
     @Override
-    public SqlNodeVisitor<String> getSqlGenerationVisitor(final SqlGenerationContext context) {
+    public SqlGenerator getSqlGenerator(final SqlGenerationContext context) {
         return new PostgresSQLSqlGenerationVisitor(this, context);
     }
 

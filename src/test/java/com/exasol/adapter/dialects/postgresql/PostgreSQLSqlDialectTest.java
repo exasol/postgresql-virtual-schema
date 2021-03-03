@@ -28,7 +28,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
-import com.exasol.adapter.dialects.*;
+import com.exasol.adapter.dialects.PropertyValidationException;
+import com.exasol.adapter.dialects.SqlDialect;
+import com.exasol.adapter.dialects.rewriting.ImportIntoTemporaryTableQueryRewriter;
 import com.exasol.adapter.jdbc.ConnectionFactory;
 import com.exasol.adapter.jdbc.RemoteMetadataReaderException;
 
@@ -58,7 +60,7 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testCreateQueryRewriter() {
-        assertThat(this.dialect.createQueryRewriter(), instanceOf(ImportIntoQueryRewriter.class));
+        assertThat(this.dialect.createQueryRewriter(), instanceOf(ImportIntoTemporaryTableQueryRewriter.class));
     }
 
     @Test
@@ -109,7 +111,6 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testPostgreSQLIdentifierMappingConsistency() throws PropertyValidationException {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                SQL_DIALECT_PROPERTY, "postgresql", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT_TO_UPPER")));
         sqlDialect.validateProperties();
@@ -118,7 +119,6 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testPostgreSQLIdentifierMappingInvalidPropertyValueThrowsException() {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                SQL_DIALECT_PROPERTY, "POSTGRESQL", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT")));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
@@ -129,7 +129,6 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testIgnoreErrorsConsistency() {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                SQL_DIALECT_PROPERTY, "postgresql", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 "IGNORE_ERRORS", "ORACLE_ERROR")));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
@@ -140,7 +139,6 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testValidateCatalogProperty() throws PropertyValidationException {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                SQL_DIALECT_PROPERTY, "POSTGRESQL", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 CATALOG_NAME_PROPERTY, "MY_CATALOG")));
         sqlDialect.validateProperties();
@@ -149,7 +147,6 @@ class PostgreSQLSqlDialectTest {
     @Test
     void testValidateSchemaProperty() throws PropertyValidationException {
         final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                SQL_DIALECT_PROPERTY, "POSTGRESQL", //
                 CONNECTION_NAME_PROPERTY, "MY_CONN", //
                 SCHEMA_NAME_PROPERTY, "MY_SCHEMA")));
         sqlDialect.validateProperties();
