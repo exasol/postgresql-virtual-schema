@@ -1,6 +1,6 @@
-# Virtual Schema for PostgreSQL 2.0.0, released 2021-03-03
+# Virtual Schema for PostgreSQL 2.0.0, released 2021-??-??
 
-Code name: Removed `SQL_DIALECT` property
+Code name: Update supported Scalar Functions and remove `SQL_DIALECT` property
 
 ## Summary
 
