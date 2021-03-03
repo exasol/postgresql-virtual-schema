@@ -6,9 +6,17 @@ Code name: Removed `SQL_DIALECT` property
 
 The `SQL_DIALECT` property used when executing a `CREATE VIRTUAL SCHEMA` from the Exasol database is obsolete from this version. Please, do not provide this property anymore.
 
+Also, the list of supported Scalar Functions has been updated.
+The following Scalar Dunctions are not supported anymore:
+`MINUTES_BETWEEN, SECONDS_BETWEEN, DAYS_BETWEEN, MONTHS_BETWEEN, HOURS_BETWEEN, UNICODECHR, YEARS_BETWEEN, TO_CHAR, POSIX_TIME, UNICODE, CONCAT, SECOND, INSTR, ROUND`
+
+The following new Scalar Functions are now supported:
+`CURRENT_SCHEMA, INITCAP, SESSION_PARAMETER`
+
 ## Features / Enhancements
 
 * #8: Added error codes to exceptions
+* #9: Updated list of supported Scalar Functions
 * #13: Added integration test for scalar functions
 * #15: Get driver for the integration tests from Maven
 * #27: Added automatically generated capabilities report
