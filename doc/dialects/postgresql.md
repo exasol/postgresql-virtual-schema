@@ -1,4 +1,4 @@
-# PostgreSQL SQL Dialect
+# PostgreSQL SQL Dialect User Guide
 
 [PostgreSQL](https://www.postgresql.org/) is an open-source  Relational Database Management System (RDBMS).
 
@@ -25,7 +25,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 ```sql
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-8.0.0-postgresql-1.1.0.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-9.0.1-postgresql-2.0.0.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
@@ -49,7 +49,6 @@ Below you see how a PostreSQL Virtual Schema is created.
 CREATE VIRTUAL SCHEMA <virtual schema name>
 	USING ADAPTER.JDBC_ADAPTER 
 	WITH
-	SQL_DIALECT = 'POSTGRESQL'
 	CATALOG_NAME = '<catalog name>'
 	SCHEMA_NAME = '<schema name>'
 	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
@@ -75,7 +74,6 @@ Regardless of this, you can create or refresh the virtual schema by specifying t
 CREATE VIRTUAL SCHEMA <virtual schema name>
 	USING ADAPTER.JDBC_ADAPTER 
 	WITH
-	SQL_DIALECT = 'POSTGRESQL'
 	CATALOG_NAME = '<catalog name>'
 	SCHEMA_NAME = '<schema name>'
 	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
@@ -108,7 +106,6 @@ SELECT Col1 FROM MySecondTable;
 CREATE VIRTUAL SCHEMA <virtual schema name>
 	USING ADAPTER.JDBC_ADAPTER 
 	WITH
-	SQL_DIALECT = 'POSTGRESQL'
 	CATALOG_NAME = '<catalog name>'
 	SCHEMA_NAME = '<schema name>'
 	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'

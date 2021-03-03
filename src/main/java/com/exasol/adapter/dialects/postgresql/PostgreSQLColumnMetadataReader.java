@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierConverter;
 import com.exasol.adapter.jdbc.BaseColumnMetadataReader;
-import com.exasol.adapter.jdbc.JdbcTypeDescription;
+import com.exasol.adapter.jdbc.JDBCTypeDescription;
 import com.exasol.adapter.metadata.DataType;
 
 /**
@@ -31,7 +31,7 @@ public class PostgreSQLColumnMetadataReader extends BaseColumnMetadataReader {
     }
 
     @Override
-    public DataType mapJdbcType(final JdbcTypeDescription jdbcTypeDescription) {
+    public DataType mapJdbcType(final JDBCTypeDescription jdbcTypeDescription) {
         switch (jdbcTypeDescription.getJdbcType()) {
         case Types.OTHER:
             return mapJdbcTypeOther(jdbcTypeDescription);
@@ -44,7 +44,7 @@ public class PostgreSQLColumnMetadataReader extends BaseColumnMetadataReader {
         }
     }
 
-    protected DataType mapJdbcTypeOther(final JdbcTypeDescription jdbcTypeDescription) {
+    protected DataType mapJdbcTypeOther(final JDBCTypeDescription jdbcTypeDescription) {
         if (isVarBitColumn(jdbcTypeDescription)) {
             final int n = jdbcTypeDescription.getPrecisionOrSize();
             LOGGER.finer(() -> "Mapping PostgreSQL datatype \"OTHER:varbit\" to VARCHAR(" + n + ")");
@@ -56,7 +56,7 @@ public class PostgreSQLColumnMetadataReader extends BaseColumnMetadataReader {
         }
     }
 
-    protected boolean isVarBitColumn(final JdbcTypeDescription jdbcTypeDescription) {
+    protected boolean isVarBitColumn(final JDBCTypeDescription jdbcTypeDescription) {
         return jdbcTypeDescription.getTypeName().equals(POSTGRES_VARBIT_TYPE_NAME);
     }
 

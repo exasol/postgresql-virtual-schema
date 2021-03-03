@@ -1,7 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.sql.Types;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.BaseIdentifierConverter;
-import com.exasol.adapter.jdbc.JdbcTypeDescription;
+import com.exasol.adapter.jdbc.JDBCTypeDescription;
 import com.exasol.adapter.metadata.DataType;
 
 class PostgreSQLColumnMetadataReaderTest {
@@ -38,7 +38,7 @@ class PostgreSQLColumnMetadataReaderTest {
     }
 
     protected DataType mapJdbcType(final int type) {
-        final JdbcTypeDescription jdbcTypeDescription = new JdbcTypeDescription(type, 0, 0, 0, "");
+        final JDBCTypeDescription jdbcTypeDescription = new JDBCTypeDescription(type, 0, 0, 0, "");
         return this.columnMetadataReader.mapJdbcType(jdbcTypeDescription);
     }
 

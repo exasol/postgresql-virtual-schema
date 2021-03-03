@@ -25,7 +25,7 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-8.0.0-postgresql-1.1.0.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
@@ -130,7 +130,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         properties.putAll(additionalProperties);
         return this.exasolFactory.createVirtualSchemaBuilder("POSTGRES_VIRTUAL_SCHEMA_" + (this.virtualSchemaCounter++))
                 .adapterScript(this.adapterScript).connectionDefinition(this.connectionDefinition)
-                .dialectName("POSTGRESQL").properties(properties).build();
+                .properties(properties).build();
     }
 
     public ExasolObjectFactory getExasolFactory() {
