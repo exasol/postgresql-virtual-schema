@@ -2,14 +2,12 @@ package com.exasol.adapter.dialects.postgresql;
 
 import java.sql.*;
 import java.sql.Date;
-import java.time.Instant;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.exasol.adapter.capabilities.ScalarFunctionCapability;
-import com.exasol.adapter.dialects.scalarfunction.*;
+import com.exasol.adapter.commontests.scalarfunction.*;
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
 import com.exasol.dbbuilder.dialects.Schema;
@@ -17,23 +15,17 @@ import com.exasol.dbbuilder.dialects.Table;
 import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
 
 @ExtendWith({ CloseAfterAllExtension.class })
-class PostgreSQLScalarFunctionsIT extends ScalarFunctionsAbstractIT {
+class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
     @CloseAfterAll
     private static final PostgresVirtualSchemaIntegrationTestSetup SETUP = new PostgresVirtualSchemaIntegrationTestSetup();
 
     @Override
-    protected Set<ScalarFunctionCapability> getDialectSpecificExcludes() {
+    protected Set<String> getDialectSpecificExcludes() {
         return Collections.emptySet();
     }
 
     @BeforeAll
     static void beforeAll() {
-    }
-
-    private static String getUniqueIdentifier() {
-        final Instant now = Instant.now();
-        final int randomPart = (int) (Math.random() * 1000);
-        return "id" + now.getEpochSecond() + now.getNano() + randomPart;
     }
 
     @Override
