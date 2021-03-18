@@ -33,7 +33,6 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
-    private static final String DOCKER_IP_ADDRESS = "172.17.0.1";
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
     private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
@@ -67,7 +66,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             final ExasolSchema exasolSchema = this.exasolFactory.createSchema(SCHEMA_EXASOL);
             this.postgresFactory = new PostgreSqlObjectFactory(this.postgresConnection);
             this.adapterScript = createAdapterScript(exasolSchema);
-            final String connectionString = "jdbc:postgresql://" + DOCKER_IP_ADDRESS + ":"
+            final String connectionString = "jdbc:postgresql://" + this.exasolContainer.getHostIp() + ":"
                     + this.postgresqlContainer.getMappedPort(POSTGRES_PORT) + "/"
                     + this.postgresqlContainer.getDatabaseName();
             this.connectionDefinition = this.exasolFactory.createConnectionDefinition("POSGRES_CONNECTION",

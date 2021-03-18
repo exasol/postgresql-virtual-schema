@@ -23,6 +23,7 @@ The following new Scalar Functions are now supported:
 ## Bugfixes
 
 * #24: Fixed broken scalar functions + updated scalar function capabilities
+* #35: Fixed test that was using a hard coded host ip address
 
 ## Refactoring:
 
