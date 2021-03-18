@@ -29,6 +29,7 @@ The following new Scalar Functions are now supported:
 
 * #25: Refactored ScalarFunctionTests
 * #32: Removed `SQL_DIALECT` property
+* #17: Moved abstract scalar function test to virtual-schema-common-jdbc
 
 ## Dependency updates
 
