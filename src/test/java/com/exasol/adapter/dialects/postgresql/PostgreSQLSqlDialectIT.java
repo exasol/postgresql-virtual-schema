@@ -269,20 +269,20 @@ class PostgreSQLSqlDialectIT {
         assertThat(exception.getMessage(), containsString("Failed to write to object"));
     }
 
-    @Test // TODO what has this test to do with postgres?
+    @Test
     void testQueryUpperCaseTableQuotedThrowsException() {
-        final Exception exception = assertThrows(SQLException.class, () -> statementExasol
-                .execute("SELECT x FROM  " + exasolSchema.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
-        assertThat(exception.getMessage(), containsString(
-                "object \"" + exasolSchema.getName() + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
+        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute("SELECT x FROM  "
+                + virtualSchemaPostgresUppercaseTable.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
+        assertThat(exception.getMessage(), containsString("object \"" + virtualSchemaPostgresUppercaseTable.getName()
+                + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
     }
 
     @Test
-    void testQueryUpperCaseTableThrowsException() { // TODO what has this test to do with postgres?
-        final Exception exception = assertThrows(SQLException.class, () -> statementExasol
-                .execute("SELECT x FROM  " + exasolSchema.getName() + "." + TABLE_POSTGRES_MIXED_CASE));
-        assertThat(exception.getMessage(), containsString(
-                "object " + exasolSchema.getName() + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
+    void testQueryUpperCaseTableThrowsException() {
+        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute(
+                "SELECT x FROM  " + virtualSchemaPostgresUppercaseTable.getName() + "." + TABLE_POSTGRES_MIXED_CASE));
+        assertThat(exception.getMessage(), containsString("object " + virtualSchemaPostgresUppercaseTable.getName()
+                + "." + TABLE_POSTGRES_MIXED_CASE.toUpperCase() + " not found"));
     }
 
     @Test
