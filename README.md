@@ -33,7 +33,7 @@ If you want to set up a Virtual Schema for a different database system, please h
 
 ### Information for Users
 
-* [PostgreSQL dialect User Guide](doc/dialects/postgresql.md)
+* [PostgreSQL dialect User Guide](doc/user_guide/postgresql_user_guide.md)
 * [General Virtual Schema User Guide][user-guide]
 * [List of supported capabilities](doc/generated/capabilities.md)
 * [Changelog](doc/changes/changelog.md)
