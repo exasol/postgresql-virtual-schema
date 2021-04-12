@@ -54,6 +54,11 @@
             <artifactId>error-reporting-java</artifactId>
             <version>0.2.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.exasol</groupId>
+            <artifactId>bucketfs-java</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <!--Unit test dependencies -->
         <dependency>
             <groupId>com.exasol</groupId>
@@ -84,7 +89,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>exasol-testcontainers</artifactId>
-            <version>3.5.1</version>
+            <version>3.5.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>

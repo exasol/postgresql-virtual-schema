@@ -1,0 +1,220 @@
+package com.exasol.adapter.dialects.postgresql.installer;
+
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
+
+import com.exasol.bucketfs.BucketAccessException;
+import com.exasol.bucketfs.WriteEnabledBucket;
+
+public class Installer {
+    private static final Logger LOGGER = Logger.getLogger(Installer.class.getName());
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar";
+    private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
+    private static final String JDBC_DRIVER_NAME = "postgresql.jar";
+    private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
+
+    private final String exasolIpAddress;
+    private final int exasolBucketFsPort;
+    private final int exasolDatabasePort;
+    private final String bucketName;
+    private final String bucketWritePassword;
+    private final String exasolUser;
+    private final String exasolPassword;
+    private final String postgresIpAddress;
+    private final String postgresPort;
+    private final String postgresDatabaseName;
+    private final String postgresUsername;
+    private final String postgresPassword;
+    private final String postgresMappedSchema;
+    private final String virtualSchemaName;
+
+    private Installer(final Builder builder) {
+        this.exasolIpAddress = builder.exasolIpAddress;
+        this.exasolBucketFsPort = builder.exasolBucketFsPort;
+        this.exasolDatabasePort = builder.exasolDatabasePort;
+        this.bucketName = builder.bucketName;
+        this.bucketWritePassword = builder.bucketWritePassword;
+        this.exasolUser = builder.exasolUser;
+        this.exasolPassword = builder.exasolPassword;
+        this.postgresIpAddress = builder.postgresIpAddress;
+        this.postgresPort = builder.postgresPort;
+        this.postgresDatabaseName = builder.postgresDatabaseName;
+        this.postgresUsername = builder.postgresUsername;
+        this.postgresPassword = builder.postgresPassword;
+        this.postgresMappedSchema = builder.postgresMappedSchema;
+        this.virtualSchemaName = builder.virtualSchemaName;
+    }
+
+    public void install() throws SQLException, BucketAccessException, InterruptedException, TimeoutException {
+        uploadFilesToBucket();
+        try (final Connection connection = DriverManager.getConnection(
+                "jdbc:exa:" + this.exasolIpAddress + ":" + this.exasolDatabasePort, this.exasolUser,
+                this.exasolPassword); final Statement statement = connection.createStatement()) {
+            installVirtualSchema(statement);
+        }
+    }
+
+    private void uploadFilesToBucket() throws BucketAccessException, InterruptedException, TimeoutException {
+        final WriteEnabledBucket bucket = WriteEnabledBucket.builder()//
+                .ipAddress(this.exasolIpAddress) //
+                .httpPort(this.exasolBucketFsPort) //
+                .name(this.bucketName) //
+                .writePassword(this.bucketWritePassword) //
+                .build();
+        uploadVsJarToBucket(bucket);
+        uploadDriverToBucket(bucket);
+    }
+
+    private void installVirtualSchema(final Statement statement) throws SQLException {
+        final String schemaName = "ADAPTER";
+        final String adapterName = "POSTGRES_ADAPTER_SCRIPT";
+        final String connectionName = "POSTGRES_JDBC_CONNECTION";
+        statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
+        final String createAdapterScriptStatement = prepareAdapterScriptStatement(schemaName, adapterName);
+        statement.execute(createAdapterScriptStatement);
+        final String connectionString = "jdbc:postgresql://" + this.postgresIpAddress + ":" + this.postgresPort + "/"
+                + this.postgresDatabaseName;
+        statement.execute("CREATE OR REPLACE CONNECTION " + connectionName + " TO '" + connectionString + "' USER '"
+                + this.postgresUsername + "' IDENTIFIED BY '" + this.postgresPassword + "'");
+        final String createVirtualSchemaStatement = prepareVirtualSchemaStatement(schemaName, adapterName,
+                connectionName);
+        statement.execute(createVirtualSchemaStatement);
+    }
+
+    private String prepareVirtualSchemaStatement(final String schemaName, final String adapterName,
+            final String connectionName) {
+        final String createVirtualSchemaStatement = "CREATE VIRTUAL SCHEMA " + this.virtualSchemaName + LINE_SEPARATOR //
+                + "    USING " + schemaName + "." + adapterName + LINE_SEPARATOR //
+                + "    WITH" + LINE_SEPARATOR //
+                + "    SCHEMA_NAME = '" + this.postgresMappedSchema + "'" + LINE_SEPARATOR //
+                + "    CONNECTION_NAME = '" + connectionName + "';" + LINE_SEPARATOR;
+        LOGGER.info(() -> "Installing virtual schema with the following command: " + LINE_SEPARATOR
+                + createVirtualSchemaStatement);
+        return createVirtualSchemaStatement;
+    }
+
+    private String prepareAdapterScriptStatement(final String schemaName, final String adapterName) {
+        final String createAdapterScriptStatement = "CREATE OR REPLACE JAVA ADAPTER SCRIPT " + schemaName + "."
+                + adapterName + " AS" + LINE_SEPARATOR //
+                + "  %scriptclass com.exasol.adapter.RequestDispatcher;" + LINE_SEPARATOR //
+                + "%jar /buckets/bfsdefault/" + this.bucketName + "/" + VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION + ";"
+                + LINE_SEPARATOR //
+                + "%jar /buckets/bfsdefault/" + this.bucketName + "/" + JDBC_DRIVER_NAME + ";";
+        LOGGER.info(() -> "Installing adapter script with the following command: " + LINE_SEPARATOR
+                + createAdapterScriptStatement);
+        return createAdapterScriptStatement;
+    }
+
+    private void uploadVsJarToBucket(final WriteEnabledBucket bucket)
+            throws BucketAccessException, InterruptedException, TimeoutException {
+        bucket.uploadFileNonBlocking(PATH_TO_VIRTUAL_SCHEMAS_JAR, VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
+    }
+
+    private void uploadDriverToBucket(final WriteEnabledBucket bucket)
+            throws BucketAccessException, InterruptedException, TimeoutException {
+        bucket.uploadFileNonBlocking(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    static class Builder {
+        private String exasolIpAddress = "localhost";
+        private int exasolBucketFsPort = 2580;
+        private int exasolDatabasePort = 8563;
+        private String bucketName = "default";
+        private String bucketWritePassword = "";
+        private String exasolUser = "sys";
+        private String exasolPassword = "exasol";
+
+        private String postgresIpAddress;
+        private String postgresPort = "5432";
+        private String postgresUsername = "postgres";
+        private String postgresPassword = "admin";
+        private String postgresDatabaseName = "postgres";
+        private String postgresMappedSchema = "";
+
+        private String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA";
+
+        public Builder exasolIpAddress(final String exasolIpAddress) {
+            this.exasolIpAddress = exasolIpAddress;
+            return this;
+        }
+
+        public Builder exasolBucketFsPort(final int exasolBucketFsPort) {
+            this.exasolBucketFsPort = exasolBucketFsPort;
+            return this;
+        }
+
+        public Builder exasolDatabasePort(final int exasolDatabasePort) {
+            this.exasolDatabasePort = exasolDatabasePort;
+            return this;
+        }
+
+        public Builder bucketName(final String bucketName) {
+            this.bucketName = bucketName;
+            return this;
+        }
+
+        public Builder bucketWritePassword(final String bucketWritePassword) {
+            this.bucketWritePassword = bucketWritePassword;
+            return this;
+        }
+
+        public Builder exasolUser(final String exasolUser) {
+            this.exasolUser = exasolUser;
+            return this;
+        }
+
+        public Builder exasolPassword(final String exasolPassword) {
+            this.exasolPassword = exasolPassword;
+            return this;
+        }
+
+        public Builder postgresIpAddress(final String postgresIpAddress) {
+            this.postgresIpAddress = postgresIpAddress;
+            return this;
+        }
+
+        public Builder postgresPort(final String postgresPort) {
+            this.postgresPort = postgresPort;
+            return this;
+        }
+
+        public Builder postgresDatabaseName(final String postgresDatabaseName) {
+            this.postgresDatabaseName = postgresDatabaseName;
+            return this;
+        }
+
+        public Builder postgresUsername(final String postgresUsername) {
+            this.postgresUsername = postgresUsername;
+            return this;
+        }
+
+        public Builder postgresPassword(final String postgresPassword) {
+            this.postgresPassword = postgresPassword;
+            return this;
+        }
+
+        public Builder postgresMappedSchema(final String postgresMappedSchema) {
+            this.postgresMappedSchema = postgresMappedSchema;
+            return this;
+        }
+
+        public Builder virtualSchemaName(final String virtualSchemaName) {
+            this.virtualSchemaName = virtualSchemaName;
+            return this;
+        }
+
+        public Installer build() {
+            return new Installer(this);
+        }
+    }
+}
