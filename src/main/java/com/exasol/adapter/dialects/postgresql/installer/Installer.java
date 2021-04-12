@@ -36,8 +36,8 @@ public class Installer {
 
     private Installer(final Builder builder) {
         this.exasolIpAddress = builder.exasolIpAddress;
-        this.exasolBucketFsPort = builder.exasolBucketFsPort;
-        this.exasolDatabasePort = builder.exasolDatabasePort;
+        this.exasolBucketFsPort = Integer.parseInt(builder.exasolBucketFsPort);
+        this.exasolDatabasePort = Integer.parseInt(builder.exasolDatabasePort);
         this.bucketName = builder.bucketName;
         this.bucketWritePassword = builder.bucketWritePassword;
         this.exasolUser = builder.exasolUser;
@@ -127,14 +127,14 @@ public class Installer {
 
     static class Builder {
         private String exasolIpAddress = "localhost";
-        private int exasolBucketFsPort = 2580;
-        private int exasolDatabasePort = 8563;
+        private String exasolBucketFsPort = "2580";
+        private String exasolDatabasePort = "8563";
         private String bucketName = "default";
-        private String bucketWritePassword = "";
+        private String bucketWritePassword = "write";
         private String exasolUser = "sys";
         private String exasolPassword = "exasol";
 
-        private String postgresIpAddress;
+        private String postgresIpAddress = "localhost";
         private String postgresPort = "5432";
         private String postgresUsername = "postgres";
         private String postgresPassword = "admin";
@@ -144,72 +144,100 @@ public class Installer {
         private String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA";
 
         public Builder exasolIpAddress(final String exasolIpAddress) {
-            this.exasolIpAddress = exasolIpAddress;
+            if (exasolIpAddress != null && !exasolIpAddress.isEmpty()) {
+                this.exasolIpAddress = exasolIpAddress;
+            }
             return this;
         }
 
-        public Builder exasolBucketFsPort(final int exasolBucketFsPort) {
-            this.exasolBucketFsPort = exasolBucketFsPort;
+        public Builder exasolBucketFsPort(final String exasolBucketFsPort) {
+            if (exasolBucketFsPort != null && !exasolBucketFsPort.isEmpty()) {
+                this.exasolBucketFsPort = exasolBucketFsPort;
+            }
             return this;
         }
 
-        public Builder exasolDatabasePort(final int exasolDatabasePort) {
-            this.exasolDatabasePort = exasolDatabasePort;
+        public Builder exasolDatabasePort(final String exasolDatabasePort) {
+            if (exasolDatabasePort != null && !exasolDatabasePort.isEmpty()) {
+                this.exasolDatabasePort = exasolDatabasePort;
+            }
             return this;
         }
 
         public Builder bucketName(final String bucketName) {
-            this.bucketName = bucketName;
+            if (bucketName != null && !bucketName.isEmpty()) {
+                this.bucketName = bucketName;
+            }
             return this;
         }
 
         public Builder bucketWritePassword(final String bucketWritePassword) {
-            this.bucketWritePassword = bucketWritePassword;
+            if (this.bucketName != null) {
+                this.bucketWritePassword = bucketWritePassword;
+            }
             return this;
         }
 
         public Builder exasolUser(final String exasolUser) {
-            this.exasolUser = exasolUser;
+            if (exasolUser != null && !exasolUser.isEmpty()) {
+                this.exasolUser = exasolUser;
+            }
             return this;
         }
 
         public Builder exasolPassword(final String exasolPassword) {
-            this.exasolPassword = exasolPassword;
+            if (exasolPassword != null && !exasolPassword.isEmpty()) {
+                this.exasolPassword = exasolPassword;
+            }
             return this;
         }
 
         public Builder postgresIpAddress(final String postgresIpAddress) {
-            this.postgresIpAddress = postgresIpAddress;
+            if (postgresIpAddress != null && !postgresIpAddress.isEmpty()) {
+                this.postgresIpAddress = postgresIpAddress;
+            }
             return this;
         }
 
         public Builder postgresPort(final String postgresPort) {
-            this.postgresPort = postgresPort;
+            if (postgresPort != null && !postgresPort.isEmpty()) {
+                this.postgresPort = postgresPort;
+            }
             return this;
         }
 
         public Builder postgresDatabaseName(final String postgresDatabaseName) {
-            this.postgresDatabaseName = postgresDatabaseName;
+            if (postgresDatabaseName != null && !postgresDatabaseName.isEmpty()) {
+                this.postgresDatabaseName = postgresDatabaseName;
+            }
             return this;
         }
 
         public Builder postgresUsername(final String postgresUsername) {
-            this.postgresUsername = postgresUsername;
+            if (postgresUsername != null && !postgresUsername.isEmpty()) {
+                this.postgresUsername = postgresUsername;
+            }
             return this;
         }
 
         public Builder postgresPassword(final String postgresPassword) {
-            this.postgresPassword = postgresPassword;
+            if (postgresPassword != null && !postgresPassword.isEmpty()) {
+                this.postgresPassword = postgresPassword;
+            }
             return this;
         }
 
         public Builder postgresMappedSchema(final String postgresMappedSchema) {
-            this.postgresMappedSchema = postgresMappedSchema;
+            if (postgresMappedSchema != null && !postgresMappedSchema.isEmpty()) {
+                this.postgresMappedSchema = postgresMappedSchema;
+            }
             return this;
         }
 
         public Builder virtualSchemaName(final String virtualSchemaName) {
-            this.virtualSchemaName = virtualSchemaName;
+            if (virtualSchemaName != null && !virtualSchemaName.isEmpty()) {
+                this.virtualSchemaName = virtualSchemaName;
+            }
             return this;
         }
 
