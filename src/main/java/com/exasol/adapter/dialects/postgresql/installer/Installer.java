@@ -11,6 +11,9 @@ import java.util.logging.Logger;
 import com.exasol.bucketfs.BucketAccessException;
 import com.exasol.bucketfs.WriteEnabledBucket;
 
+/**
+ * This class contains Postgres Virtual Schema installation logic.
+ */
 public class Installer {
     private static final Logger LOGGER = Logger.getLogger(Installer.class.getName());
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -26,31 +29,44 @@ public class Installer {
     private final String bucketWritePassword;
     private final String exasolUser;
     private final String exasolPassword;
+
     private final String postgresIpAddress;
     private final String postgresPort;
     private final String postgresDatabaseName;
     private final String postgresUsername;
     private final String postgresPassword;
     private final String postgresMappedSchema;
+
+    private final String exasolSchemaName;
+    private final String exasolAdapterName;
+    private final String exasolConnectionName;
     private final String virtualSchemaName;
 
     private Installer(final Builder builder) {
         this.exasolIpAddress = builder.exasolIpAddress;
-        this.exasolBucketFsPort = Integer.parseInt(builder.exasolBucketFsPort);
-        this.exasolDatabasePort = Integer.parseInt(builder.exasolDatabasePort);
+        this.exasolBucketFsPort = builder.exasolBucketFsPort;
+        this.exasolDatabasePort = builder.exasolDatabasePort;
         this.bucketName = builder.bucketName;
         this.bucketWritePassword = builder.bucketWritePassword;
         this.exasolUser = builder.exasolUser;
         this.exasolPassword = builder.exasolPassword;
+
         this.postgresIpAddress = builder.postgresIpAddress;
         this.postgresPort = builder.postgresPort;
         this.postgresDatabaseName = builder.postgresDatabaseName;
         this.postgresUsername = builder.postgresUsername;
         this.postgresPassword = builder.postgresPassword;
         this.postgresMappedSchema = builder.postgresMappedSchema;
+
+        this.exasolSchemaName = builder.exasolSchemaName;
+        this.exasolAdapterName = builder.exasolAdapterName;
+        this.exasolConnectionName = builder.exasolConnectionName;
         this.virtualSchemaName = builder.virtualSchemaName;
     }
 
+    /**
+     * Install Postgres Virtual Schema to the Exasol database.
+     */
     public void install() throws SQLException, BucketAccessException, InterruptedException, TimeoutException {
         uploadFilesToBucket();
         try (final Connection connection = DriverManager.getConnection(
@@ -61,41 +77,59 @@ public class Installer {
     }
 
     private void uploadFilesToBucket() throws BucketAccessException, InterruptedException, TimeoutException {
-        final WriteEnabledBucket bucket = WriteEnabledBucket.builder()//
+        final WriteEnabledBucket bucket = getBucket();
+        uploadVsJarToBucket(bucket);
+        uploadDriverToBucket(bucket);
+    }
+
+    private WriteEnabledBucket getBucket() {
+        return WriteEnabledBucket.builder()//
                 .ipAddress(this.exasolIpAddress) //
                 .httpPort(this.exasolBucketFsPort) //
                 .name(this.bucketName) //
                 .writePassword(this.bucketWritePassword) //
                 .build();
-        uploadVsJarToBucket(bucket);
-        uploadDriverToBucket(bucket);
     }
 
     private void installVirtualSchema(final Statement statement) throws SQLException {
-        final String schemaName = "ADAPTER";
-        final String adapterName = "POSTGRES_ADAPTER_SCRIPT";
-        final String connectionName = "POSTGRES_JDBC_CONNECTION";
-        statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
-        final String createAdapterScriptStatement = prepareAdapterScriptStatement(schemaName, adapterName);
+        createSchema(statement);
+        createAdapterScript(statement);
+        createConnection(statement);
+        createVirtualSchema(statement);
+    }
+
+    private void createSchema(final Statement statement) throws SQLException {
+        statement.execute("CREATE SCHEMA IF NOT EXISTS " + this.exasolSchemaName);
+    }
+
+    private void createAdapterScript(final Statement statement) throws SQLException {
+        final String createAdapterScriptStatement = prepareAdapterScriptStatement(this.exasolSchemaName,
+                this.exasolAdapterName);
+        LOGGER.info(() -> "Installing adapter script with the following command: " + LINE_SEPARATOR
+                + createAdapterScriptStatement);
         statement.execute(createAdapterScriptStatement);
+    }
+
+    private void createConnection(final Statement statement) throws SQLException {
         final String connectionString = "jdbc:postgresql://" + this.postgresIpAddress + ":" + this.postgresPort + "/"
                 + this.postgresDatabaseName;
-        statement.execute("CREATE OR REPLACE CONNECTION " + connectionName + " TO '" + connectionString + "' USER '"
-                + this.postgresUsername + "' IDENTIFIED BY '" + this.postgresPassword + "'");
-        final String createVirtualSchemaStatement = prepareVirtualSchemaStatement(schemaName, adapterName,
-                connectionName);
+        statement.execute("CREATE OR REPLACE CONNECTION " + this.exasolConnectionName + " TO '" + connectionString
+                + "' USER '" + this.postgresUsername + "' IDENTIFIED BY '" + this.postgresPassword + "'");
+    }
+
+    private void createVirtualSchema(final Statement statement) throws SQLException {
+        final String createVirtualSchemaStatement = prepareVirtualSchemaStatement();
+        LOGGER.info(() -> "Installing virtual schema with the following command: " + LINE_SEPARATOR
+                + createVirtualSchemaStatement);
         statement.execute(createVirtualSchemaStatement);
     }
 
-    private String prepareVirtualSchemaStatement(final String schemaName, final String adapterName,
-            final String connectionName) {
+    private String prepareVirtualSchemaStatement() {
         final String createVirtualSchemaStatement = "CREATE VIRTUAL SCHEMA " + this.virtualSchemaName + LINE_SEPARATOR //
-                + "    USING " + schemaName + "." + adapterName + LINE_SEPARATOR //
+                + "    USING " + this.exasolSchemaName + "." + this.exasolAdapterName + LINE_SEPARATOR //
                 + "    WITH" + LINE_SEPARATOR //
                 + "    SCHEMA_NAME = '" + this.postgresMappedSchema + "'" + LINE_SEPARATOR //
-                + "    CONNECTION_NAME = '" + connectionName + "';" + LINE_SEPARATOR;
-        LOGGER.info(() -> "Installing virtual schema with the following command: " + LINE_SEPARATOR
-                + createVirtualSchemaStatement);
+                + "    CONNECTION_NAME = '" + this.exasolConnectionName + "';" + LINE_SEPARATOR;
         return createVirtualSchemaStatement;
     }
 
@@ -106,8 +140,6 @@ public class Installer {
                 + "%jar /buckets/bfsdefault/" + this.bucketName + "/" + VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION + ";"
                 + LINE_SEPARATOR //
                 + "%jar /buckets/bfsdefault/" + this.bucketName + "/" + JDBC_DRIVER_NAME + ";";
-        LOGGER.info(() -> "Installing adapter script with the following command: " + LINE_SEPARATOR
-                + createAdapterScriptStatement);
         return createAdapterScriptStatement;
     }
 
@@ -127,8 +159,8 @@ public class Installer {
 
     static class Builder {
         private String exasolIpAddress = "localhost";
-        private String exasolBucketFsPort = "2580";
-        private String exasolDatabasePort = "8563";
+        private int exasolBucketFsPort = 2580;
+        private int exasolDatabasePort = 8563;
         private String bucketName = "default";
         private String bucketWritePassword = "write";
         private String exasolUser = "sys";
@@ -141,6 +173,9 @@ public class Installer {
         private String postgresDatabaseName = "postgres";
         private String postgresMappedSchema = "";
 
+        private String exasolSchemaName = "ADAPTER";
+        private String exasolAdapterName = "POSTGRES_ADAPTER_SCRIPT";
+        private String exasolConnectionName = "POSTGRES_JDBC_CONNECTION";
         private String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA";
 
         public Builder exasolIpAddress(final String exasolIpAddress) {
@@ -152,14 +187,14 @@ public class Installer {
 
         public Builder exasolBucketFsPort(final String exasolBucketFsPort) {
             if (exasolBucketFsPort != null && !exasolBucketFsPort.isEmpty()) {
-                this.exasolBucketFsPort = exasolBucketFsPort;
+                this.exasolBucketFsPort = Integer.parseInt(exasolBucketFsPort);
             }
             return this;
         }
 
         public Builder exasolDatabasePort(final String exasolDatabasePort) {
             if (exasolDatabasePort != null && !exasolDatabasePort.isEmpty()) {
-                this.exasolDatabasePort = exasolDatabasePort;
+                this.exasolDatabasePort = Integer.parseInt(exasolDatabasePort);
             }
             return this;
         }
@@ -230,6 +265,27 @@ public class Installer {
         public Builder postgresMappedSchema(final String postgresMappedSchema) {
             if (postgresMappedSchema != null && !postgresMappedSchema.isEmpty()) {
                 this.postgresMappedSchema = postgresMappedSchema;
+            }
+            return this;
+        }
+
+        public Builder exasolSchemaName(final String exasolSchemaName) {
+            if (exasolSchemaName != null && !exasolSchemaName.isEmpty()) {
+                this.exasolSchemaName = exasolSchemaName;
+            }
+            return this;
+        }
+
+        public Builder exasolAdapterName(final String exasolAdapterName) {
+            if (exasolAdapterName != null && !exasolAdapterName.isEmpty()) {
+                this.exasolAdapterName = exasolAdapterName;
+            }
+            return this;
+        }
+
+        public Builder exasolConnectionName(final String exasolConnectionName) {
+            if (exasolConnectionName != null && !exasolConnectionName.isEmpty()) {
+                this.exasolConnectionName = exasolConnectionName;
             }
             return this;
         }

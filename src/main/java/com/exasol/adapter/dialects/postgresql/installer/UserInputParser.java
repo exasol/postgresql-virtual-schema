@@ -21,6 +21,9 @@ public class UserInputParser {
                 .postgresPassword(cmd.getOptionValue("postgresPassword")) //
                 .postgresDatabaseName(cmd.getOptionValue("postgresDatabaseName")) //
                 .postgresMappedSchema(cmd.getOptionValue("postgresMappedSchema")) //
+                .exasolSchemaName(cmd.getOptionValue("exasolSchemaName")) //
+                .exasolAdapterName(cmd.getOptionValue("exasolAdapterName")) //
+                .exasolConnectionName(cmd.getOptionValue("exasolConnectionName")) //
                 .virtualSchemaName(cmd.getOptionValue("virtualSchemaName")) //
                 .build();
     }
@@ -55,13 +58,20 @@ public class UserInputParser {
                 "Postgres database name (default: postgres).");
         final Option postgresMappedSchema = new Option("postgresMappedSchema", true,
                 "Postgres schema to map in Virtual Schema.");
+        final Option exasolSchemaName = new Option("exasolSchemaName", true,
+                "Name for an Exasol schema that holds the adapter script (default: ADAPTER).");
+        final Option exasolAdapterName = new Option("exasolAdapterName", true,
+                "Name for an Exasol adapter script (default: POSTGRES_ADAPTER_SCRIPT).");
+        final Option exasolConnectionName = new Option("exasolConnectionName", true,
+                "Name for an Exasol connection to the Postgres database (default: POSTGRES_JDBC_CONNECTION).");
         final Option virtualSchemaName = new Option("virtualSchemaName", true,
                 "Name for a virtual schema (default: POSTGRES_VIRTUAL_SCHEMA).");
         return new Options().addOption(help).addOption(exasolIpAddress).addOption(exasolBucketFsPort)
                 .addOption(exasolDatabasePort).addOption(bucketName).addOption(bucketWritePassword)
                 .addOption(exasolUser).addOption(exasolPassword).addOption(postgresIpAddress).addOption(postgresPort)
                 .addOption(postgresUsername).addOption(postgresPassword).addOption(postgresDatabaseName)
-                .addOption(postgresMappedSchema).addOption(virtualSchemaName);
+                .addOption(postgresMappedSchema).addOption(exasolSchemaName).addOption(exasolAdapterName)
+                .addOption(exasolConnectionName).addOption(virtualSchemaName);
     }
 
     private static CommandLine getCommandLine(final String[] args, final Options options) throws ParseException {
