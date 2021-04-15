@@ -65,8 +65,6 @@ class InstallerIT {
                 "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
                 "-exaBucketName", EXASOL.getDefaultBucket().getBucketName(), //
                 "-exaBucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
-                "-exaUser", EXASOL.getUsername(), //
-                "-exaPassword", EXASOL.getPassword(), //
                 "-exaSchemaName", EXASOL_SCHEMA_NAME, //
                 "-exaAdapterName", EXASOL_ADAPTER_NAME, //
                 "-exaConnectionName", POSTGRES_JDBC_CONNECTION, //
@@ -74,8 +72,6 @@ class InstallerIT {
                 "-postgresIp", EXASOL.getHostIp(), //
                 "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
                 "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresUser", POSTGRES.getUsername(), //
-                "-postgresPassword", POSTGRES.getPassword(), //
                 "-postgresMappedSchema", POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
@@ -95,8 +91,6 @@ class InstallerIT {
                 "-postgresIp", EXASOL.getHostIp(), //
                 "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
                 "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresUser", POSTGRES.getUsername(), //
-                "-postgresPassword", POSTGRES.getPassword(), //
                 "-postgresMappedSchema", POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
@@ -104,7 +98,9 @@ class InstallerIT {
 
     private void assertVirtualSchemaWasCreated(final String virtualSchemaName, final String[] args)
             throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException {
-        final Installer installer = new UserInputParser().parseUserInput(args);
+        final User exaUser = new User(EXASOL.getUsername(), EXASOL.getPassword());
+        final User postgresUser = new User(POSTGRES.getUsername(), POSTGRES.getPassword());
+        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser);
         installer.install();
         final ResultSet actualResultSet = EXASOL.createConnection().createStatement()
                 .executeQuery("SELECT * FROM " + virtualSchemaName + "." + SIMPLE_POSTGRES_TABLE);

@@ -6,11 +6,11 @@ import org.apache.commons.cli.*;
  * Parses user input for the {@link Installer} class.
  */
 public class UserInputParser {
-    public Installer parseUserInput(final String[] args) throws ParseException {
+    public Installer parseUserInput(final String[] args, final User exaUser, final User postgresUser) throws ParseException {
         final Options options = createOptions();
         final CommandLine cmd = getCommandLine(args, options);
         printHelpIfNeeded(options, cmd);
-        return Installer.builder() //
+        return Installer.builder(exaUser, postgresUser) //
                 .virtualSchemaJarName(cmd.getOptionValue("virtualSchemaJarName")) //
                 .virtualSchemaJarPath(cmd.getOptionValue("virtualSchemaJarPath")) //
                 .jdbcDriverName(cmd.getOptionValue("jdbcDriverName")) //
@@ -20,8 +20,6 @@ public class UserInputParser {
                 .exaBucketFsPort(cmd.getOptionValue("exaBucketFsPort")) //
                 .exaBucketName(cmd.getOptionValue("exaBucketName")) //
                 .exaBucketWritePassword(cmd.getOptionValue("exaBucketWritePassword")) //
-                .exaUser(cmd.getOptionValue("exaUser")) //
-                .exaPassword(cmd.getOptionValue("exaPassword")) //
                 .exaSchemaName(cmd.getOptionValue("exaSchemaName")) //
                 .exaAdapterName(cmd.getOptionValue("exaAdapterName")) //
                 .exaConnectionName(cmd.getOptionValue("exaConnectionName")) //
@@ -29,8 +27,6 @@ public class UserInputParser {
                 .postgresIp(cmd.getOptionValue("postgresIp")) //
                 .postgresPort(cmd.getOptionValue("postgresPort")) //
                 .postgresDatabaseName(cmd.getOptionValue("postgresDatabaseName")) //
-                .postgresUser(cmd.getOptionValue("postgresUser")) //
-                .postgresPassword(cmd.getOptionValue("postgresPassword")) //
                 .postgresMappedSchema(cmd.getOptionValue("postgresMappedSchema")) //
                 .build();
     }
@@ -60,8 +56,6 @@ public class UserInputParser {
         addOption(options, "exaBucketFsPort", true, "A port on which BucketFS is listening (default: 2580).");
         addOption(options, "exaBucketName", true, "A bucket name to upload jars (default: default).");
         addOption(options, "exaBucketWritePassword", true, "A password to write to the bucket (default: write)");
-        addOption(options, "exaUser", true, "An Exasol user (default: sys).");
-        addOption(options, "exaPassword", true, "An Exasol password (default: exasol).");
         addOption(options, "exaSchemaName", true,
                 "A name for an Exasol schema that holds the adapter script (default: ADAPTER).");
         addOption(options, "exaAdapterName", true,
@@ -77,8 +71,6 @@ public class UserInputParser {
                 "A port on which the PostgreSQL database is listening (default: 5432).");
         addOption(options, "postgresDatabaseName", true,
                 "A PostgreSQL database name to connect to (default: postgres).");
-        addOption(options, "postgresUser", true, "A PostgreSQL username (default: postgres).");
-        addOption(options, "postgresPassword", true, "A PostgreSQL password (default: admin).");
         addOption(options, "postgresMappedSchema", true,
                 "A PostgreSQL schema to map in Virtual Schema (no default value).");
         return options;
