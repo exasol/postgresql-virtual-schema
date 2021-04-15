@@ -56,23 +56,27 @@ class InstallerIT {
             throws SQLException, BucketAccessException, InterruptedException, TimeoutException, ParseException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_1";
         final String[] args = new String[] { //
-                "-exasolIpAddress", "localhost", //
-                "-exasolBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
-                "-exasolDatabasePort", EXASOL.getMappedPort(8563).toString(), //
-                "-bucketName", EXASOL.getDefaultBucket().getBucketName(), //
-                "-bucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
-                "-exasolUser", EXASOL.getUsername(), //
-                "-exasolPassword", EXASOL.getPassword(), //
-                "-postgresIpAddress", EXASOL.getHostIp(), //
+                "-virtualSchemaJarName", "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar", //
+                "-virtualSchemaJarPath", "target", //
+                "-jdbcDriverName", "postgresql.jar", //
+                "-jdbcDriverPath", "target/postgresql-driver", //
+                "-exaIp", "localhost", //
+                "-exaPort", EXASOL.getMappedPort(8563).toString(), //
+                "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
+                "-exaBucketName", EXASOL.getDefaultBucket().getBucketName(), //
+                "-exaBucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
+                "-exaUser", EXASOL.getUsername(), //
+                "-exaPassword", EXASOL.getPassword(), //
+                "-exaSchemaName", EXASOL_SCHEMA_NAME, //
+                "-exaAdapterName", EXASOL_ADAPTER_NAME, //
+                "-exaConnectionName", POSTGRES_JDBC_CONNECTION, //
+                "-exaVirtualSchemaName", virtualSchemaName, //
+                "-postgresIp", EXASOL.getHostIp(), //
                 "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
                 "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresUsername", POSTGRES.getUsername(), //
+                "-postgresUser", POSTGRES.getUsername(), //
                 "-postgresPassword", POSTGRES.getPassword(), //
-                "-postgresMappedSchema", POSTGRES_SCHEMA, //
-                "-exasolSchemaName", EXASOL_SCHEMA_NAME, //
-                "-exasolAdapterName", EXASOL_ADAPTER_NAME, //
-                "-exasolConnectionName", POSTGRES_JDBC_CONNECTION, //
-                "-virtualSchemaName", virtualSchemaName //
+                "-postgresMappedSchema", POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
     }
@@ -82,16 +86,18 @@ class InstallerIT {
             throws SQLException, BucketAccessException, InterruptedException, TimeoutException, ParseException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_2";
         final String[] args = new String[] { //
-                "-exasolBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
-                "-exasolDatabasePort", EXASOL.getMappedPort(8563).toString(), //
-                "-bucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
-                "-postgresIpAddress", EXASOL.getHostIp(), //
+                "-virtualSchemaJarPath", "target", //
+                "-jdbcDriverPath", "target/postgresql-driver", //
+                "-exaPort", EXASOL.getMappedPort(8563).toString(), //
+                "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
+                "-exaBucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
+                "-exaVirtualSchemaName", virtualSchemaName, //
+                "-postgresIp", EXASOL.getHostIp(), //
                 "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
                 "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresUsername", POSTGRES.getUsername(), //
+                "-postgresUser", POSTGRES.getUsername(), //
                 "-postgresPassword", POSTGRES.getPassword(), //
-                "-postgresMappedSchema", POSTGRES_SCHEMA, //
-                "-virtualSchemaName", virtualSchemaName //
+                "-postgresMappedSchema", POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
     }

@@ -2,29 +2,36 @@ package com.exasol.adapter.dialects.postgresql.installer;
 
 import org.apache.commons.cli.*;
 
+/**
+ * Parses user input for the {@link Installer} class.
+ */
 public class UserInputParser {
     public Installer parseUserInput(final String[] args) throws ParseException {
         final Options options = createOptions();
         final CommandLine cmd = getCommandLine(args, options);
         printHelpIfNeeded(options, cmd);
         return Installer.builder() //
-                .exasolIpAddress(cmd.getOptionValue("exasolIpAddress")) //
-                .exasolBucketFsPort(cmd.getOptionValue("exasolBucketFsPort")) //
-                .exasolDatabasePort(cmd.getOptionValue("exasolDatabasePort")) //
-                .bucketName(cmd.getOptionValue("bucketName")) //
-                .bucketWritePassword(cmd.getOptionValue("bucketWritePassword")) //
-                .exasolUser(cmd.getOptionValue("exasolUser")) //
-                .exasolPassword(cmd.getOptionValue("exasolPassword")) //
-                .postgresIpAddress(cmd.getOptionValue("postgresIpAddress")) //
+                .virtualSchemaJarName(cmd.getOptionValue("virtualSchemaJarName")) //
+                .virtualSchemaJarPath(cmd.getOptionValue("virtualSchemaJarPath")) //
+                .jdbcDriverName(cmd.getOptionValue("jdbcDriverName")) //
+                .jdbcDriverPath(cmd.getOptionValue("jdbcDriverPath")) //
+                .exaIp(cmd.getOptionValue("exaIp")) //
+                .exaPort(cmd.getOptionValue("exaPort")) //
+                .exaBucketFsPort(cmd.getOptionValue("exaBucketFsPort")) //
+                .exaBucketName(cmd.getOptionValue("exaBucketName")) //
+                .exaBucketWritePassword(cmd.getOptionValue("exaBucketWritePassword")) //
+                .exaUser(cmd.getOptionValue("exaUser")) //
+                .exaPassword(cmd.getOptionValue("exaPassword")) //
+                .exaSchemaName(cmd.getOptionValue("exaSchemaName")) //
+                .exaAdapterName(cmd.getOptionValue("exaAdapterName")) //
+                .exaConnectionName(cmd.getOptionValue("exaConnectionName")) //
+                .exaVirtualSchemaName(cmd.getOptionValue("exaVirtualSchemaName")) //
+                .postgresIp(cmd.getOptionValue("postgresIp")) //
                 .postgresPort(cmd.getOptionValue("postgresPort")) //
-                .postgresUsername(cmd.getOptionValue("postgresUsername")) //
-                .postgresPassword(cmd.getOptionValue("postgresPassword")) //
                 .postgresDatabaseName(cmd.getOptionValue("postgresDatabaseName")) //
+                .postgresUser(cmd.getOptionValue("postgresUser")) //
+                .postgresPassword(cmd.getOptionValue("postgresPassword")) //
                 .postgresMappedSchema(cmd.getOptionValue("postgresMappedSchema")) //
-                .exasolSchemaName(cmd.getOptionValue("exasolSchemaName")) //
-                .exasolAdapterName(cmd.getOptionValue("exasolAdapterName")) //
-                .exasolConnectionName(cmd.getOptionValue("exasolConnectionName")) //
-                .virtualSchemaName(cmd.getOptionValue("virtualSchemaName")) //
                 .build();
     }
 
@@ -35,46 +42,54 @@ public class UserInputParser {
         }
     }
 
-    private static Options createOptions() {
-        final Option help = new Option("help", false, "Help command");
-        final Option exasolIpAddress = new Option("exasolIpAddress", true,
-                "IP address to connect to Exasol database (default: localhost).");
-        final Option exasolBucketFsPort = new Option("exasolBucketFsPort", true,
-                "A port on which BucketFS is listening (default: 2580).");
-        final Option exasolDatabasePort = new Option("exasolDatabasePort", true,
-                "A port on which Exasol database is listening (default: 8563).");
-        final Option bucketName = new Option("bucketName", true, "A bucket name to upload jars (default: default).");
-        final Option bucketWritePassword = new Option("bucketWritePassword", true,
-                "A password to write to the bucket (default: write)");
-        final Option exasolUser = new Option("exasolUser", true, "Exasol user (default: sys).");
-        final Option exasolPassword = new Option("exasolPassword", true, "Exasol password (default: exasol).");
-        final Option postgresIpAddress = new Option("postgresIpAddress", true,
-                "IP address to connect to Postgres database (default: localhost).");
-        final Option postgresPort = new Option("postgresPort", true,
-                "A port on which Postgres database is listening (default: 5432).");
-        final Option postgresUsername = new Option("postgresUsername", true, "Postgres username (default: postgres).");
-        final Option postgresPassword = new Option("postgresPassword", true, "Postgres password (default: admin).");
-        final Option postgresDatabaseName = new Option("postgresDatabaseName", true,
-                "Postgres database name (default: postgres).");
-        final Option postgresMappedSchema = new Option("postgresMappedSchema", true,
-                "Postgres schema to map in Virtual Schema.");
-        final Option exasolSchemaName = new Option("exasolSchemaName", true,
-                "Name for an Exasol schema that holds the adapter script (default: ADAPTER).");
-        final Option exasolAdapterName = new Option("exasolAdapterName", true,
-                "Name for an Exasol adapter script (default: POSTGRES_ADAPTER_SCRIPT).");
-        final Option exasolConnectionName = new Option("exasolConnectionName", true,
-                "Name for an Exasol connection to the Postgres database (default: POSTGRES_JDBC_CONNECTION).");
-        final Option virtualSchemaName = new Option("virtualSchemaName", true,
-                "Name for a virtual schema (default: POSTGRES_VIRTUAL_SCHEMA).");
-        return new Options().addOption(help).addOption(exasolIpAddress).addOption(exasolBucketFsPort)
-                .addOption(exasolDatabasePort).addOption(bucketName).addOption(bucketWritePassword)
-                .addOption(exasolUser).addOption(exasolPassword).addOption(postgresIpAddress).addOption(postgresPort)
-                .addOption(postgresUsername).addOption(postgresPassword).addOption(postgresDatabaseName)
-                .addOption(postgresMappedSchema).addOption(exasolSchemaName).addOption(exasolAdapterName)
-                .addOption(exasolConnectionName).addOption(virtualSchemaName);
+    private Options createOptions() {
+        final Options options = new Options();
+        addOption(options, "help", false, "Help command");
+
+        addOption(options, "virtualSchemaJarName", true,
+                "Name of the Virtual Schema JAR file (default: virtual-schema-dist-9.0.1-postgresql-2.0.0.jar).");
+        addOption(options, "virtualSchemaJarPath", true,
+                "Path to the Virtual Schema JAR file (default: current directory).");
+        addOption(options, "jdbcDriverName", true,
+                "Name of the PostgreSQL JDBC driver file (default: postgresql.jar).");
+        addOption(options, "jdbcDriverPath", true,
+                "Path to the PostgreSQL JDBC driver file (default: current directory).");
+
+        addOption(options, "exaIp", true, "An IP address to connect to the Exasol database (default: localhost).");
+        addOption(options, "exaPort", true, "A port on which the Exasol database is listening (default: 8563).");
+        addOption(options, "exaBucketFsPort", true, "A port on which BucketFS is listening (default: 2580).");
+        addOption(options, "exaBucketName", true, "A bucket name to upload jars (default: default).");
+        addOption(options, "exaBucketWritePassword", true, "A password to write to the bucket (default: write)");
+        addOption(options, "exaUser", true, "An Exasol user (default: sys).");
+        addOption(options, "exaPassword", true, "An Exasol password (default: exasol).");
+        addOption(options, "exaSchemaName", true,
+                "A name for an Exasol schema that holds the adapter script (default: ADAPTER).");
+        addOption(options, "exaAdapterName", true,
+                "A name for an Exasol adapter script (default: POSTGRES_ADAPTER_SCRIPT).");
+        addOption(options, "exaConnectionName", true,
+                "A name for an Exasol connection to the Postgres database (default: POSTGRES_JDBC_CONNECTION).");
+        addOption(options, "exaVirtualSchemaName", true,
+                "A name for a virtual schema (default: POSTGRES_VIRTUAL_SCHEMA).");
+
+        addOption(options, "postgresIp", true,
+                "An IP address to connect to the PostgreSQL database (default: localhost).");
+        addOption(options, "postgresPort", true,
+                "A port on which the PostgreSQL database is listening (default: 5432).");
+        addOption(options, "postgresDatabaseName", true,
+                "A PostgreSQL database name to connect to (default: postgres).");
+        addOption(options, "postgresUser", true, "A PostgreSQL username (default: postgres).");
+        addOption(options, "postgresPassword", true, "A PostgreSQL password (default: admin).");
+        addOption(options, "postgresMappedSchema", true,
+                "A PostgreSQL schema to map in Virtual Schema (no default value).");
+        return options;
     }
 
-    private static CommandLine getCommandLine(final String[] args, final Options options) throws ParseException {
+    private void addOption(final Options options, final String opt, final boolean hasArg, final String description) {
+        final Option option = new Option(opt, hasArg, description);
+        options.addOption(option);
+    }
+
+    private CommandLine getCommandLine(final String[] args, final Options options) throws ParseException {
         try {
             final CommandLineParser parser = new DefaultParser();
             return parser.parse(options, args);
@@ -84,7 +99,7 @@ public class UserInputParser {
         }
     }
 
-    private static void printHelp(final Options options) {
+    private void printHelp(final Options options) {
         final HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("Postgres Virtual Schema Installer", options);
     }
