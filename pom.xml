@@ -64,6 +64,11 @@
             <artifactId>commons-cli</artifactId>
             <version>1.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.exasol</groupId>
+            <artifactId>exasol-jdbc</artifactId>
+            <version>7.0.7</version>
+        </dependency>
         <!--Unit test dependencies -->
         <dependency>
             <groupId>com.exasol</groupId>
@@ -222,6 +227,12 @@
                     </descriptors>
                     <finalName>virtual-schema-dist-${vscjdbc.version}-postgresql-${version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.exasol.adapter.dialects.postgresql.installer.Installer</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>

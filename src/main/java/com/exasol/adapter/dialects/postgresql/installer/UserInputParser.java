@@ -6,11 +6,12 @@ import org.apache.commons.cli.*;
  * Parses user input for the {@link Installer} class.
  */
 public class UserInputParser {
-    public Installer parseUserInput(final String[] args, final User exaUser, final User postgresUser) throws ParseException {
+    public Installer parseUserInput(final String[] args, final User exaUser, final User postgresUser, final User bucket)
+            throws ParseException {
         final Options options = createOptions();
         final CommandLine cmd = getCommandLine(args, options);
         printHelpIfNeeded(options, cmd);
-        return Installer.builder(exaUser, postgresUser) //
+        return Installer.builder(exaUser, postgresUser, bucket) //
                 .virtualSchemaJarName(cmd.getOptionValue("virtualSchemaJarName")) //
                 .virtualSchemaJarPath(cmd.getOptionValue("virtualSchemaJarPath")) //
                 .jdbcDriverName(cmd.getOptionValue("jdbcDriverName")) //
@@ -19,7 +20,6 @@ public class UserInputParser {
                 .exaPort(cmd.getOptionValue("exaPort")) //
                 .exaBucketFsPort(cmd.getOptionValue("exaBucketFsPort")) //
                 .exaBucketName(cmd.getOptionValue("exaBucketName")) //
-                .exaBucketWritePassword(cmd.getOptionValue("exaBucketWritePassword")) //
                 .exaSchemaName(cmd.getOptionValue("exaSchemaName")) //
                 .exaAdapterName(cmd.getOptionValue("exaAdapterName")) //
                 .exaConnectionName(cmd.getOptionValue("exaConnectionName")) //
@@ -55,7 +55,6 @@ public class UserInputParser {
         addOption(options, "exaPort", true, "A port on which the Exasol database is listening (default: 8563).");
         addOption(options, "exaBucketFsPort", true, "A port on which BucketFS is listening (default: 2580).");
         addOption(options, "exaBucketName", true, "A bucket name to upload jars (default: default).");
-        addOption(options, "exaBucketWritePassword", true, "A password to write to the bucket (default: write)");
         addOption(options, "exaSchemaName", true,
                 "A name for an Exasol schema that holds the adapter script (default: ADAPTER).");
         addOption(options, "exaAdapterName", true,

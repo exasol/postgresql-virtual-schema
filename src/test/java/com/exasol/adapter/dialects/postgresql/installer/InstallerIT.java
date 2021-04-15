@@ -64,7 +64,6 @@ class InstallerIT {
                 "-exaPort", EXASOL.getMappedPort(8563).toString(), //
                 "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
                 "-exaBucketName", EXASOL.getDefaultBucket().getBucketName(), //
-                "-exaBucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
                 "-exaSchemaName", EXASOL_SCHEMA_NAME, //
                 "-exaAdapterName", EXASOL_ADAPTER_NAME, //
                 "-exaConnectionName", POSTGRES_JDBC_CONNECTION, //
@@ -86,7 +85,6 @@ class InstallerIT {
                 "-jdbcDriverPath", "target/postgresql-driver", //
                 "-exaPort", EXASOL.getMappedPort(8563).toString(), //
                 "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
-                "-exaBucketWritePassword", EXASOL.getDefaultBucket().getWritePassword(), //
                 "-exaVirtualSchemaName", virtualSchemaName, //
                 "-postgresIp", EXASOL.getHostIp(), //
                 "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
@@ -100,7 +98,8 @@ class InstallerIT {
             throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException {
         final User exaUser = new User(EXASOL.getUsername(), EXASOL.getPassword());
         final User postgresUser = new User(POSTGRES.getUsername(), POSTGRES.getPassword());
-        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser);
+        final User bucket = new User("", EXASOL.getDefaultBucket().getWritePassword());
+        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser, bucket);
         installer.install();
         final ResultSet actualResultSet = EXASOL.createConnection().createStatement()
                 .executeQuery("SELECT * FROM " + virtualSchemaName + "." + SIMPLE_POSTGRES_TABLE);

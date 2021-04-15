@@ -29,6 +29,7 @@ public class Installer {
     // Credentials
     private final String exaUsername;
     private final String exaPassword;
+    private final String exaBucketWritePassword;
     private final String postgresUsername;
     private final String postgresPassword;
 
@@ -37,7 +38,6 @@ public class Installer {
     private final int exaPort;
     private final int exaBucketFsPort;
     private final String exaBucketName;
-    private final String exaBucketWritePassword;
     private final String exaSchemaName;
     private final String exaAdapterName;
     private final String exaConnectionName;
@@ -163,8 +163,8 @@ public class Installer {
         bucket.uploadFileNonBlocking(this.jdbcDriverPath, this.jdbcDriverName);
     }
 
-    public static Builder builder(final User exaUser, final User postgresUser) {
-        return new Builder(exaUser, postgresUser);
+    public static Builder builder(final User exaUser, final User postgresUser, final User bucket) {
+        return new Builder(exaUser, postgresUser, bucket);
     }
 
     static class Builder {
@@ -175,6 +175,7 @@ public class Installer {
 
         private final String exaUsername;
         private final String exaPassword;
+        private final String exaBucketWritePassword;
         private final String postgresUsername;
         private final String postgresPassword;
 
@@ -182,7 +183,6 @@ public class Installer {
         private int exaPort = 8563;
         private int exaBucketFsPort = 2580;
         private String exaBucketName = "default";
-        private String exaBucketWritePassword = "write";
         private String exaSchemaName = "ADAPTER";
         private String exaAdapterName = "POSTGRES_ADAPTER_SCRIPT";
         private String exaConnectionName = "POSTGRES_JDBC_CONNECTION";
@@ -193,11 +193,12 @@ public class Installer {
         private String postgresDatabaseName = "postgres";
         private String postgresMappedSchema = "";
 
-        public Builder(final User exaUser, final User postgresUser) {
+        public Builder(final User exaUser, final User postgresUser, final User bucket) {
             this.exaUsername = exaUser.getUsername();
             this.exaPassword = exaUser.getPassword();
             this.postgresUsername = postgresUser.getUsername();
             this.postgresPassword = postgresUser.getPassword();
+            this.exaBucketWritePassword = bucket.getPassword();
         }
 
         public Builder virtualSchemaJarName(final String virtualSchemaJarName) {
@@ -252,13 +253,6 @@ public class Installer {
         public Builder exaBucketName(final String exaBucketName) {
             if (exaBucketName != null && !exaBucketName.isEmpty()) {
                 this.exaBucketName = exaBucketName;
-            }
-            return this;
-        }
-
-        public Builder exaBucketWritePassword(final String exaBucketWritePassword) {
-            if (exaBucketWritePassword != null) {
-                this.exaBucketWritePassword = exaBucketWritePassword;
             }
             return this;
         }
@@ -328,7 +322,8 @@ public class Installer {
             throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException {
         final User exaUser = CredentialsProvider.getInstance().provideExasolUser();
         final User postgresUser = CredentialsProvider.getInstance().providePostgresUser();
-        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser);
+        final User bucket = CredentialsProvider.getInstance().provideBucketUser();
+        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser, bucket);
         installer.install();
     }
 }

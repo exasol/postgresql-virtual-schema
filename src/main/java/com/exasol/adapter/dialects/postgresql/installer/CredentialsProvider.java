@@ -20,6 +20,7 @@ public final class CredentialsProvider {
             + "credentials";
     private static final String EXASOL_USERNAME_KEY = "exasol_username";
     private static final String EXASOL_PASSWORD_KEY = "exasol_password";
+    private static final String EXASOL_BUCKET_WRITE_PASSWORD_KEY = "exasol_bucket_write_password";
     private static final String POSTGRES_USERNAME_KEY = "postgres_username";
     private static final String POSTGRES_PASSWORD_KEY = "postgres_password";
     private static CredentialsProvider credentialsProvider;
@@ -111,5 +112,16 @@ public final class CredentialsProvider {
      */
     public User providePostgresUser() {
         return createUserWithUserNameAndPassword(POSTGRES_USERNAME_KEY, POSTGRES_PASSWORD_KEY);
+    }
+
+    /**
+     * Get bucket credentials.
+     *
+     * @return new instance of {@link User}
+     */
+    public User provideBucketUser() {
+        final Map<String, String> credentials = getCredentials(EXASOL_BUCKET_WRITE_PASSWORD_KEY);
+        final String token = credentials.get(EXASOL_BUCKET_WRITE_PASSWORD_KEY);
+        return new User("", token);
     }
 }
