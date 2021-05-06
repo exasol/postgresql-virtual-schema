@@ -3,7 +3,7 @@ package com.exasol.adapter.dialects.postgresql.installer;
 /**
  * Represents a user with username and password.
  */
-public class User {
+public class Credentials {
     private final String username;
     private final String password;
 

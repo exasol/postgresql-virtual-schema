@@ -46,7 +46,7 @@ public final class CredentialsProvider {
      *
      * @return new instance of {@link User}
      */
-    public User provideExasolUser() {
+    public Credentials getExasolCredentials() {
         return createUserWithUserNameAndPassword(EXASOL_USERNAME_KEY, EXASOL_PASSWORD_KEY);
     }
 
@@ -110,7 +110,7 @@ public final class CredentialsProvider {
      *
      * @return new instance of {@link User}
      */
-    public User providePostgresUser() {
+    public Credentials getPostgresCredentials() {
         return createUserWithUserNameAndPassword(POSTGRES_USERNAME_KEY, POSTGRES_PASSWORD_KEY);
     }
 
@@ -119,7 +119,7 @@ public final class CredentialsProvider {
      *
      * @return new instance of {@link User}
      */
-    public User provideBucketUser() {
+    public Credentials getBucketFSCredentials() {
         final Map<String, String> credentials = getCredentials(EXASOL_BUCKET_WRITE_PASSWORD_KEY);
         final String token = credentials.get(EXASOL_BUCKET_WRITE_PASSWORD_KEY);
         return new User("", token);

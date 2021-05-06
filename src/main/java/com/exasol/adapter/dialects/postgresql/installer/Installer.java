@@ -322,7 +322,7 @@ public class Installer {
             throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException {
         final User exaUser = CredentialsProvider.getInstance().provideExasolUser();
         final User postgresUser = CredentialsProvider.getInstance().providePostgresUser();
-        final User bucket = CredentialsProvider.getInstance().provideBucketUser();
+        final User bucketUser = CredentialsProvider.getInstance().provideBucketUser();
         final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser, bucket);
         installer.install();
     }

@@ -26,10 +26,10 @@ class InstallerIT {
     private static final String EXASOL_SCHEMA_NAME = "ADAPTER";
     private static final String EXASOL_ADAPTER_NAME = "POSTGRES_ADAPTER_SCRIPT";
     private static final String POSTGRES_JDBC_CONNECTION = "POSTGRES_JDBC_CONNECTION";
-    public static final String POSTGRES_SCHEMA = "postgres_schema";
-    public static final String SIMPLE_POSTGRES_TABLE = "simple_postgres_table";
-    public static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.0.5";
-    public static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
+    private static final String POSTGRES_SCHEMA = "postgres_schema";
+    private static final String SIMPLE_POSTGRES_TABLE = "simple_postgres_table";
+    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.0.5";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
 
     @Container
     private static final PostgreSQLContainer<? extends PostgreSQLContainer<?>> POSTGRES = new PostgreSQLContainer<>(
