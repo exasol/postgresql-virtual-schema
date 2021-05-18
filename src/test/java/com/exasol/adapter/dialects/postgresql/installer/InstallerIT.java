@@ -75,7 +75,9 @@ class InstallerIT {
                 "--" + POSTGRES_IP_KEY, EXASOL.getHostIp(), //
                 "--" + POSTGRES_PORT_KEY, POSTGRES.getMappedPort(5432).toString(), //
                 "--" + POSTGRES_DATABASE_NAME_KEY, POSTGRES.getDatabaseName(), //
-                "--" + POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_SCHEMA //
+                "--" + POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_SCHEMA, //
+                "--" + ADDITIONAL_PROPERTY_KEY, "TABLE_FILTER='" + SIMPLE_POSTGRES_TABLE + "'", //
+                "--" + ADDITIONAL_PROPERTY_KEY, "EXCLUDED_CAPABILITIES='LIMIT'" //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
     }

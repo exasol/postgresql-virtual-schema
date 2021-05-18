@@ -56,6 +56,8 @@ public class Installer {
     private final String postgresDatabaseName;
     private final String postgresMappedSchema;
 
+    private final String[] additionalProperties;
+
     private Path getVirtualSchemaPath() {
         return Path.of(this.virtualSchemaJarPath, this.virtualSchemaJarName);
     }
@@ -126,11 +128,16 @@ public class Installer {
     }
 
     private String prepareVirtualSchemaStatement() {
-        return "CREATE VIRTUAL SCHEMA " + this.exaVirtualSchemaName + LINE_SEPARATOR //
-                + "    USING " + this.exaSchemaName + "." + this.exaAdapterName + LINE_SEPARATOR //
-                + "    WITH" + LINE_SEPARATOR //
-                + "    SCHEMA_NAME = '" + this.postgresMappedSchema + "'" + LINE_SEPARATOR //
-                + "    CONNECTION_NAME = '" + this.exaConnectionName + "';" + LINE_SEPARATOR;
+        final StringBuilder createVirtualSchemaStatement = new StringBuilder(
+                "CREATE VIRTUAL SCHEMA " + this.exaVirtualSchemaName + LINE_SEPARATOR //
+                        + "USING " + this.exaSchemaName + "." + this.exaAdapterName + LINE_SEPARATOR //
+                        + "WITH" + LINE_SEPARATOR //
+                        + "SCHEMA_NAME = '" + this.postgresMappedSchema + "'" + LINE_SEPARATOR //
+                        + "CONNECTION_NAME = '" + this.exaConnectionName + "'" + LINE_SEPARATOR);
+        for (final String additionalProperty : this.additionalProperties) {
+            createVirtualSchemaStatement.append(additionalProperty).append(LINE_SEPARATOR);
+        }
+        return createVirtualSchemaStatement.toString();
     }
 
     private String prepareAdapterScriptStatement(final String schemaName, final String adapterName) {
@@ -177,9 +184,10 @@ public class Installer {
         options.put(POSTGRES_MAPPED_SCHEMA_KEY, getDescription(POSTGRES_MAPPED_SCHEMA_DESCRIPTION, "no default value"));
         options.put(CREDENTIALS_FILE_KEY, getDescription(CREDENTIALS_FILE_DESCRIPTION, CREDENTIALS_FILE_DEFAULT));
 
-        final Map<String, String> userInput = new UserInputParser().parseUserInput(args, options);
+        final UserInput userInput = new UserInputParser().parseUserInput(args, options);
+        final Map<String, String> parameters = userInput.getParameters();
         final PropertyReader propertyReader = new PropertyReader(
-                getOrDefault(userInput, CREDENTIALS_FILE_KEY, CREDENTIALS_FILE_DEFAULT));
+                getOrDefault(parameters, CREDENTIALS_FILE_KEY, CREDENTIALS_FILE_DEFAULT));
         final Installer installer = Installer.builder() //
                 .exaUsername(propertyReader.readProperty(EXASOL_USERNAME_KEY))
                 .exaPassword(propertyReader.readProperty(EXASOL_PASSWORD_KEY))
@@ -187,28 +195,34 @@ public class Installer {
                 .postgresUsername(propertyReader.readProperty(POSTGRES_USERNAME_KEY))
                 .postgresPassword(propertyReader.readProperty(POSTGRES_PASSWORD_KEY)) //
                 .virtualSchemaJarName(
-                        getOrDefault(userInput, VIRTUAL_SCHEMA_JAR_NAME_KEY, VIRTUAL_SCHEMA_JAR_NAME_DEFAULT)) //
+                        getOrDefault(parameters, VIRTUAL_SCHEMA_JAR_NAME_KEY, VIRTUAL_SCHEMA_JAR_NAME_DEFAULT)) //
                 .virtualSchemaJarPath(
-                        getOrDefault(userInput, VIRTUAL_SCHEMA_JAR_PATH_KEY, VIRTUAL_SCHEMA_JAR_PATH_DEFAULT)) //
-                .jdbcDriverName(getOrDefault(userInput, JDBC_DRIVER_NAME_KEY, JDBC_DRIVER_NAME_DEFAULT)) //
-                .jdbcDriverPath(getOrDefault(userInput, JDBC_DRIVER_PATH_KEY, JDBC_DRIVER_PATH_DEFAULT)) //
-                .exaIp(getOrDefault(userInput, EXA_IP_KEY, EXA_IP_DEFAULT)) //
-                .exaPort(parseInt(getOrDefault(userInput, EXA_PORT_KEY, EXA_PORT_DEFAULT))) //
-                .exaBucketFsPort(parseInt(getOrDefault(userInput, EXA_BUCKET_FS_PORT_KEY, EXA_BUCKET_FS_PORT_DEFAULT))) //
-                .exaBucketName(getOrDefault(userInput, EXA_BUCKET_NAME_KEY, EXA_BUCKET_NAME_DEFAULT)) //
-                .exaSchemaName(getOrDefault(userInput, EXA_SCHEMA_NAME_KEY, EXA_SCHEMA_NAME_DEFAULT)) //
-                .exaAdapterName(getOrDefault(userInput, EXA_ADAPTER_NAME_KEY, EXA_ADAPTER_NAME_DEFAULT)) //
-                .exaConnectionName(getOrDefault(userInput, EXA_CONNECTION_NAME_KEY, EXA_CONNECTION_NAME_DEFAULT)) //
+                        getOrDefault(parameters, VIRTUAL_SCHEMA_JAR_PATH_KEY, VIRTUAL_SCHEMA_JAR_PATH_DEFAULT)) //
+                .jdbcDriverName(getOrDefault(parameters, JDBC_DRIVER_NAME_KEY, JDBC_DRIVER_NAME_DEFAULT)) //
+                .jdbcDriverPath(getOrDefault(parameters, JDBC_DRIVER_PATH_KEY, JDBC_DRIVER_PATH_DEFAULT)) //
+                .exaIp(getOrDefault(parameters, EXA_IP_KEY, EXA_IP_DEFAULT)) //
+                .exaPort(parseInt(getOrDefault(parameters, EXA_PORT_KEY, EXA_PORT_DEFAULT))) //
+                .exaBucketFsPort(parseInt(getOrDefault(parameters, EXA_BUCKET_FS_PORT_KEY, EXA_BUCKET_FS_PORT_DEFAULT))) //
+                .exaBucketName(getOrDefault(parameters, EXA_BUCKET_NAME_KEY, EXA_BUCKET_NAME_DEFAULT)) //
+                .exaSchemaName(getOrDefault(parameters, EXA_SCHEMA_NAME_KEY, EXA_SCHEMA_NAME_DEFAULT)) //
+                .exaAdapterName(getOrDefault(parameters, EXA_ADAPTER_NAME_KEY, EXA_ADAPTER_NAME_DEFAULT)) //
+                .exaConnectionName(getOrDefault(parameters, EXA_CONNECTION_NAME_KEY, EXA_CONNECTION_NAME_DEFAULT)) //
                 .exaVirtualSchemaName(
-                        getOrDefault(userInput, EXA_VIRTUAL_SCHEMA_NAME_KEY, EXA_VIRTUAL_SCHEMA_NAME_DEFAULT)) //
-                .postgresIp(getOrDefault(userInput, POSTGRES_IP_KEY, POSTGRES_IP_DEFAULT)) //
-                .postgresPort(getOrDefault(userInput, POSTGRES_PORT_KEY, POSTGRES_PORT_DEFAULT)) //
+                        getOrDefault(parameters, EXA_VIRTUAL_SCHEMA_NAME_KEY, EXA_VIRTUAL_SCHEMA_NAME_DEFAULT)) //
+                .postgresIp(getOrDefault(parameters, POSTGRES_IP_KEY, POSTGRES_IP_DEFAULT)) //
+                .postgresPort(getOrDefault(parameters, POSTGRES_PORT_KEY, POSTGRES_PORT_DEFAULT)) //
                 .postgresDatabaseName(
-                        getOrDefault(userInput, POSTGRES_DATABASE_NAME_KEY, POSTGRES_DATABASE_NAME_DEFAULT)) //
+                        getOrDefault(parameters, POSTGRES_DATABASE_NAME_KEY, POSTGRES_DATABASE_NAME_DEFAULT)) //
                 .postgresMappedSchema(
-                        getOrDefault(userInput, POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_MAPPED_SCHEMA_DEFAULT)) //
+                        getOrDefault(parameters, POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_MAPPED_SCHEMA_DEFAULT)) //
+                .additionalProperties(getOrDefault(userInput.getAdditionalProperties(), ADDITIONAL_PROPERTIES_DEFAULT)) //
                 .build();
         installer.install();
+    }
+
+    private static String[] getOrDefault(final String[] additionalProperties,
+            final String[] additionalPropertiesDefault) {
+        return additionalProperties == null ? additionalPropertiesDefault : additionalProperties;
     }
 
     private static String getOrDefault(final Map<String, String> userInput, final String key,

@@ -81,5 +81,6 @@ public class PostgresqlVirtualSchemaInstallerConstants {
     public static final String POSTGRES_MAPPED_SCHEMA_DESCRIPTION = "A PostgreSQL schema to map in Virtual Schema";
 
     public static final String ADDITIONAL_PROPERTY_KEY = "property";
-    public static final String HELP_KEY = "property";
+    public static final String[] ADDITIONAL_PROPERTIES_DEFAULT = new String[0];
+    public static final String HELP_KEY = "help";
 }

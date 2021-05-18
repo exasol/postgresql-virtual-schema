@@ -12,7 +12,7 @@ import org.apache.commons.cli.*;
  * Parses user input for the {@link Installer} class.
  */
 public class UserInputParser {
-    public Map<String, String> parseUserInput(final String[] args, final Map<String, String> optionsMap)
+    public UserInput parseUserInput(final String[] args, final Map<String, String> optionsMap)
             throws ParseException {
         final Options options = createOptions(optionsMap);
         final CommandLine cmd = getCommandLine(args, options);
@@ -21,7 +21,8 @@ public class UserInputParser {
         for (final String option : optionsMap.keySet()) {
             userInput.put(option, cmd.getOptionValue(option));
         }
-        return userInput;
+        final String[] additionalProperties = cmd.getOptionValues(ADDITIONAL_PROPERTY_KEY);
+        return new UserInput(userInput, additionalProperties);
     }
 
     private void printHelpIfNeeded(final Options options, final CommandLine cmd) {
@@ -37,9 +38,10 @@ public class UserInputParser {
         for (final Map.Entry<String, String> entry : optionsMap.entrySet()) {
             options.addOption(new Option(null, entry.getKey(), true, entry.getValue()));
         }
-        final Option property = new Option(ADDITIONAL_PROPERTY_KEY, "property", true,
+        final Option property = new Option(ADDITIONAL_PROPERTY_KEY, ADDITIONAL_PROPERTY_KEY, true,
                 "Additional virtual schema property.");
         property.setArgs(Option.UNLIMITED_VALUES);
+        options.addOption(property);
         return options;
     }
 
