@@ -3,7 +3,9 @@ package com.exasol.adapter.dialects.postgresql.installer;
 public class PostgresqlVirtualSchemaInstallerConstants {
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
-    public static final String CREDENTIALS_FILE = FILE_SEPARATOR + ".virtual-schema-installer" + FILE_SEPARATOR
+    public static final String CREDENTIALS_FILE_KEY = "credentials_file";
+    public static final String CREDENTIALS_FILE_DESCRIPTION = "Path to the file where credentials are stored";
+    public static final String CREDENTIALS_FILE_DEFAULT = FILE_SEPARATOR + ".virtual-schema-installer" + FILE_SEPARATOR
             + "credentials";
 
     public static final String EXASOL_USERNAME_KEY = "exasol_username";

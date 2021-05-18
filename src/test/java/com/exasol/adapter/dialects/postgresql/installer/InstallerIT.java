@@ -1,8 +1,12 @@
 package com.exasol.adapter.dialects.postgresql.installer;
 
+import static com.exasol.adapter.dialects.postgresql.installer.PostgresqlVirtualSchemaInstallerConstants.*;
 import static com.exasol.matcher.ResultSetStructureMatcher.table;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -52,8 +56,8 @@ class InstallerIT {
     }
 
     @Test
-    void testInstallVirtualSchema()
-            throws SQLException, BucketAccessException, InterruptedException, TimeoutException, ParseException {
+    void testInstallVirtualSchema() throws SQLException, BucketAccessException, InterruptedException, TimeoutException,
+            ParseException, IOException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_1";
         final String[] args = new String[] { //
                 "-virtualSchemaJarName", "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar", //
@@ -77,8 +81,8 @@ class InstallerIT {
     }
 
     @Test
-    void testInstallVirtualSchemaWithDefaultValues()
-            throws SQLException, BucketAccessException, InterruptedException, TimeoutException, ParseException {
+    void testInstallVirtualSchemaWithDefaultValues() throws SQLException, BucketAccessException, InterruptedException,
+            TimeoutException, ParseException, IOException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_2";
         final String[] args = new String[] { //
                 "-virtualSchemaJarPath", "target", //
@@ -95,12 +99,20 @@ class InstallerIT {
     }
 
     private void assertVirtualSchemaWasCreated(final String virtualSchemaName, final String[] args)
-            throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException {
-        final User exaUser = new User(EXASOL.getUsername(), EXASOL.getPassword());
-        final User postgresUser = new User(POSTGRES.getUsername(), POSTGRES.getPassword());
-        final User bucket = new User("", EXASOL.getDefaultBucket().getWritePassword());
-        final Installer installer = new UserInputParser().parseUserInput(args, exaUser, postgresUser, bucket);
-        installer.install();
+            throws ParseException, SQLException, BucketAccessException, InterruptedException, TimeoutException,
+            IOException {
+        final String credentials = EXASOL_USERNAME_KEY + "=" + EXASOL.getUsername() + "\n" //
+                + EXASOL_PASSWORD_KEY + "=" + EXASOL.getPassword() + "\n" //
+                + EXASOL_BUCKET_WRITE_PASSWORD_KEY + "=" + EXASOL.getDefaultBucket().getWritePassword() + "\n" //
+                + POSTGRES_USERNAME_KEY + "=" + POSTGRES.getUsername() + "\n" //
+                + POSTGRES_PASSWORD_KEY + "=" + POSTGRES.getPassword() + "\n";
+        final Path tempFile = Files.createTempFile("installer_credentials", "temp");
+        Files.write(tempFile, credentials.getBytes());
+        final String[] newArgs = new String[args.length + 2];
+        System.arraycopy(args, 0, newArgs, 0, args.length);
+        newArgs[newArgs.length - 2] = "-" + CREDENTIALS_FILE_KEY;
+        newArgs[newArgs.length - 1] = tempFile.toString();
+        Installer.main(newArgs);
         final ResultSet actualResultSet = EXASOL.createConnection().createStatement()
                 .executeQuery("SELECT * FROM " + virtualSchemaName + "." + SIMPLE_POSTGRES_TABLE);
         assertThat(actualResultSet, table().row(1).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
