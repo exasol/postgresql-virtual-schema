@@ -1,5 +1,8 @@
 package com.exasol.adapter.dialects.postgresql.installer;
 
+import static com.exasol.adapter.dialects.postgresql.installer.PostgresqlVirtualSchemaInstallerConstants.ADDITIONAL_PROPERTY_KEY;
+import static com.exasol.adapter.dialects.postgresql.installer.PostgresqlVirtualSchemaInstallerConstants.HELP_KEY;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,7 +25,7 @@ public class UserInputParser {
     }
 
     private void printHelpIfNeeded(final Options options, final CommandLine cmd) {
-        if (cmd.hasOption("help")) {
+        if (cmd.hasOption(HELP_KEY)) {
             printHelp(options);
             System.exit(0);
         }
@@ -30,10 +33,13 @@ public class UserInputParser {
 
     private Options createOptions(final Map<String, String> optionsMap) {
         final Options options = new Options();
-        options.addOption(new Option("help", false, "Help command"));
+        options.addOption(new Option(HELP_KEY, HELP_KEY, false, "Help command"));
         for (final Map.Entry<String, String> entry : optionsMap.entrySet()) {
-            options.addOption(new Option(entry.getKey(), true, entry.getValue()));
+            options.addOption(new Option(null, entry.getKey(), true, entry.getValue()));
         }
+        final Option property = new Option(ADDITIONAL_PROPERTY_KEY, "property", true,
+                "Additional virtual schema property.");
+        property.setArgs(Option.UNLIMITED_VALUES);
         return options;
     }
 

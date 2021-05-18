@@ -60,22 +60,22 @@ class InstallerIT {
             ParseException, IOException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_1";
         final String[] args = new String[] { //
-                "-virtualSchemaJarName", "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar", //
-                "-virtualSchemaJarPath", "target", //
-                "-jdbcDriverName", "postgresql.jar", //
-                "-jdbcDriverPath", "target/postgresql-driver", //
-                "-exaIp", "localhost", //
-                "-exaPort", EXASOL.getMappedPort(8563).toString(), //
-                "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
-                "-exaBucketName", EXASOL.getDefaultBucket().getBucketName(), //
-                "-exaSchemaName", EXASOL_SCHEMA_NAME, //
-                "-exaAdapterName", EXASOL_ADAPTER_NAME, //
-                "-exaConnectionName", POSTGRES_JDBC_CONNECTION, //
-                "-exaVirtualSchemaName", virtualSchemaName, //
-                "-postgresIp", EXASOL.getHostIp(), //
-                "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
-                "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresMappedSchema", POSTGRES_SCHEMA //
+                "--" + VIRTUAL_SCHEMA_JAR_NAME_KEY, "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar", //
+                "--" + VIRTUAL_SCHEMA_JAR_PATH_KEY, "target", //
+                "--" + JDBC_DRIVER_NAME_KEY, "postgresql.jar", //
+                "--" + JDBC_DRIVER_PATH_KEY, "target/postgresql-driver", //
+                "--" + EXA_IP_KEY, "localhost", //
+                "--" + EXA_PORT_KEY, EXASOL.getMappedPort(8563).toString(), //
+                "--" + EXA_BUCKET_FS_PORT_KEY, EXASOL.getMappedPort(2580).toString(), //
+                "--" + EXA_BUCKET_NAME_KEY, EXASOL.getDefaultBucket().getBucketName(), //
+                "--" + EXA_SCHEMA_NAME_KEY, EXASOL_SCHEMA_NAME, //
+                "--" + EXA_ADAPTER_NAME_KEY, EXASOL_ADAPTER_NAME, //
+                "--" + EXA_CONNECTION_NAME_KEY, POSTGRES_JDBC_CONNECTION, //
+                "--" + EXA_VIRTUAL_SCHEMA_NAME_KEY, virtualSchemaName, //
+                "--" + POSTGRES_IP_KEY, EXASOL.getHostIp(), //
+                "--" + POSTGRES_PORT_KEY, POSTGRES.getMappedPort(5432).toString(), //
+                "--" + POSTGRES_DATABASE_NAME_KEY, POSTGRES.getDatabaseName(), //
+                "--" + POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
     }
@@ -85,15 +85,15 @@ class InstallerIT {
             TimeoutException, ParseException, IOException {
         final String virtualSchemaName = "POSTGRES_VIRTUAL_SCHEMA_2";
         final String[] args = new String[] { //
-                "-virtualSchemaJarPath", "target", //
-                "-jdbcDriverPath", "target/postgresql-driver", //
-                "-exaPort", EXASOL.getMappedPort(8563).toString(), //
-                "-exaBucketFsPort", EXASOL.getMappedPort(2580).toString(), //
-                "-exaVirtualSchemaName", virtualSchemaName, //
-                "-postgresIp", EXASOL.getHostIp(), //
-                "-postgresPort", POSTGRES.getMappedPort(5432).toString(), //
-                "-postgresDatabaseName", POSTGRES.getDatabaseName(), //
-                "-postgresMappedSchema", POSTGRES_SCHEMA //
+                "--" + VIRTUAL_SCHEMA_JAR_PATH_KEY, "target", //
+                "--" + JDBC_DRIVER_PATH_KEY, "target/postgresql-driver", //
+                "--" + EXA_PORT_KEY, EXASOL.getMappedPort(8563).toString(), //
+                "--" + EXA_BUCKET_FS_PORT_KEY, EXASOL.getMappedPort(2580).toString(), //
+                "--" + EXA_VIRTUAL_SCHEMA_NAME_KEY, virtualSchemaName, //
+                "--" + POSTGRES_IP_KEY, EXASOL.getHostIp(), //
+                "--" + POSTGRES_PORT_KEY, POSTGRES.getMappedPort(5432).toString(), //
+                "--" + POSTGRES_DATABASE_NAME_KEY, POSTGRES.getDatabaseName(), //
+                "--" + POSTGRES_MAPPED_SCHEMA_KEY, POSTGRES_SCHEMA //
         };
         assertVirtualSchemaWasCreated(virtualSchemaName, args);
     }
@@ -110,7 +110,7 @@ class InstallerIT {
         Files.write(tempFile, credentials.getBytes());
         final String[] newArgs = new String[args.length + 2];
         System.arraycopy(args, 0, newArgs, 0, args.length);
-        newArgs[newArgs.length - 2] = "-" + CREDENTIALS_FILE_KEY;
+        newArgs[newArgs.length - 2] = "--" + CREDENTIALS_FILE_KEY;
         newArgs[newArgs.length - 1] = tempFile.toString();
         Installer.main(newArgs);
         final ResultSet actualResultSet = EXASOL.createConnection().createStatement()
