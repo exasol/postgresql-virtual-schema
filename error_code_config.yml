@@ -1,0 +1,5 @@
+error-tags:
+  PGVS:
+    packages:
+      - com.exasol.adapter.dialects.postgresql
+    highest-index: 8

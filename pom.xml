@@ -48,7 +48,6 @@
             <version>${vscjdbc.version}</version>
         </dependency>
         <dependency>
-            <!-- Next error code: E-PGVS-10 -->
             <groupId>com.exasol</groupId>
             <artifactId>error-reporting-java</artifactId>
             <version>0.4.1</version>
