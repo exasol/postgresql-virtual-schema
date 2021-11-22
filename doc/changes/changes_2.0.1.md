@@ -24,6 +24,7 @@ This release upgrades all dependencies to the latest versions and migrates from 
 * Updated `com.exasol:test-db-builder-java:3.1.0` to `3.2.1`
 * Updated `com.exasol:udf-debugging-java:0.3.0` to `0.4.1`
 * Updated `com.exasol:virtual-schema-common-jdbc:9.0.1` to `9.0.4`
+* Removed `junit:junit:4.13.2`
 * Updated `org.junit.jupiter:junit-jupiter:5.7.1` to `5.8.1`
 * Updated `org.mockito:mockito-junit-jupiter:3.8.0` to `4.1.0`
 * Updated `org.testcontainers:junit-jupiter:1.15.1` to `1.16.2`
