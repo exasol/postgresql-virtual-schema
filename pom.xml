@@ -114,14 +114,6 @@
             <version>1.5.1</version>
             <scope>test</scope>
         </dependency>
-        <!-- Overrides Junit 4.12 which is used in test containers but contains
-            a security issue: https://ossindex.sonatype.org/vuln/7ea56ad4-8a8b-4e51-8ed9-5aad83d8efb1 -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>udf-debugging-java</artifactId>
