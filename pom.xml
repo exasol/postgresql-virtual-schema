@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.exasol</groupId>
     <artifactId>postgresql-virtual-schema</artifactId>
@@ -155,47 +156,47 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.7</version>
                 <executions>
-        <execution>
-            <id>prepare-agent</id>
-            <goals>
-                <goal>prepare-agent</goal>
-            </goals>
-        </execution>
-        <execution>
-            <id>prepare-agent-integration</id>
-            <goals>
-                <goal>prepare-agent-integration</goal>
-            </goals>
-        </execution>
-        <execution>
-            <id>merge-results</id>
-            <phase>verify</phase>
-            <goals>
-                <goal>merge</goal>
-            </goals>
-            <configuration>
-                <fileSets>
-                    <fileSet>
-                        <directory>${project.build.directory}/</directory>
-                        <includes>
-                            <include>jacoco*.exec</include>
-                        </includes>
-                    </fileSet>
-                </fileSets>
-                <destFile>${project.build.directory}/aggregate.exec</destFile>
-            </configuration>
-        </execution>
-        <execution>
-            <id>report</id>
-            <phase>verify</phase>
-            <goals>
-                <goal>report</goal>
-            </goals>
-            <configuration>
-                <dataFile>${project.build.directory}/aggregate.exec</dataFile>
-            </configuration>
-        </execution>
-    </executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>merge-results</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>merge</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}/</directory>
+                                    <includes>
+                                        <include>jacoco*.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.build.directory}/aggregate.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/aggregate.exec</dataFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -396,40 +397,43 @@
                     </execution>
                 </executions>
             </plugin>
-        <plugin>
-    <groupId>com.exasol</groupId>
-    <artifactId>error-code-crawler-maven-plugin</artifactId>
-    <version>0.7.1</version>
-    <executions>
-        <execution>
-            <goals>
-                <goal>verify</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin><plugin>
-    <groupId>io.github.zlika</groupId>
-    <artifactId>reproducible-build-maven-plugin</artifactId>
-    <version>0.13</version>
-    <executions>
-        <execution>
-            <id>strip-jar</id>
-            <phase>package</phase>
-            <goals>
-                <goal>strip-jar</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin><plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-jar-plugin</artifactId>
-    <version>3.2.0</version>
-    <executions>
-        <execution>
-            <id>default-jar</id>
-            <phase>none</phase>
-        </execution>
-    </executions>
-</plugin></plugins>
+            <plugin>
+                <groupId>com.exasol</groupId>
+                <artifactId>error-code-crawler-maven-plugin</artifactId>
+                <version>0.7.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.github.zlika</groupId>
+                <artifactId>reproducible-build-maven-plugin</artifactId>
+                <version>0.13</version>
+                <executions>
+                    <execution>
+                        <id>strip-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>strip-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>
