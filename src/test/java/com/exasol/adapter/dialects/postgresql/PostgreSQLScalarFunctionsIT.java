@@ -1,18 +1,24 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import java.sql.*;
-import java.sql.Date;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.exasol.adapter.commontests.scalarfunction.*;
+import com.exasol.adapter.commontests.scalarfunction.ScalarFunctionsTestBase;
+import com.exasol.adapter.commontests.scalarfunction.TestSetup;
+import com.exasol.adapter.commontests.scalarfunction.virtualschematestsetup.*;
+import com.exasol.adapter.commontests.scalarfunction.virtualschematestsetup.request.Column;
+import com.exasol.adapter.commontests.scalarfunction.virtualschematestsetup.request.TableRequest;
+import com.exasol.adapter.metadata.DataType;
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
 import com.exasol.dbbuilder.dialects.Schema;
 import com.exasol.dbbuilder.dialects.Table;
 import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
+import com.exasol.dbbuilder.dialects.postgres.PostgreSqlObjectFactory;
 
 @ExtendWith({ CloseAfterAllExtension.class })
 class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
@@ -20,118 +26,73 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
     private static final PostgresVirtualSchemaIntegrationTestSetup SETUP = new PostgresVirtualSchemaIntegrationTestSetup();
 
     @Override
-    protected Set<String> getDialectSpecificExcludes() {
-        return Collections.emptySet();
+    protected TestSetup getTestSetup() {
+        final PostgreSqlObjectFactory postgresFactory = SETUP.getPostgresFactory();
+        return new TestSetup() {
+
+            @Override
+            public VirtualSchemaTestSetupProvider getVirtualSchemaTestSetupProvider() {
+                return (final CreateVirtualSchemaTestSetupRequest request) -> {
+                    final Schema postgresSchema = postgresFactory.createSchema(getUniqueIdentifier());
+                    for (final TableRequest tableRequest : request.getTableRequests()) {
+                        final Table.Builder tableBuilder = postgresSchema.createTableBuilder(tableRequest.getName());
+                        for (final Column column : tableRequest.getColumns()) {
+                            tableBuilder.column(column.getName(), column.getType());
+                        }
+                        final Table table = tableBuilder.build();
+                        for (final List<Object> row : tableRequest.getRows()) {
+                            table.insert(row.toArray());
+                        }
+                    }
+
+                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(),
+                            Map.of("IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"));
+
+                    return new PostgreSQLSingleTableVirtualSchemaTestSetup(virtualSchema, postgresSchema);
+                };
+            }
+
+            @Override
+            public String getExternalTypeFor(final DataType exasolType) {
+                return exasolType.toString();
+            }
+
+            @Override
+            public Set<String> getDialectSpecificExcludes() {
+                return Collections.emptySet();
+            }
+
+            @Override
+            public Connection createExasolConnection() throws SQLException {
+                return SETUP.getExasolContainer().createConnection();
+            }
+        };
+    }
+
+    private static class PostgreSQLSingleTableVirtualSchemaTestSetup implements VirtualSchemaTestSetup {
+        private final VirtualSchema virtualSchema;
+        private final Schema postgresqlSchema;
+
+        private PostgreSQLSingleTableVirtualSchemaTestSetup(final VirtualSchema virtualSchema,
+                final Schema postgresqlSchema) {
+            this.virtualSchema = virtualSchema;
+            this.postgresqlSchema = postgresqlSchema;
+        }
+
+        @Override
+        public String getFullyQualifiedName() {
+            return this.virtualSchema.getFullyQualifiedName();
+        }
+
+        @Override
+        public void close() {
+            this.virtualSchema.drop();
+            this.postgresqlSchema.drop();
+        }
     }
 
     @BeforeAll
     static void beforeAll() {
     }
 
-    @Override
-    protected SingleTableVirtualSchemaTestSetup createVirtualSchemaTableWithExamplesForAllDataTypes() {
-        return new PostgreSQLSingleTableVirtualSchemaTestSetup() {
-            @Override
-            protected Table createTable() {
-                return this.getPostgresqlSchema().createTableBuilder(getUniqueIdentifier())//
-                        .column("floating_point", "real")//
-                        .column("number", "integer")//
-                        .column("boolean", "boolean")//
-                        .column("string", "VARCHAR(2)")//
-                        .column("date", "DATE")//
-                        .column("timestamp", "TIMESTAMP").build()
-                        .insert(0.5, 2, true, "a", new Date(1000), new Timestamp(1001));
-            }
-        };
-    }
-
-    @Override
-    protected SingleRowSingleTableVirtualSchemaTestSetup<Timestamp> createDateVirtualSchemaTable() {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        return createTestTable("timestamp");
-    }
-
-    @Override
-    protected SingleRowSingleTableVirtualSchemaTestSetup<Integer> createIntegerVirtualSchemaTable() {
-        return createTestTable("integer");
-    }
-
-    @Override
-    protected SingleRowSingleTableVirtualSchemaTestSetup<Double> createDoubleVirtualSchemaTable() {
-        return createTestTable("real");
-    }
-
-    @Override
-    protected SingleRowSingleTableVirtualSchemaTestSetup<Boolean> createBooleanVirtualSchemaTable() {
-        return createTestTable("boolean");
-    }
-
-    private <T> SingleRowSingleTableVirtualSchemaTestSetup<T> createTestTable(final String type) {
-        return new SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<>() {
-            @Override
-            protected Table createTable() {
-                return this.getPostgresqlSchema().createTableBuilder(getUniqueIdentifier())//
-                        .column("my_column", type).build();
-            }
-        };
-    }
-
-    @Override
-    protected Connection createExasolConnection() throws SQLException {
-        return SETUP.getExasolContainer().createConnection();
-    }
-
-    @Override
-    protected SingleRowSingleTableVirtualSchemaTestSetup<String> createStringVirtualSchemaTable() {
-        return createTestTable("VARCHAR(500)");
-    }
-
-    private static abstract class PostgreSQLSingleTableVirtualSchemaTestSetup
-            implements SingleTableVirtualSchemaTestSetup {
-        private final VirtualSchema virtualSchema;
-        private final Table table;
-        private final Schema postgresqlSchema;
-
-        public PostgreSQLSingleTableVirtualSchemaTestSetup() {
-            this.postgresqlSchema = SETUP.getPostgresFactory().createSchema(getUniqueIdentifier());
-            this.table = createTable();
-            this.virtualSchema = SETUP.createVirtualSchema(this.postgresqlSchema.getName(), Map.of());
-        }
-
-        protected abstract Table createTable();
-
-        @Override
-        public String getFullyQualifiedName() {
-            return this.virtualSchema.getFullyQualifiedName() + "." + this.table.getName();
-        }
-
-        @Override
-        public void drop() {
-            this.virtualSchema.drop();
-            this.table.drop();
-            this.postgresqlSchema.drop();
-        }
-
-        public Schema getPostgresqlSchema() {
-            return this.postgresqlSchema;
-        }
-
-        public Table getTable() {
-            return this.table;
-        }
-    }
-
-    private static abstract class SingleRowPostgreSQLSingleTableVirtualSchemaTestSetup<T> extends
-            PostgreSQLSingleTableVirtualSchemaTestSetup implements SingleRowSingleTableVirtualSchemaTestSetup<T> {
-
-        @Override
-        public void truncateTable() throws SQLException {
-            SETUP.getPostgresqlStatement().executeUpdate("TRUNCATE TABLE " + this.getTable().getFullyQualifiedName());
-        }
-
-        @Override
-        public void insertValue(final T value) {
-            getTable().insert(value);
-        }
-    }
 }
