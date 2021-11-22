@@ -35,9 +35,10 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                 return (final CreateVirtualSchemaTestSetupRequest request) -> {
                     final Schema postgresSchema = postgresFactory.createSchema(getUniqueIdentifier());
                     for (final TableRequest tableRequest : request.getTableRequests()) {
-                        final Table.Builder tableBuilder = postgresSchema.createTableBuilder(tableRequest.getName());
+                        final Table.Builder tableBuilder = postgresSchema
+                                .createTableBuilder(tableRequest.getName().toLowerCase());
                         for (final Column column : tableRequest.getColumns()) {
-                            tableBuilder.column(column.getName(), column.getType());
+                            tableBuilder.column(column.getName().toLowerCase(), column.getType());
                         }
                         final Table table = tableBuilder.build();
                         for (final List<Object> row : tableRequest.getRows()) {
@@ -45,8 +46,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         }
                     }
 
-                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(),
-                            Map.of("IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"));
+                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(), Map.of());
 
                     return new PostgreSQLSingleTableVirtualSchemaTestSetup(virtualSchema, postgresSchema);
                 };
@@ -54,7 +54,14 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
 
             @Override
             public String getExternalTypeFor(final DataType exasolType) {
-                return exasolType.toString();
+                switch (exasolType.getExaDataType()) {
+                case VARCHAR:
+                    return "VARCHAR(" + exasolType.getSize() + ")";
+                case DOUBLE:
+                    return "DOUBLE PRECISION";
+                default:
+                    return exasolType.toString();
+                }
             }
 
             @Override
@@ -93,6 +100,6 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
 
     @BeforeAll
     static void beforeAll() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
-
 }
