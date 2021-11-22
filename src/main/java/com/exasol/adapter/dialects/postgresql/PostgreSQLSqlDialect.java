@@ -116,7 +116,8 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
             return new PostgreSQLMetadataReader(this.connectionFactory.getConnection(), this.properties);
         } catch (final SQLException exception) {
             throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-3")
-                    .message("Unable to create PostgreSQL remote metadata reader. Caused by: " + exception.getMessage())
+                    .message("Unable to create PostgreSQL remote metadata reader. Caused by: {{cause}}",
+                            exception.getMessage())
                     .toString(), exception);
         }
     }
@@ -218,10 +219,9 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         }
         if (this.properties.hasIgnoreErrors()
                 && !List.of(POSTGRESQL_UPPERCASE_TABLES_SWITCH).containsAll(this.properties.getIgnoredErrors())) {
-            throw new PropertyValidationException(ExaError
-                    .messageBuilder("E-PGVS-5").message("Unknown error identifier in list of ignored errors ("
-                            + IGNORE_ERRORS_PROPERTY + "). Pick one of: " + POSTGRESQL_UPPERCASE_TABLES_SWITCH)
-                    .toString());
+            throw new PropertyValidationException(ExaError.messageBuilder("E-PGVS-5").message(
+                    "Unknown error identifier in list of ignored errors ({{propertyName}}). Pick one of: {{availableValues}}",
+                    IGNORE_ERRORS_PROPERTY, POSTGRESQL_UPPERCASE_TABLES_SWITCH).toString());
         }
     }
 

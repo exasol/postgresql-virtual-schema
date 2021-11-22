@@ -68,11 +68,9 @@ public class PostgreSQLTableMetadataReader extends BaseTableMetadataReader {
                         + POSTGRESQL_UPPERCASE_TABLES_SWITCH + ".");
                 return false;
             } else {
-                throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-6")
-                        .message("Table " + tableName + " cannot be used in virtual schema. Set property "
-                                + IGNORE_ERRORS_PROPERTY + " to " + POSTGRESQL_UPPERCASE_TABLES_SWITCH
-                                + " to enforce schema creation.")
-                        .toString());
+                throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-6").message(
+                        "Table {{tableName}} cannot be used in virtual schema. Set property {{propertyName}} to {{propertyValue}} to enforce schema creation.",
+                        tableName, IGNORE_ERRORS_PROPERTY, POSTGRESQL_UPPERCASE_TABLES_SWITCH).toString());
             }
         } else {
             return true;
