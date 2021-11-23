@@ -14,8 +14,12 @@ This release upgrades all dependencies to the latest versions and migrates from 
 
 * Updated `com.exasol:error-reporting-java:0.2.2` to `0.4.1`
 * Updated `com.exasol:virtual-schema-common-jdbc:9.0.1` to `9.0.4`
-* Updated `com.exasol:virtual-schema-shared-integration-tests:1.0.0` to `2.0.0`
-* Updated `org.postgresql:postgresql:42.2.18` to `42.3.1`
+* Removed `com.exasol:virtual-schema-shared-integration-tests:1.0.0`
+* Removed `org.postgresql:postgresql:42.2.18`
+
+### Runtime Dependency Updates
+
+* Added `org.postgresql:postgresql:42.3.1`
 
 ### Test Dependency Updates
 
@@ -25,6 +29,7 @@ This release upgrades all dependencies to the latest versions and migrates from 
 * Updated `com.exasol:test-db-builder-java:3.1.0` to `3.2.1`
 * Updated `com.exasol:udf-debugging-java:0.3.0` to `0.4.1`
 * Updated `com.exasol:virtual-schema-common-jdbc:9.0.1` to `9.0.4`
+* Added `com.exasol:virtual-schema-shared-integration-tests:2.0.0`
 * Removed `junit:junit:4.13.2`
 * Updated `org.junit.jupiter:junit-jupiter:5.7.1` to `5.8.1`
 * Updated `org.mockito:mockito-junit-jupiter:3.8.0` to `4.1.0`
