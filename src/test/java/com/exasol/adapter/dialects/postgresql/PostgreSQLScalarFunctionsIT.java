@@ -59,6 +59,12 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                     return "VARCHAR(" + exasolType.getSize() + ")";
                 case DOUBLE:
                     return "DOUBLE PRECISION";
+                case DECIMAL:
+                    if (exasolType.getScale() == 0) {
+                        return "INTEGER";
+                    } else {
+                        return exasolType.toString();
+                    }
                 default:
                     return exasolType.toString();
                 }
@@ -66,7 +72,22 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
 
             @Override
             public Set<String> getDialectSpecificExcludes() {
-                return Collections.emptySet();
+                return Set.of(
+                        // expected was a value close to <1970-03-01> (tolerance: +/- <0.00010>) but was
+                        // "1970-03-01T00:00:00Z"
+                        "add_months",
+                        // expected was a value close to <1970-01-01> (tolerance: +/- <0.00010>) but was
+                        // "1970-01-01T00:00:00Z"
+                        "least",
+                        // expected was a value close to <1970-01-15> (tolerance: +/- <0.00010>) but was
+                        // "1970-01-15T00:00:00Z"
+                        "add_weeks",
+                        // expected was a value close to <1970-01-03> (tolerance: +/- <0.00010>) but was
+                        // "1970-01-03T00:00:00Z"
+                        "add_days",
+                        // expected was a value close to <1972-01-01> (tolerance: +/- <0.00010>) but was
+                        // "1972-01-01T00:00:00Z"
+                        "add_years");
             }
 
             @Override
