@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 2.0.1, released 2021-11-22
+# Virtual Schema for PostgreSQL 2.0.1, released 2021-11-24
 
 Code name: Upgrade Dependencies and Build System
 
