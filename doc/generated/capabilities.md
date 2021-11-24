@@ -302,4 +302,6 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | JSON_VALUE          |           |
 | SESSION_PARAMETER   |     ✓     |
 | MIN_SCALE           |           |
+| TYPEOF              |     ✓     |
+| CURRENT_CLUSTER     |     ✓     |
 

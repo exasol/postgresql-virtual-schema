@@ -2,8 +2,7 @@ package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.dbbuilder.dialects.exasol.AdapterScript.Language.JAVA;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import com.exasol.bucketfs.Bucket;
 import com.exasol.bucketfs.BucketAccessException;
 import com.exasol.containers.ExasolContainer;
+import com.exasol.containers.ExasolService;
 import com.exasol.dbbuilder.dialects.exasol.*;
 import com.exasol.dbbuilder.dialects.postgres.PostgreSqlObjectFactory;
 import com.exasol.errorreporting.ExaError;
@@ -25,12 +25,12 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-9.0.1-postgresql-2.0.0.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-9.0.4-postgresql-2.0.1.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
-    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.0.5";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:13.1";
+    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "7.1.2";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:14.1";
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
     private static final int POSTGRES_PORT = 5432;
@@ -38,7 +38,8 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
             POSTGRES_CONTAINER_NAME);
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
-            EXASOL_DOCKER_IMAGE_REFERENCE).withReuse(true);
+            EXASOL_DOCKER_IMAGE_REFERENCE).withRequiredServices(ExasolService.BUCKETFS, ExasolService.UDF)
+                    .withReuse(true);
     private final Connection exasolConection;
     private final Statement exasolStatement;
     private final AdapterScript adapterScript;
@@ -83,7 +84,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             throws InterruptedException, TimeoutException, BucketAccessException {
         try {
             bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
-        } catch (final BucketAccessException exception) {
+        } catch (final BucketAccessException | FileNotFoundException exception) {
             throw new IllegalStateException(
                     ExaError.messageBuilder("F-PGVS-8")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
@@ -94,9 +95,12 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         }
     }
 
-    private static void uploadVsJarToBucket(final Bucket bucket)
-            throws InterruptedException, BucketAccessException, TimeoutException {
-        bucket.uploadFile(PATH_TO_VIRTUAL_SCHEMAS_JAR, VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
+    private static void uploadVsJarToBucket(final Bucket bucket) {
+        try {
+            bucket.uploadFile(PATH_TO_VIRTUAL_SCHEMAS_JAR, VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
+        } catch (FileNotFoundException | BucketAccessException | TimeoutException exception) {
+            throw new IllegalStateException("Failed to upload jar to bucket " + bucket, exception);
+        }
     }
 
     private AdapterScript createAdapterScript(final ExasolSchema schema) {

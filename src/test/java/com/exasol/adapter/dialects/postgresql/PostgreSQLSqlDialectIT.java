@@ -30,7 +30,7 @@ import com.exasol.matcher.TypeMatchMode;
 @ExtendWith({ CloseAfterAllExtension.class })
 class PostgreSQLSqlDialectIT {
     @CloseAfterAll
-    static final PostgresVirtualSchemaIntegrationTestSetup setup = new PostgresVirtualSchemaIntegrationTestSetup();
+    private static final PostgresVirtualSchemaIntegrationTestSetup SETUP = new PostgresVirtualSchemaIntegrationTestSetup();
     private static final String SCHEMA_POSTGRES = "schema_postgres";
     private static final String SCHEMA_POSTGRES_UPPERCASE_TABLE = "schema_postgres_upper";
     private static final String TABLE_POSTGRES_SIMPLE = "table_postgres_simple";
@@ -49,7 +49,7 @@ class PostgreSQLSqlDialectIT {
 
     @BeforeAll
     static void beforeAll() throws SQLException {
-        final Statement statementPostgres = setup.getPostgresqlStatement();
+        final Statement statementPostgres = SETUP.getPostgresqlStatement();
         statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES);
         statementPostgres.execute("CREATE SCHEMA " + SCHEMA_POSTGRES_UPPERCASE_TABLE);
         createPostgresTestTableSimple(statementPostgres);
@@ -57,15 +57,15 @@ class PostgreSQLSqlDialectIT {
         createPostgresTestTableMixedCase(statementPostgres);
         createPostgresTestTableLowerCase(statementPostgres);
         createTestTablesForJoinTests(SCHEMA_POSTGRES);
-        statementExasol = setup.getExasolStatement();
-        virtualSchemaPostgres = setup.createVirtualSchema(SCHEMA_POSTGRES, Map.of());
-        virtualSchemaPostgresUppercaseTable = setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
+        statementExasol = SETUP.getExasolStatement();
+        virtualSchemaPostgres = SETUP.createVirtualSchema(SCHEMA_POSTGRES, Map.of());
+        virtualSchemaPostgresUppercaseTable = SETUP.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
                 Map.of("IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"));
-        virtualSchemaPostgresPreserveOriginalCase = setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
+        virtualSchemaPostgresPreserveOriginalCase = SETUP.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
                 Map.of("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"));
         QUALIFIED_TABLE_JOIN_NAME_1 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_1;
         QUALIFIED_TABLE_JOIN_NAME_2 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_2;
-        exasolSchema = setup.getExasolFactory().createSchema("EXASOL_TEST_SCHEMA");
+        exasolSchema = SETUP.getExasolFactory().createSchema("EXASOL_TEST_SCHEMA");
     }
 
     private static void createPostgresTestTableSimple(final Statement statementPostgres) throws SQLException {
@@ -167,7 +167,7 @@ class PostgreSQLSqlDialectIT {
     }
 
     private static void createTestTablesForJoinTests(final String schemaName) throws SQLException {
-        final Statement statement = setup.getPostgresqlStatement();
+        final Statement statement = SETUP.getPostgresqlStatement();
         statement.execute("CREATE TABLE " + schemaName + "." + TABLE_JOIN_1 + "(x INT, y VARCHAR(100))");
         statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (1,'aaa')");
         statement.execute("INSERT INTO " + schemaName + "." + TABLE_JOIN_1 + " VALUES (2,'bbb')");
@@ -265,7 +265,7 @@ class PostgreSQLSqlDialectIT {
     @Test
     void testCreateSchemaWithUpperCaseTablesThrowsException() {
         final Exception exception = assertThrows(DatabaseObjectException.class,
-                () -> setup.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE, Map.of()));
+                () -> SETUP.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE, Map.of()));
         assertThat(exception.getMessage(), containsString("Failed to write to object"));
     }
 
@@ -300,8 +300,8 @@ class PostgreSQLSqlDialectIT {
                 + " set POSTGRESQL_IDENTIFIER_MAPPING = 'CONVERT_TO_UPPER'");
         final Exception exception = assertThrows(SQLException.class, () -> statementExasol
                 .execute("ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName() + " REFRESH"));
-        assertThat(exception.getMessage(), containsString("Table " + TABLE_POSTGRES_MIXED_CASE
-                + " cannot be used in virtual schema. Set property IGNORE_ERRORS to POSTGRESQL_UPPERCASE_TABLES to enforce schema creation."));
+        assertThat(exception.getMessage(), containsString("E-PGVS-6: Table '" + TABLE_POSTGRES_MIXED_CASE
+                + "' cannot be used in virtual schema. Set property 'IGNORE_ERRORS' to 'POSTGRESQL_UPPERCASE_TABLES' to enforce schema creation."));
     }
 
     @Test

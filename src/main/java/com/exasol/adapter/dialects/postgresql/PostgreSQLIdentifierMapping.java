@@ -26,7 +26,7 @@ public enum PostgreSQLIdentifierMapping {
                 return PRESERVE_ORIGINAL_CASE;
             default:
                 throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-2")
-                        .message("Unable to parse PostgreSQL identifier mapping \"" + mapping + "\".").toString());
+                        .message("Unable to parse PostgreSQL identifier mapping {{mapping}}.", mapping).toString());
             }
         } else {
             throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-1")

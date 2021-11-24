@@ -4,6 +4,7 @@ pom.xml.versionsBackup
 # Eclipse and Maven
 .classpath
 .project
+.settings/org.eclipse.jdt.apt.core.prefs
 # .settings : we need Eclipse settings for code formatter and clean-up rules
 target
 .cache
@@ -24,3 +25,12 @@ Scripts
 **/*.log
 .directory
 venv/
+
+~*
+*.lock
+*.bak
+*.orig
+*.old
+*.md.html
+/.apt_generated/
+/.apt_generated_tests/

@@ -1,0 +1,6 @@
+error-tags:
+  PGVS:
+    packages:
+      - com.exasol.adapter.dialects.postgresql
+      - com.exasol.closeafterall
+    highest-index: 9
