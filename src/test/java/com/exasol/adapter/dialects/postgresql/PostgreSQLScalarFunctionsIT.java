@@ -46,7 +46,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         }
                     }
 
-                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(), Map.of());
+                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(), Collections.emptyMap());
 
                     return new PostgreSQLSingleTableVirtualSchemaTestSetup(virtualSchema, postgresSchema);
                 };
