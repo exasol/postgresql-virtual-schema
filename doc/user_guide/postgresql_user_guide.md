@@ -188,4 +188,4 @@ In the following matrix you find combinations of JDBC driver and dialect version
 
 | Virtual Schema Version | PostgreSQL Version | Driver Name            | Driver Version  |
 |------------------------|--------------------|------------------------|-----------------|
-| Latest                 | PostgreSQL 9.6.2   | PostgreSQL JDBC Driver |  42.2.16        |
+| Latest                 | PostgreSQL 14.1    | PostgreSQL JDBC Driver |  42.3.1         |
