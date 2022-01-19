@@ -25,7 +25,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 ```sql
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-9.0.4-postgresql-2.0.1.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-9.0.4-postgresql-2.0.2.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
@@ -188,4 +188,4 @@ In the following matrix you find combinations of JDBC driver and dialect version
 
 | Virtual Schema Version | PostgreSQL Version | Driver Name            | Driver Version  |
 |------------------------|--------------------|------------------------|-----------------|
-| Latest                 | PostgreSQL 9.6.2   | PostgreSQL JDBC Driver |  42.2.16        |
+| Latest                 | PostgreSQL 14.1    | PostgreSQL JDBC Driver |  42.3.1         |
