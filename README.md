@@ -16,7 +16,7 @@
 
 # Overview
 
-The **PostgreSQL Virtual Schema** provides an abstraction layer that makes an external [PostgreSQL](https://www.postgresql.org/) database accessible from an Exasol database through regular SQL commands. The contents of the external MySQL database are mapped to virtual tables which look like and can be queried as any regular Exasol table.
+The **PostgreSQL Virtual Schema** provides an abstraction layer that makes an external [PostgreSQL](https://www.postgresql.org/) database accessible from an Exasol database through regular SQL commands. The contents of the external PostgreSQL database are mapped to virtual tables which look like and can be queried as any regular Exasol table.
 
 If you want to set up a Virtual Schema for a different database system, please head over to the [Virtual Schemas Repository][virtual-schemas].
 
