@@ -4,6 +4,10 @@ Code name: Upgrade Dependencies
 
 This release upgrades all dependencies to the latest versions.
 
+## Bug Fixes
+
+* #47: Updated PostgreSQL dependency to latest version
+
 ## Dependency Updates
 
 ### Test Dependency Updates
