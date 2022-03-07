@@ -30,7 +30,7 @@ This release upgrades all dependencies to the latest versions.
 
 * Updated `com.exasol:artifact-reference-checker-maven-plugin:0.4.0` to `0.4.1`
 * Updated `com.exasol:error-code-crawler-maven-plugin:0.7.1` to `1.0.0`
-* Updated `com.exasol:project-keeper-maven-plugin:1.3.2` to `1.3.4`
+* Updated `com.exasol:project-keeper-maven-plugin:1.3.2` to `2.0.0`
 * Updated `io.github.zlika:reproducible-build-maven-plugin:0.13` to `0.15`
 * Updated `org.apache.maven.plugins:maven-clean-plugin:2.5` to `3.1.0`
 * Updated `org.apache.maven.plugins:maven-compiler-plugin:3.8.1` to `3.10.0`
@@ -40,5 +40,6 @@ This release upgrades all dependencies to the latest versions.
 * Updated `org.apache.maven.plugins:maven-jar-plugin:3.2.0` to `3.2.2`
 * Updated `org.apache.maven.plugins:maven-resources-plugin:2.6` to `3.2.0`
 * Updated `org.apache.maven.plugins:maven-site-plugin:3.3` to `3.11.0`
+* Added `org.codehaus.mojo:flatten-maven-plugin:1.2.7`
 * Updated `org.codehaus.mojo:versions-maven-plugin:2.8.1` to `2.9.0`
 * Updated `org.sonatype.ossindex.maven:ossindex-maven-plugin:3.1.0` to `3.2.0`

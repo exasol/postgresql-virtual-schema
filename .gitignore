@@ -34,3 +34,4 @@ venv/
 *.md.html
 /.apt_generated/
 /.apt_generated_tests/
+*.flattened-pom.xml
