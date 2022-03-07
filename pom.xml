@@ -145,58 +145,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.and.failsafe.plugin.version}</version>
-                <configuration>
-                    <!-- Set the highest log level for coverage testing, so that we have
-                        a chance to reach branches in the logging lambdas too. -->
-                    <argLine>-Djava.util.logging.config.file=src/test/resources/logging.properties ${argLine}</argLine>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.7</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>merge-results</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>merge</goal>
-                        </goals>
-                        <configuration>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.build.directory}/</directory>
-                                    <includes>
-                                        <include>jacoco*.exec</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
-                            <destFile>${project.build.directory}/aggregate.exec</destFile>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                        <configuration>
-                            <dataFile>${project.build.directory}/aggregate.exec</dataFile>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -232,77 +185,21 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${surefire.and.failsafe.plugin.version}</version>
-                <configuration>
-                    <!-- Set the highest log level for coverage testing, so that we have
-                        a chance to reach branches <property> in the logging lambdas too. -->
-                    <argLine>-Djava.util.logging.config.file=src/test/resources/logging.properties ${argLine}</argLine>
-                    <forkCount>0</forkCount>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.sonatype.ossindex.maven</groupId>
                 <artifactId>ossindex-maven-plugin</artifactId>
                 <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>audit</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <excludeVulnerabilityIds>
-                        <!-- Ignores CVE-2020-15250, because we use Java 11 and junit 4.13.1
-                            which contains a fix: https://ossindex.sonatype.org/vuln/7ea56ad4-8a8b-4e51-8ed9-5aad83d8efb1 -->
-                        <exclude>7ea56ad4-8a8b-4e51-8ed9-5aad83d8efb1</exclude>
-                    </excludeVulnerabilityIds>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.9.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>display-plugin-updates</goal>
-                            <goal>display-dependency-updates</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <rulesUri>file:///${project.basedir}/versionsMavenPluginRules.xml</rulesUri>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>enforce-maven</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireMavenVersion>
-                                    <version>3.6.3</version>
-                                </requireMavenVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>com.exasol</groupId>
@@ -332,12 +229,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <modules>
-                        <module>jar_artifact</module>
-                        <module>integration_tests</module>
-                    </modules>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -402,38 +293,16 @@
                 <groupId>com.exasol</groupId>
                 <artifactId>error-code-crawler-maven-plugin</artifactId>
                 <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>io.github.zlika</groupId>
                 <artifactId>reproducible-build-maven-plugin</artifactId>
                 <version>0.15</version>
-                <executions>
-                    <execution>
-                        <id>strip-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>strip-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.2</version>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
         <pluginManagement>
