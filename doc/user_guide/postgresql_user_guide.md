@@ -12,7 +12,7 @@ Driver version 42.2.6 or later is recommended if you want to establish a TLS-sec
 
 ## Installing the Adapter Script
 
-Upload the latest available release of [Virtual Schema JDBC Adapter](https://github.com/exasol/virtual-schemas/releases) to Bucket FS.
+Upload the latest available release of [PostgrSQL Virtual Schema JDBC Adapter](https://github.com/exasol/postgresql-virtual-schema/releases) to Bucket FS.
 
 Then create a schema to hold the adapter script.
 
@@ -188,4 +188,4 @@ In the following matrix you find combinations of JDBC driver and dialect version
 
 | Virtual Schema Version | PostgreSQL Version | Driver Name            | Driver Version  |
 |------------------------|--------------------|------------------------|-----------------|
-| Latest                 | PostgreSQL 14.1    | PostgreSQL JDBC Driver |  42.3.1         |
+| Latest                 | PostgreSQL 14.2    | PostgreSQL JDBC Driver |  42.3.3         |
