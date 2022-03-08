@@ -44,7 +44,7 @@
             "scope": "connection",
             "readOnlyAfterInstallation": true
         },
-        // We could think about specifying host, port and database separetly
+        // We could think about specifying host, port and database separately
         "jdbcUrl": {
             "type": "string",
             "description": "JDBC URL of the PostgreSQL database",

@@ -6,7 +6,7 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 
 * Variables placeholders use the `"My variable 'variableName' has value '${variableName}'"` syntax
 * Naming conventions:
-  * User defined variables are in `lowerCamelCase`
+  * Variables prompted to users are written in `lowerCamelCase`
   * Global constants defined by the system admin:
     * `BFS_SERVICE`
     * `BUCKET`
@@ -15,13 +15,13 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 
 ## Parameters to Store
 
-The Extension Store must store the following information for an installed VS:
+The Extension management component on the cluster must store the following information for an installed VS:
 
 * For each adapter:
     * ID and version
         * Required to detect if an older version is already installed
         * Required to detect if the user tries to install another VS using the same adapter
-    * Paths to installed JARs on BucketFS
+    * Paths to installed libraries and configuration files on BucketFS
         * File names might change in newer versions.
         * Needed to delete files from BucketFS during update/delete
     * Parameters with `scope=adapter`
@@ -37,10 +37,10 @@ The Extension Store must store the following information for an installed VS:
 ## Installation Process
 
 1. If no other VS uses this adapter / adapter was not installed before:
-    1. Ask user to enter values for all parameters with `scope=adapter`
+    1. Ask user to enter values for all parameters with `scope=configuration`
     1. If `licenseAgreementRequired=true`: show the license and asks user to agree
-    1. Download all artifects in the `bucketFsUpload`
-    1. Upload the artificats to BucketFS, using the specified path names
+    1. Download all artifacts in the `bucketFsUpload`
+    1. Upload the artifacts to BucketFS, using the specified path names
     1. Run the `create.adapter` SQL statements
 1. Ask user to enter values for all parameters with `scope=connection`
 1. Run the `create.connection` SQL statements.
