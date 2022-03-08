@@ -189,6 +189,7 @@
                     <!-- Set the highest log level for coverage testing, so that we have
                         a chance to reach branches <property> in the logging lambdas too. -->
                     <argLine>-Djava.util.logging.config.file=src/test/resources/logging.properties ${argLine}</argLine>
+                    <!-- Required to avoid "java.lang.module.ResolutionException: Module java.xml.bind contains package javax.activation, module java.activation exports package javax.activation to java.xml.bind" -->
                     <forkCount>0</forkCount>
                 </configuration>
                 <executions>
