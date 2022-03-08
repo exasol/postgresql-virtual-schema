@@ -7,7 +7,9 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 * Variables placeholders use the `"My variable 'variableName' has value '${variableName}'"` syntax
 * Naming conventions:
   * User defined variables are in `lowerCamelCase`
-  * Global variables defined by the environment are in `UPPER_CASE`, e.g. the BucketFS service and Bucket where to install files.
+  * Global constants defined by the system admin:
+    * `BFS_SERVICE`
+    * `BUCKET`
 * User defined variables are defined in the `parameters` section. The Extension Store asks the user to input values for all parameters.
 * Variable placeholders in strings (e.g. BucketFS paths or SQL scripts) are expanded before using them.
 
