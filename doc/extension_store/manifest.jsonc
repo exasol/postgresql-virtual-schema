@@ -27,14 +27,14 @@
             "type": "string", // normal text field
             "description": "Schema in which to install the virtual schema adapter",
             "default": "POSTGRES_ADAPTER_SCHEMA",
-            "scope": "adapter",
+            "scope": "configuration",
             "readOnlyAfterInstallation": true // only editable during installation
         },
         "adapterScriptName": {
             "type": "string",
             "description": "Name of the adapter script",
             "default": "POSTGRES_ADAPTER",
-            "scope": "adapter",
+            "scope": "configuration",
             "readOnlyAfterInstallation": true
         },
         "connectionName": {
@@ -46,7 +46,11 @@
         },
         // We could think about specifying host, port and database separately
         "jdbcUrl": {
-            "type": "string",
+            // Option 1 (dedicated type):
+            // "type": "jdbcUrl",
+            // Option 2 (Regexp):
+            "type": "regex",
+            "regex": "jdbc:\\w+://...",
             "description": "JDBC URL of the PostgreSQL database",
             "scope": "connection",
             "default": "jdbc:postgresql://<host>:<port>/<database name>?ssl=true&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory"
@@ -84,35 +88,39 @@
             "type": "select", // Show select list with default value
             "description": "Postgres identifier mapping",
             "scope": "connection",
-            "values": {
-                "CONVERT_TO_UPPER": {
+            "values": [
+                {
+                    "name": "CONVERT_TO_UPPER",
                     "description": "Automatic identifier handling (do not use quoted identifiers!)",
                     "default": true
                 },
-                "PRESERVE_ORIGINAL_CASE": {
+                {
+                    "name": "PRESERVE_ORIGINAL_CASE",
                     "description": "Don't change case"
                 }
-            }
+            ]
         },
         "ignoreErrors": {
             "type": "select",
             "description": "Ignore postgres errors",
             "scope": "connection",
-            "values": {
-                "POSTGRESQL_UPPERCASE_TABLES": {
+            "values": [
+                {
+                    "name": "POSTGRESQL_UPPERCASE_TABLES",
                     "description": "Ignore upper case table names in Postgres",
                     "default": false
                 },
-                "": {
+                {
+                    "name": "",
                     "description": "Don't ignore upper case table names in Postgres",
                     "default": true
                 }
-            }
+            ]
         }
     },
     "sqlScripts": {
         "create": {
-            "adapter": [
+            "configuration": [
                 "CREATE IF NOT EXISTS SCHEMA \"${param.adapterSchema}\"",
                 "CREATE OR REPLACE JAVA ADAPTER SCRIPT \"${param.adapterSchema}\".\"${param.adapterScriptName}\" AS %scriptclass com.exasol.adapter.RequestDispatcher; %jar ${bucketFsUpload.jdbcDriver.bucketFsPath}; %jar ${bucketFsUpload.virtualSchemaAdapter.bucketFsPath};",
             ],
@@ -122,8 +130,8 @@
             ]
         },
         "update": {
-            "adapter": [
-                "CREATE OR REPLACE JAVA ADAPTER SCRIPT ...",
+            "configuration": [
+                "CREATE OR REPLACE JAVA ADAPTER SCRIPT ..."
             ],
             "connection": [
                 "CREATE OR REPLACE CONNECTION ...",
@@ -132,7 +140,7 @@
             ]
         },
         "drop": {
-            "adapter": [
+            "configuration": [
                 "DROP JAVA ADAPTER SCRIPT ..."
             ],
             "connection": [
