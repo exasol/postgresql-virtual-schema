@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 2.0.2, released 2022-03-08
+# Virtual Schema for PostgreSQL 2.0.2, released 2022-03-09
 
 Code name: Upgrade Dependencies
 
