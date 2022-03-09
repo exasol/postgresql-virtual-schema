@@ -1,0 +1,11 @@
+sources:
+  - type: maven
+    path: pom.xml
+    modules:
+      - jar_artifact
+      - integration_tests
+    advertise: true
+version:
+  fromSource: pom.xml
+excludes:
+  - "E-PK-CORE-18: Outdated content: '.github/workflows/ci-build.yml'"
