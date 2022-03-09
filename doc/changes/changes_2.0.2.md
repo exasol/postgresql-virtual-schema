@@ -1,6 +1,6 @@
 # Virtual Schema for PostgreSQL 2.0.2, released 2022-03-09
 
-Code name: Upgrade Dependencies
+Code name: Upgrade Dependencies on top of 2.0.1
 
 This release upgrades all dependencies to the latest versions.
 
