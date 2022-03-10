@@ -7,11 +7,19 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 * Variables placeholders use the `"My variable 'variableName' has value '${variableName}'"` syntax
 * Naming conventions:
   * Variables prompted to users are written in `lowerCamelCase`
-  * Global constants defined by the system admin:
-    * `BFS_SERVICE`
-    * `BUCKET`
+* Predefined variables:
+  * `EXTENSION_ID`, `EXTENSION_VERSION`
+    * Used in SQL scripts to make object names (e.g. for schemas, adapter scripts, ...) unique for this extension version, e.g. `CREATE OR REPLACE CONNECTION "${EXTENSION_ID}_${EXTENSION_VERSION}_POSTGRES_CONNECTION" TO ...`
+    * This allows auto-generating object names, so the user doesn't need to configure adapter schema and adapter script names.
+    * Alternative: Object names could be hard coded in the manifest, but this would require updating the scripts for new extension versions.
 * Variables prompted to users are defined in the `parameters` section. The Extension Store asks the user to input values for all parameters.
 * Variable placeholders in strings (e.g. BucketFS paths or SQL scripts) are expanded before using them.
+
+## Configuration
+
+Global configuration defined by the system admin:
+* `BFS_SERVICE`
+* `BUCKET`
 
 ## BucketFS Storage
 
@@ -47,7 +55,7 @@ The Extension management component on the cluster must store the following infor
     1. Ask user to enter values for all parameters with `scope=configuration`
     1. If `licenseAgreementRequired=true` (usually for JDBC drivers): show the license and ask user to agree
     1. Download all artifacts in the `bucketFsUpload`
-    1. Upload the artifacts to BucketFS, using the specified path names
+    1. Upload the artifacts to BucketFS, using the specified file names
     1. Run the `create.configuration` SQL statements
 1. Ask user to enter values for all parameters with `scope=connection`
 1. Run the `create.connection` SQL statements.
@@ -56,9 +64,8 @@ The Extension management component on the cluster must store the following infor
 
 1. Check if there is a newer version of the configuration. If yes:
     1. Ask user to confirm the license again (usually the JDBC driver license)
-    1. Download new JARs
-    1. Delete old JARs from BucketFS
-    1. Install new JARs to BucketFS
+    1. Download new files
+    1. Install new files to BucketFS
     1. Run scripts from `update.configuration`
 1. Let user enter new values for all parameters with `scope=connection`
 1. Run `update.connection` SQL statements.
@@ -66,16 +73,17 @@ The Extension management component on the cluster must store the following infor
 ## Delete Process
 
 1. Run `drop.connection` SQL statements.
-1. If no other VS uses this configuration:
+1. Check if the extension version is still (e.g. in other VS). If no other VS uses this configuration:
     1. Run `drop.configuration` SQL statements.
-    1. Delete JARs from BucketFS (using stored paths)
+    1. Delete all files for the extension prefix from BucketFS
 
 ## Open Points
 
 * Current JSON structure and property names is just a draft and open for discussion!
 * What happens if the Adapter Schema or other resources already exists?
 * Simplify process by auto-generating names, e.g. `connectionName`, `adapterScriptName`.
-* How to detect if another VS already has installed some JARs?
+* How to detect if another extension / version already has installed some files?
+    * All files for an extension and version are stored in the same prefix, so there are no conflicts.
 * How to handle when parameters with `scope=configuration` are added in newer versions?
     * Don't allow this? Prompt the user for new values?
 * Allow renaming the VIRTUAL SCHEMA by updating?
@@ -91,3 +99,5 @@ The Extension management component on the cluster must store the following infor
     > Our python extensions, usually, bring a whole language container. For that, we need to add a new language via alter session. This means, we first need to fetch the current script_languages string via `SELECT * FROM SYS.EXA_PARAMETERS WHERE ...` and then append our new container. Maybe, this has to be it own mechanism.
     https://docs.exasol.com/db/latest/database_concepts/udf_scripts/adding_new_packages_script_languages.htm
 * Create a JSON Schema for the manifest once the structure is finalized.
+* To check if an extension / adapter is still required or can be deleted we could store the resources (e.g. `ADAPTER SCRIPT`, `SCHEMA`, `CONNECTION`, ...) and check if they still exists.
+* To make DB object names (e.g. schema, adapter scripts etc.) unique we need to add extension ID and version to the name.

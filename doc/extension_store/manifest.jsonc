@@ -23,20 +23,6 @@
         }
     },
     "parameters": {
-        "adapterSchema": {
-            "type": "string", // normal text field
-            "description": "Schema in which to install the virtual schema adapter",
-            "default": "POSTGRES_ADAPTER_SCHEMA",
-            "scope": "configuration",
-            "readOnlyAfterInstallation": true // only editable during installation
-        },
-        "adapterScriptName": {
-            "type": "string",
-            "description": "Name of the adapter script",
-            "default": "POSTGRES_ADAPTER",
-            "scope": "configuration",
-            "readOnlyAfterInstallation": true
-        },
         "connectionName": {
             "type": "string",
             "description": "Name of the PostgreSQL connection containing the PostgreSQL credentials",
@@ -121,12 +107,12 @@
     "sqlScripts": {
         "create": {
             "configuration": [
-                "CREATE IF NOT EXISTS SCHEMA \"${param.adapterSchema}\"",
-                "CREATE OR REPLACE JAVA ADAPTER SCRIPT \"${param.adapterSchema}\".\"${param.adapterScriptName}\" AS %scriptclass com.exasol.adapter.RequestDispatcher; %jar ${bucketFsUpload.jdbcDriver.bucketFsPath}; %jar ${bucketFsUpload.virtualSchemaAdapter.bucketFsPath};"
+                "CREATE IF NOT EXISTS SCHEMA \"${EXTENSION_ID}_${EXTENSION_VERSION}_ADAPTER_SCHEMA\"",
+                "CREATE OR REPLACE JAVA ADAPTER SCRIPT \"${EXTENSION_ID}_${EXTENSION_VERSION}_ADAPTER_SCHEMA\".\"POSTGRES_ADAPTER_SCRIPT\" AS %scriptclass com.exasol.adapter.RequestDispatcher; %jar ${bucketFsUpload.jdbcDriver.bucketFsPath}; %jar ${bucketFsUpload.virtualSchemaAdapter.bucketFsPath};"
             ],
             "connection": [
-                "CREATE OR REPLACE CONNECTION \"${param.connectionName}\" TO '${param.jdbcUrl}' USER '${param.user}' IDENTIFIED BY '${param.password}'",
-                "CREATE VIRTUAL SCHEMA \"${param.virtualSchemaName}\" USING \"${param.adapterSchema}\".\"$(param.adapterScriptName)\" WITH CATALOG_NAME = '${param.postgresCatalogName}' SCHEMA_NAME = '${param.postgresSchemaName}' CONNECTION_NAME = '${param.connectionName}' POSTGRESQL_IDENTIFIER_MAPPING = '${param.identifierMapping}', IGNORE_ERRORS = '${param.ignoreErrors'"
+                "CREATE OR REPLACE CONNECTION \"${EXTENSION_ID}_${EXTENSION_VERSION}_${param.connectionName}\" TO '${param.jdbcUrl}' USER '${param.user}' IDENTIFIED BY '${param.password}'",
+                "CREATE VIRTUAL SCHEMA \"${param.virtualSchemaName}\" USING \"${EXTENSION_ID}_${EXTENSION_VERSION}_ADAPTER_SCHEMA\".\"POSTGRES_ADAPTER_SCRIPT\" WITH CATALOG_NAME = '${param.postgresCatalogName}' SCHEMA_NAME = '${param.postgresSchemaName}' CONNECTION_NAME = '${EXTENSION_ID}_${EXTENSION_VERSION}_${param.connectionName}' POSTGRESQL_IDENTIFIER_MAPPING = '${param.identifierMapping}', IGNORE_ERRORS = '${param.ignoreErrors}'"
             ]
         },
         "update": {
@@ -146,7 +132,7 @@
             "connection": [
                 "DROP CONNECTION ...",
                 "DROP VIRTUAL SCHEMA ...",
-                "DROP SCHEMA \"${param.adapterSchema}\""
+                "DROP SCHEMA \"${EXTENSION_ID}_${EXTENSION_VERSION}_ADAPTER_SCHEMA\""
             ]
         }
     }
