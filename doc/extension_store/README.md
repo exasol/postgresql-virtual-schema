@@ -13,10 +13,12 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 * Variables prompted to users are defined in the `parameters` section. The Extension Store asks the user to input values for all parameters.
 * Variable placeholders in strings (e.g. BucketFS paths or SQL scripts) are expanded before using them.
 
-## Parameters to Store
+## Information to Store
 
-The Extension management component on the cluster must store the following information for an installed VS:
+The Extension management component on the cluster must store the following information for an installed extension:
 
+* Store the complete manifest.
+    * Required to detect if parameters are added/removed in newer versions.
 * For each configuration:
     * ID and version
         * Required to detect if an older version is already installed
@@ -74,3 +76,5 @@ The Extension management component on the cluster must store the following infor
 * Allow renaming the VIRTUAL SCHEMA by updating?
     * We need to know the "old" name of the schema to delete it
     * Easy solution: user has to completely delete the VS and create it from scratch
+* How to handle rollbacks in case installation fails?
+* Revert to previous version if an upgrade fails?
