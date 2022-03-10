@@ -13,13 +13,13 @@
             "licenseUrl": "https://github.com/pgjdbc/pgjdbc/blob/master/LICENSE",
             // True if the user must agree to the license before installation, e.g. for Oracle JDBC driver
             "licenseAgreementRequired": false,
-            // Path and filename when uploading files to BucketFS
-            "bucketFsPath": "/buckets/${BFS_SERVICE}/${BUCKET}/virtual-schema/postgresql-jdbc-driver.jar"
+            // Filename when uploading files to BucketFS. Path is specific for the concrete extension version, e.g. `/bucketfs/<service>/<bucket>/extensions/<extension-id>/<extension-version>/`
+            "bucketFsFilename": "postgresql-jdbc-driver.jar"
         },
         "virtualSchemaAdapter": {
             "downloadUrl": "https://github.com/exasol/postgresql-virtual-schema/releases/download/2.0.1/virtual-schema-dist-9.0.4-postgresql-2.0.1.jar",
             "licenseUrl": "https://github.com/exasol/postgresql-virtual-schema/blob/main/LICENSE",
-            "bucketFsPath": "/buckets/${BFS_SERVICE}/${BUCKET}/virtual-schema/postgresql-adapter.jar"
+            "bucketFsFilename": "postgresql-adapter.jar"
         }
     },
     "parameters": {
@@ -122,7 +122,7 @@
         "create": {
             "configuration": [
                 "CREATE IF NOT EXISTS SCHEMA \"${param.adapterSchema}\"",
-                "CREATE OR REPLACE JAVA ADAPTER SCRIPT \"${param.adapterSchema}\".\"${param.adapterScriptName}\" AS %scriptclass com.exasol.adapter.RequestDispatcher; %jar ${bucketFsUpload.jdbcDriver.bucketFsPath}; %jar ${bucketFsUpload.virtualSchemaAdapter.bucketFsPath};",
+                "CREATE OR REPLACE JAVA ADAPTER SCRIPT \"${param.adapterSchema}\".\"${param.adapterScriptName}\" AS %scriptclass com.exasol.adapter.RequestDispatcher; %jar ${bucketFsUpload.jdbcDriver.bucketFsPath}; %jar ${bucketFsUpload.virtualSchemaAdapter.bucketFsPath};"
             ],
             "connection": [
                 "CREATE OR REPLACE CONNECTION \"${param.connectionName}\" TO '${param.jdbcUrl}' USER '${param.user}' IDENTIFIED BY '${param.password}'",

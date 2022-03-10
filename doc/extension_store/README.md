@@ -13,6 +13,11 @@ Example for manifest: [manifest.jsonc](./manifest.jsonc)
 * Variables prompted to users are defined in the `parameters` section. The Extension Store asks the user to input values for all parameters.
 * Variable placeholders in strings (e.g. BucketFS paths or SQL scripts) are expanded before using them.
 
+## BucketFS Storage
+
+* To avoid conflicts, each extension stores its files in a unique path, e.g. `/bucketfs/<service>/<bucket>/extensions/<extension-id>/<extension-version>/`.
+* This allows installing multiple versions of the same extension.
+
 ## Information to Store
 
 The Extension management component on the cluster must store the following information for an installed extension:
@@ -23,9 +28,9 @@ The Extension management component on the cluster must store the following infor
     * ID and version
         * Required to detect if an older version is already installed
         * Required to detect if the user tries to install another VS using the same configuration
-    * Paths to installed libraries and configuration files on BucketFS
-        * File names might change in newer versions.
-        * Needed to delete files from BucketFS during update/delete
+    * Path to installed libraries and configuration files on BucketFS for this extension
+        * All files for an extension are stored in a common prefix containing extension ID and version
+        * The path might change in later versions of the extension store, so we should store it.
     * Parameters with `scope=configuration`
         * Required when creating a new VS using the same configuration.
         * Cannot be changed during update. Maybe hide them?
@@ -78,3 +83,11 @@ The Extension management component on the cluster must store the following infor
     * Easy solution: user has to completely delete the VS and create it from scratch
 * How to handle rollbacks in case installation fails?
 * Revert to previous version if an upgrade fails?
+* How to detect if an adapter is still used when trying to delete it?
+    * Maybe configure a script that checks if it is still in use.
+* Idea: Don't do updates of existing extensions, just install the new version and keep the old one.
+    * Upgrading an existing VS would require deleting and re-installing?
+* Some installation scripts need a different mechanism:
+    > Our python extensions, usually, bring a whole language container. For that, we need to add a new language via alter session. This means, we first need to fetch the current script_languages string via `SELECT * FROM SYS.EXA_PARAMETERS WHERE ...` and then append our new container. Maybe, this has to be it own mechanism.
+    https://docs.exasol.com/db/latest/database_concepts/udf_scripts/adding_new_packages_script_languages.htm
+* Create a JSON Schema for the manifest once the structure is finalized.
