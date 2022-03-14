@@ -73,7 +73,7 @@ The Extension management component on the cluster must store the following infor
 ## Delete Process
 
 1. Run `drop.connection` SQL statements.
-1. Check if the extension version is still (e.g. in other VS). If no other VS uses this configuration:
+1. Check if the extension version is still used (e.g. in other VS). If no other VS uses this configuration:
     1. Run `drop.configuration` SQL statements.
     1. Delete all files for the extension prefix from BucketFS
 
@@ -95,6 +95,8 @@ The Extension management component on the cluster must store the following infor
     * Maybe configure a script that checks if it is still in use.
 * Idea: Don't do updates of existing extensions, just install the new version and keep the old one.
     * Upgrading an existing VS would require deleting and re-installing?
+    * This requires that the user has to re-enter the credentials.
+    * Alternative solution: re-use the existing connection, but it's hard to decide which resources to delete and which to keep.
 * Some installation scripts need a different mechanism:
     > Our python extensions, usually, bring a whole language container. For that, we need to add a new language via alter session. This means, we first need to fetch the current script_languages string via `SELECT * FROM SYS.EXA_PARAMETERS WHERE ...` and then append our new container. Maybe, this has to be it own mechanism.
     https://docs.exasol.com/db/latest/database_concepts/udf_scripts/adding_new_packages_script_languages.htm
