@@ -17,6 +17,7 @@ In this release we updated dependencies and by that fixed the following security
 
 ### Compile Dependency Updates
 
+* Updated `com.exasol:virtual-schema-common-jdbc:9.0.4` to `9.0.5`
 * Updated `org.postgresql:postgresql:42.3.3` to `42.4.0`
 
 ### Test Dependency Updates
@@ -24,6 +25,7 @@ In this release we updated dependencies and by that fixed the following security
 * Updated `com.exasol:exasol-testcontainers:6.1.1` to `6.1.2`
 * Updated `com.exasol:test-db-builder-java:3.3.1` to `3.3.3`
 * Updated `com.exasol:udf-debugging-java:0.6.0` to `0.6.3`
+* Updated `com.exasol:virtual-schema-common-jdbc:9.0.4` to `9.0.5`
 * Updated `org.mockito:mockito-junit-jupiter:4.3.1` to `4.6.1`
 * Updated `org.testcontainers:junit-jupiter:1.16.3` to `1.17.2`
 * Updated `org.testcontainers:postgresql:1.16.3` to `1.17.2`

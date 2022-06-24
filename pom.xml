@@ -8,7 +8,7 @@
     <name>Virtual Schema for PostgreSQL</name>
     <description>Virtual Schema for connecting PostgreSQL as data source to Exasol</description>
     <properties>
-        <vscjdbc.version>9.0.4</vscjdbc.version>
+        <vscjdbc.version>9.0.5</vscjdbc.version>
         <org.testcontainers.version>1.17.2</org.testcontainers.version>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
