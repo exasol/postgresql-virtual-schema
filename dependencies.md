@@ -42,12 +42,12 @@
 | [Apache Maven Assembly Plugin][48]                      | [Apache License, Version 2.0][35]              |
 | [Apache Maven JAR Plugin][50]                           | [Apache License, Version 2.0][35]              |
 | [Artifact reference checker and unifier][52]            | [MIT][3]                                       |
-| [Maven Failsafe Plugin][54]                             | [Apache License, Version 2.0][35]              |
-| [JaCoCo :: Maven Plugin][56]                            | [Eclipse Public License 2.0][57]               |
-| [error-code-crawler-maven-plugin][58]                   | [MIT][3]                                       |
-| [Project keeper maven plugin][60]                       | [The MIT License][61]                          |
-| [Maven Dependency Plugin][62]                           | [The Apache Software License, Version 2.0][27] |
-| [Exec Maven Plugin][64]                                 | [Apache License 2][27]                         |
+| [Project keeper maven plugin][54]                       | [The MIT License][55]                          |
+| [Maven Dependency Plugin][56]                           | [The Apache Software License, Version 2.0][27] |
+| [Exec Maven Plugin][58]                                 | [Apache License 2][27]                         |
+| [Maven Failsafe Plugin][60]                             | [Apache License, Version 2.0][35]              |
+| [JaCoCo :: Maven Plugin][62]                            | [Eclipse Public License 2.0][63]               |
+| [error-code-crawler-maven-plugin][64]                   | [MIT][3]                                       |
 | [Maven Clean Plugin][66]                                | [The Apache Software License, Version 2.0][27] |
 | [Maven Resources Plugin][68]                            | [The Apache Software License, Version 2.0][27] |
 | [Maven Install Plugin][70]                              | [The Apache Software License, Version 2.0][27] |
@@ -62,16 +62,16 @@
 [3]: https://opensource.org/licenses/MIT
 [12]: https://github.com/mockito/mockito
 [38]: https://www.mojohaus.org/flatten-maven-plugin/
-[64]: http://www.mojohaus.org/exec-maven-plugin
+[58]: http://www.mojohaus.org/exec-maven-plugin
 [46]: http://www.mojohaus.org/versions-maven-plugin/
-[60]: https://github.com/exasol/project-keeper/
+[54]: https://github.com/exasol/project-keeper/
 [9]: http://opensource.org/licenses/BSD-3-Clause
 [34]: https://maven.apache.org/plugins/maven-compiler-plugin/
 [21]: https://github.com/exasol/test-db-builder-java/blob/main/LICENSE
 [26]: https://github.com/Steppschuh/Java-Markdown-Generator
-[57]: https://www.eclipse.org/legal/epl-2.0/
+[63]: https://www.eclipse.org/legal/epl-2.0/
 [33]: http://www.gnu.org/licenses/lgpl.txt
-[56]: https://www.jacoco.org/jacoco/trunk/doc/maven.html
+[62]: https://www.jacoco.org/jacoco/trunk/doc/maven.html
 [13]: https://github.com/mockito/mockito/blob/main/LICENSE
 [22]: https://github.com/exasol/hamcrest-resultset-matcher
 [42]: http://zlika.github.io/reproducible-build-maven-plugin
@@ -86,12 +86,12 @@
 [50]: https://maven.apache.org/plugins/maven-jar-plugin/
 [4]: https://jdbc.postgresql.org
 [20]: https://github.com/exasol/test-db-builder-java/
-[54]: https://maven.apache.org/surefire/maven-failsafe-plugin/
+[60]: https://maven.apache.org/surefire/maven-failsafe-plugin/
 [30]: https://github.com/exasol/virtual-schema-shared-integration-tests
-[62]: http://maven.apache.org/plugins/maven-dependency-plugin/
+[56]: http://maven.apache.org/plugins/maven-dependency-plugin/
 [17]: http://opensource.org/licenses/MIT
 [14]: https://github.com/exasol/exasol-testcontainers
-[61]: https://github.com/exasol/project-keeper/blob/main/LICENSE
+[55]: https://github.com/exasol/project-keeper/blob/main/LICENSE
 [35]: https://www.apache.org/licenses/LICENSE-2.0.txt
 [36]: https://maven.apache.org/enforcer/maven-enforcer-plugin/
 [11]: https://www.eclipse.org/legal/epl-v20.html
@@ -101,5 +101,5 @@
 [16]: https://testcontainers.org
 [72]: http://maven.apache.org/plugins/maven-deploy-plugin/
 [74]: http://maven.apache.org/plugins/maven-site-plugin/
-[58]: https://github.com/exasol/error-code-crawler-maven-plugin
+[64]: https://github.com/exasol/error-code-crawler-maven-plugin
 [48]: https://maven.apache.org/plugins/maven-assembly-plugin/
