@@ -1,3 +1,4 @@
 release-platforms:
   - Jira
   - GitHub
+language: Java
