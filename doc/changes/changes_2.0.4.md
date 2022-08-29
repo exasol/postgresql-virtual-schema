@@ -11,3 +11,7 @@ Updated documentation, fixed broken llinks added information specific to Postgre
 * #55: Updated documentation
 
 ## Dependency Updates
+
+### Compile Dependency Updates
+
+* Updated `org.postgresql:postgresql:42.4.0` to `42.5.0`
