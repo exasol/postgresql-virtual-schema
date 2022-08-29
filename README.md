@@ -42,6 +42,7 @@ Find all the documentation in the [Virtual Schemas project][vs-doc].
 ## Information for Developers
 
 * [Virtual Schema API Documentation](https://github.com/exasol/virtual-schema-common-java/blob/main/doc/development/api/virtual_schema_api.md)
+* [Remote logging](https://docs.exasol.com/db/latest/database_concepts/virtual_schema/logging.htm)
 
 ## Additional Resources
 

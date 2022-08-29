@@ -8,7 +8,7 @@ Fixed vulnerability [sonatype-2022-4402](https://ossindex.sonatype.org/vulnerabi
 
 Updated documentation, fixed broken links added information specific to PostgreSQL virtual schemas.
 
-## Features
+## Documentation
 
 * #55: Updated documentation
 
