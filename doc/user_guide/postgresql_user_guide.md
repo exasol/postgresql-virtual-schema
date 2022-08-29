@@ -10,9 +10,7 @@ Driver version 42.2.6 or later is recommended if you want to establish a TLS-sec
 1. [Create a bucket in BucketFS](https://docs.exasol.com/administration/on-premise/bucketfs/create_new_bucket_in_bucketfs_service.htm)
 2. [Upload the driver to BucketFS](#uploading-a-file-to-bucketfs)
 
-Hints:
-* JDBC driver can be obtained from https://jdbc.postgresql.org/download/, e.g. `postgresql-42.4.2.jar`
-* Put the driver to folder `default/drivers/jdbc/` to make it accessible to [ExaLoader](#configuring-exaloader) as well.
+Hint: Put the driver to folder `default/drivers/jdbc/` to make it accessible to [ExaLoader](#configuring-exaloader) as well.
 
 ## Uploading a file to BucketFS
 Get password for writing to BucketFS:
