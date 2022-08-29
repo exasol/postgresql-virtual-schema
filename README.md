@@ -31,16 +31,17 @@ If you want to set up a Virtual Schema for a different database system, please h
 
 ### Information for Users
 
-* [PostgreSQL dialect User Guide](doc/user_guide/postgresql_user_guide.md)
-* [General Virtual Schema User Guide][user-guide]
+* [Virtual Schema User Guide](https://docs.exasol.com/database_concepts/virtual_schemas.htm)
+* [PostgreSQL Dialect User Guide](doc/user_guide/postgresql_user_guide.md)
 * [List of supported capabilities](doc/generated/capabilities.md)
 * [Changelog](doc/changes/changelog.md)
+* [Dependencies](dependencies.md)
 
 Find all the documentation in the [Virtual Schemas project][vs-doc].
 
 ## Information for Developers
 
-* [Virtual Schema API Documentation][vs-api]
+* [Virtual Schema API Documentation](https://github.com/exasol/virtual-schema-common-java/blob/main/doc/development/api/virtual_schema_api.md)
 
 ## Additional Resources
 
