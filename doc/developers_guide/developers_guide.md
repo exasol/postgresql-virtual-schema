@@ -27,7 +27,8 @@ Please note that remote logging
 
 ## Finding Out the Port of a PostgreSQL Database Installation
 
-PostgreSQL default port is `5432`.<br />
+PostgreSQL default port is `5432`.
+
 To inquire port in other cases use
 
 ```shell
@@ -40,11 +41,13 @@ ss -tln | grep $SENDQ | hfield 4
 
 In order to enable Exasol database to access your PostgreSQL database as a virtual schema you may need to make PostgreSQL Service listen to external connections.
 
-See
-* https://www.bigbinary.com/blog/configure-postgresql-to-allow-remote-connection
-* https://dba.stackexchange.com/questions/83984/
+See also:
+
+* [Configuring PostgreSQL to allow remote connections](https://www.bigbinary.com/blog/configure-postgresql-to-allow-remote-connection)
+* ["FATAL: no pg_hba.conf entry for host" (Stackoverflow)](https://dba.stackexchange.com/questions/83984/connect-to-postgresql-server-fatal-no-pg-hba-conf-entry-for-host)]https://dba.stackexchange.com/questions/83984/
 
 Please note:
+
 * Accepting external connections imposes security risks on your PostgreSQL database.
 * In case you are not sure please contact your local IT security officer.
 * The following steps are only suitable for limited experiments in a secure sandbox environment.
@@ -62,9 +65,9 @@ host  all  all 0.0.0.0/0 md5
 
 ## First Steps With PostgreSQL
 
-See also https://www3.ntu.edu.sg/home/ehchua/programming/sql/PostgreSQL_GetStarted.html.
+See also ["Getting started with PostgreSQL"](https://www3.ntu.edu.sg/home/ehchua/programming/sql/PostgreSQL_GetStarted.html).
 
-Database clients: see https://wiki.postgresql.org/wiki/PostgreSQL_Clients.<br />
+Check out the list of [PostgreSQL Database clients](https://wiki.postgresql.org/wiki/PostgreSQL_Clients) to find one that suits your needs.
 For the following examples we chose command line client `psql` included in default installation.
 
 | Command | Description |

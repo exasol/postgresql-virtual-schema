@@ -11,7 +11,7 @@ Hint: Put the driver into folder `default/drivers/jdbc/` to register it for [Exa
 
 ## Registering the JDBC driver for ExaLoader
 
-In order to enable the ExaLoader to actually import or *read* data from the external database you must register the driver for ExaLoader as described in the [Installation procedure for JDBC drivers](https://github.com/exasol/docker-db/#installing-custom-jdbc-drivers).
+In order to enable the ExaLoader to fetch data from the external database you must register the driver for ExaLoader as described in the [Installation procedure for JDBC drivers](https://github.com/exasol/docker-db/#installing-custom-jdbc-drivers).
 1. ExaLoader expects the driver in BucketFS folder `default/drivers/jdbc`.<br />
 If you uploaded the driver for UDF to a different folder, then you need to [upload](#uploading-the-jdbc-driver-to-exasol-bucketfs) the driver again.
 2. Additionally  you need to create a file `settings.cfg` and [upload](#uploading-the-jdbc-driver-to-exasol-bucketfs) it to the same folder in BucketFS:
