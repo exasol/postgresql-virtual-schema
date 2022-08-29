@@ -21,6 +21,7 @@ export BUCKETFS_PASSWORD=$(
 When [creating a Virtual Schema](../user_guide/postgresql_user_guide.md#creating-a-virtual-schema) you can enable remote access to information logged by the virtual schema adapter see [Remote logging](https://docs.exasol.com/db/latest/database_concepts/virtual_schema/logging.htm).
 
 Please note that remote logging
+
 * imposes security risks on your system
 * may affect the performance of your system
 * should be used only for debugging and development purposes but not in productive scenarios
