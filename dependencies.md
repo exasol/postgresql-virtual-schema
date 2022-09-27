@@ -57,7 +57,6 @@
 [2]: https://github.com/exasol/error-reporting-java
 [27]: http://www.apache.org/licenses/LICENSE-2.0.txt
 [44]: https://maven.apache.org/surefire/maven-surefire-plugin/
-[5]: https://jdbc.postgresql.org/about/license.html
 [66]: http://maven.apache.org/plugins/maven-clean-plugin/
 [3]: https://opensource.org/licenses/MIT
 [12]: https://github.com/mockito/mockito
@@ -73,6 +72,7 @@
 [33]: http://www.gnu.org/licenses/lgpl.txt
 [62]: https://www.jacoco.org/jacoco/trunk/doc/maven.html
 [13]: https://github.com/mockito/mockito/blob/main/LICENSE
+[5]: https://jdbc.postgresql.org/license/
 [22]: https://github.com/exasol/hamcrest-resultset-matcher
 [42]: http://zlika.github.io/reproducible-build-maven-plugin
 [31]: https://github.com/exasol/virtual-schema-shared-integration-tests/blob/main/LICENSE
