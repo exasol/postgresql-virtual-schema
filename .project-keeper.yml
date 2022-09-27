@@ -9,5 +9,3 @@ version:
   fromSource: pom.xml
 linkReplacements:
   - "https://jdbc.postgresql.org/about/license.html|https://jdbc.postgresql.org/license/"
-excludes:
-  - "E-PK-CORE-18: Outdated content: '.github/workflows/ci-build.yml'"
