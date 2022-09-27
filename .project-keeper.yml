@@ -7,5 +7,5 @@ sources:
     advertise: true
 version:
   fromSource: pom.xml
-excludes:
-  - "E-PK-CORE-18: Outdated content: '.github/workflows/ci-build.yml'"
+linkReplacements:
+  - "https://jdbc.postgresql.org/about/license.html|https://jdbc.postgresql.org/license/"
