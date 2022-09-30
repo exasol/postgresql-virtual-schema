@@ -25,7 +25,7 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-10.0.1-postgresql-2.0.5.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-10.0.1-postgresql-2.0.6.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
@@ -86,7 +86,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
         } catch (final BucketAccessException | FileNotFoundException exception) {
             throw new IllegalStateException(
-                    ExaError.messageBuilder("F-PGVS-8")
+                    ExaError.messageBuilder("F-VSPG-8")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)

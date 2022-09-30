@@ -300,7 +300,7 @@ class PostgreSQLSqlDialectIT {
                 + " set POSTGRESQL_IDENTIFIER_MAPPING = 'CONVERT_TO_UPPER'");
         final Exception exception = assertThrows(SQLException.class, () -> statementExasol
                 .execute("ALTER VIRTUAL SCHEMA " + virtualSchemaPostgresUppercaseTable.getName() + " REFRESH"));
-        assertThat(exception.getMessage(), containsString("E-PGVS-6: Table '" + TABLE_POSTGRES_MIXED_CASE
+        assertThat(exception.getMessage(), containsString("E-VSPG-6: Table '" + TABLE_POSTGRES_MIXED_CASE
                 + "' cannot be used in virtual schema. Set property 'IGNORE_ERRORS' to 'POSTGRESQL_UPPERCASE_TABLES' to enforce schema creation."));
     }
 

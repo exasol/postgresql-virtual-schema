@@ -115,7 +115,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         try {
             return new PostgreSQLMetadataReader(this.connectionFactory.getConnection(), this.properties);
         } catch (final SQLException exception) {
-            throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-PGVS-3")
+            throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-VSPG-3")
                     .message("Unable to create PostgreSQL remote metadata reader. Caused by: {{cause}}",
                             exception.getMessage())
                     .toString(), exception);
@@ -210,7 +210,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
             final String propertyValue = this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY);
             if (!propertyValue.equals(POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE)
                     && !propertyValue.equals(POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)) {
-                throw new PropertyValidationException(ExaError.messageBuilder("E-PGVS-4")
+                throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-4")
                         .message("Value for " + POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY + " must be "
                                 + POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE + " or "
                                 + POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)
@@ -219,7 +219,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         }
         if (this.properties.hasIgnoreErrors()
                 && !List.of(POSTGRESQL_UPPERCASE_TABLES_SWITCH).containsAll(this.properties.getIgnoredErrors())) {
-            throw new PropertyValidationException(ExaError.messageBuilder("E-PGVS-5").message(
+            throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-5").message(
                     "Unknown error identifier in list of ignored errors ({{propertyName}}). Pick one of: {{availableValues}}",
                     IGNORE_ERRORS_PROPERTY, POSTGRESQL_UPPERCASE_TABLES_SWITCH).toString());
         }

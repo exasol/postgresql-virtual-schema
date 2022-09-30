@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.exasol</groupId>
     <artifactId>postgresql-virtual-schema</artifactId>
-    <version>2.0.5</version>
+    <version>2.0.6</version>
     <name>Virtual Schema for PostgreSQL</name>
     <description>Virtual Schema for connecting PostgreSQL as data source to Exasol</description>
     <properties>
         <vscjdbc.version>10.0.1</vscjdbc.version>
-        <org.testcontainers.version>1.17.3</org.testcontainers.version>
+        <org.testcontainers.version>1.17.4</org.testcontainers.version>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
     <repositories>
@@ -199,19 +199,19 @@
             <plugin>
                 <groupId>org.sonatype.ossindex.maven</groupId>
                 <artifactId>ossindex-maven-plugin</artifactId>
-                    <configuration>
-                        <excludeVulnerabilityIds>
-                            <!-- False positive, fixed already in snakeyaml version 1.32 according to https://bitbucket.org/snakeyaml/snakeyaml/issues/531/stackoverflow-oss-fuzz-47081. -->
-                            <exclude>CVE-2022-38752</exclude>
-                        </excludeVulnerabilityIds>
-                    </configuration>
+                <configuration>
+                    <excludeVulnerabilityIds>
+                        <!-- False positive, fixed already in snakeyaml version 1.32 according to https://bitbucket.org/snakeyaml/snakeyaml/issues/531/stackoverflow-oss-fuzz-47081. -->
+                        <exclude>CVE-2022-38752</exclude>
+                    </excludeVulnerabilityIds>
+                </configuration>
             </plugin>
         </plugins>
     </build>
     <parent>
         <artifactId>postgresql-virtual-schema-generated-parent</artifactId>
         <groupId>com.exasol</groupId>
-        <version>2.0.5</version>
+        <version>2.0.6</version>
         <relativePath>pk_generated_parent.pom</relativePath>
     </parent>
     <url>https://github.com/exasol/postgresql-virtual-schema/</url>

@@ -24,13 +24,13 @@ class PostgreSQLIdentifierMappingTest {
     void testParseNullMappingThrowsException() {
         final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> PostgreSQLIdentifierMapping.parse(null));
-        assertThat(exception.getMessage(), containsString("E-PGVS-1"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-1"));
     }
 
     @Test
     void testParseUnknownMappingThrowsException() {
         final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> PostgreSQLIdentifierMapping.parse("UNKNOWN"));
-        assertThat(exception.getMessage(), containsString("E-PGVS-2"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-2"));
     }
 }
