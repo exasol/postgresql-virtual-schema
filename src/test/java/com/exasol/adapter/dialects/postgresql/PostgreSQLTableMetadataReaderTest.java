@@ -65,6 +65,6 @@ class PostgreSQLTableMetadataReaderTest {
     void testIsUppercaseTableIncludedByMappingWithConvertToUpperNotIgnoringUppercaseTablesThrowsException() {
         final RemoteMetadataReaderException exception = assertThrows(RemoteMetadataReaderException.class,
                 () -> this.reader.isTableIncludedByMapping("\"FooBar\""));
-        assertThat(exception.getMessage(), containsString("E-PGVS-6"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-6"));
     }
 }

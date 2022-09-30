@@ -86,7 +86,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
         } catch (final BucketAccessException | FileNotFoundException exception) {
             throw new IllegalStateException(
-                    ExaError.messageBuilder("F-PGVS-8")
+                    ExaError.messageBuilder("F-VSPG-8")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)

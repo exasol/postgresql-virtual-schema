@@ -55,7 +55,7 @@ class PostgreSQLSqlDialectTest {
         when(this.connectionFactoryMock.getConnection()).thenThrow(new SQLException());
         final RemoteMetadataReaderException exception = assertThrows(RemoteMetadataReaderException.class,
                 this.dialect::createRemoteMetadataReader);
-        assertThat(exception.getMessage(), containsString("E-PGVS-3"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-3"));
     }
 
     @Test
@@ -123,7 +123,7 @@ class PostgreSQLSqlDialectTest {
                 "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT")));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
                 sqlDialect::validateProperties);
-        assertThat(exception.getMessage(), containsString("E-PGVS-4"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-4"));
     }
 
     @Test
@@ -133,7 +133,7 @@ class PostgreSQLSqlDialectTest {
                 "IGNORE_ERRORS", "ORACLE_ERROR")));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
                 sqlDialect::validateProperties);
-        assertThat(exception.getMessage(), containsString("E-PGVS-5"));
+        assertThat(exception.getMessage(), containsString("E-VSPG-5"));
     }
 
     @Test

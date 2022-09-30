@@ -25,11 +25,11 @@ public enum PostgreSQLIdentifierMapping {
             case "PRESERVE_ORIGINAL_CASE":
                 return PRESERVE_ORIGINAL_CASE;
             default:
-                throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-2")
+                throw new IllegalArgumentException(ExaError.messageBuilder("E-VSPG-2")
                         .message("Unable to parse PostgreSQL identifier mapping {{mapping}}.", mapping).toString());
             }
         } else {
-            throw new IllegalArgumentException(ExaError.messageBuilder("E-PGVS-1")
+            throw new IllegalArgumentException(ExaError.messageBuilder("E-VSPG-1")
                     .message("Unable to parse PostgreSQL identifier mapping from a null value.").toString());
         }
     }
