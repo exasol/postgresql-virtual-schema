@@ -1,32 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.exasol</groupId>
     <artifactId>postgresql-virtual-schema</artifactId>
-    <version>2.0.6</version>
+    <version>2.1.0</version>
     <name>Virtual Schema for PostgreSQL</name>
     <description>Virtual Schema for connecting PostgreSQL as data source to Exasol</description>
     <properties>
-        <vscjdbc.version>10.0.1</vscjdbc.version>
-        <org.testcontainers.version>1.17.4</org.testcontainers.version>
+        <vscjdbc.version>10.1.0</vscjdbc.version>
+        <org.testcontainers.version>1.17.6</org.testcontainers.version>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
-    <repositories>
-        <repository>
-            <id>maven.exasol.com</id>
-            <url>https://maven.exasol.com/artifactory/exasol-releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>maven.exasol.com-snapshots</id>
-            <url>https://maven.exasol.com/artifactory/exasol-snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.exasol</groupId>
@@ -41,7 +24,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.5.0</version>
+            <version>42.5.1</version>
         </dependency>
         <!--Unit test dependencies -->
         <dependency>
@@ -66,14 +49,14 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>4.8.0</version>
+            <version>4.10.0</version>
             <scope>test</scope>
         </dependency>
         <!--Integration test dependencies -->
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>exasol-testcontainers</artifactId>
-            <version>6.2.0</version>
+            <version>6.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -91,7 +74,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>test-db-builder-java</artifactId>
-            <version>3.3.4</version>
+            <version>3.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -103,7 +86,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>udf-debugging-java</artifactId>
-            <version>0.6.4</version>
+            <version>0.6.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -137,7 +120,7 @@
             <plugin>
                 <groupId>com.exasol</groupId>
                 <artifactId>project-keeper-maven-plugin</artifactId>
-                <version>2.4.6</version>
+                <version>2.9.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -168,7 +151,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>validate-capabilities-report</id>
@@ -203,6 +186,7 @@
                     <excludeVulnerabilityIds>
                         <!-- False positive, fixed already in snakeyaml version 1.32 according to https://bitbucket.org/snakeyaml/snakeyaml/issues/531/stackoverflow-oss-fuzz-47081. -->
                         <exclude>CVE-2022-38752</exclude>
+                        <exclude>CVE-2022-1471</exclude>
                     </excludeVulnerabilityIds>
                 </configuration>
             </plugin>
@@ -211,7 +195,7 @@
     <parent>
         <artifactId>postgresql-virtual-schema-generated-parent</artifactId>
         <groupId>com.exasol</groupId>
-        <version>2.0.6</version>
+        <version>2.1.0</version>
         <relativePath>pk_generated_parent.pom</relativePath>
     </parent>
     <url>https://github.com/exasol/postgresql-virtual-schema/</url>

@@ -25,7 +25,7 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-10.0.1-postgresql-2.0.6.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-10.1.0-postgresql-2.1.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
@@ -60,7 +60,9 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             this.exasolStatement = this.exasolConection.createStatement();
             this.postgresConnection = this.postgresqlContainer.createConnection("");
             this.postgresStatement = this.postgresConnection.createStatement();
-            final UdfTestSetup udfTestSetup = new UdfTestSetup(getTestHostIpFromInsideExasol(),
+            final String hostIpAddress = getTestHostIpFromInsideExasol();
+            assert(hostIpAddress != null);
+            final UdfTestSetup udfTestSetup = new UdfTestSetup(hostIpAddress,
                     this.exasolContainer.getDefaultBucket(), this.exasolConection);
             this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""),
                     ExasolObjectConfiguration.builder().withJvmOptions(udfTestSetup.getJvmOptions()).build());
@@ -141,7 +143,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         try {
             this.exasolStatement.close();
             this.exasolConection.close();
