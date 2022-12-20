@@ -31,7 +31,7 @@ INSERTSIZE=-1
 
 ## Installing the Adapter Script
 
-[Upload](#uploading-a-file-to-bucketfs) the latest available release of [PostgreSQL Virtual Schema JDBC Adapter](https://github.com/exasol/postgresql-virtual-schema/releases) to Bucket FS.
+[Upload](https://docs.exasol.com/db/latest/administration/on-premise/bucketfs/accessfiles.htm) the latest available release of [PostgreSQL Virtual Schema JDBC Adapter](https://github.com/exasol/postgresql-virtual-schema/releases) to Bucket FS.
 
 Then create a schema to hold the adapter script.
 
@@ -45,7 +45,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 --/
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-10.0.1-postgresql-2.0.6.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-10.1.0-postgresql-2.1.0.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
@@ -179,52 +179,44 @@ A best practice for this mode is: **always quote identifiers** (in the PostgreSQ
 
 ## Data Types Conversion
 
-| PostgreSQL Data Type     | Supported    | Converted Exasol Data Type| Known limitations
-|--------------------------|--------------|---------------------------|-------------------
-| BIGINT                   | ✓            | DECIMAL(19,0)             |
-| BIGSERIAL                | ✓            | DECIMAL(19,0)             |
-| BIT                      | ✓            | BOOLEAN                   |
-| BIT VARYING              | ✓            | VARCHAR(5)                |
-| BOX                      | ✓            | VARCHAR(2000000)          |
-| BYTEA                    | ✓            | VARCHAR(2000000)          |
-| BOOLEAN                  | ✓            | BOOLEAN                   |
-| CHARACTER                | ✓            | CHAR                      |
-| CHARACTER VARYING        | ✓            | VARCHAR                   |
-| CIDR                     | ✓            | VARCHAR(2000000)          |
-| CIRCLE                   | ✓            | VARCHAR(2000000)          |
-| DATE                     | ✓            | DATE                      |
-| DOUBLE PRECISION         | ✓            | DOUBLE                    |
-| INET                     | ✓            | VARCHAR(2000000)          |
-| INTEGER                  | ✓            | DECIMAL(10,0)             |
-| INTERVAL                 | ✓            | VARCHAR(2000000)          |
-| JSON                     | ✓            | VARCHAR(2000000)          |
-| JSONB                    | ✓            | VARCHAR(2000000)          |
-| LINE                     | ✓            | VARCHAR(2000000)          |
-| LSEG                     | ✓            | VARCHAR(2000000)          |
-| MACADDR                  | ✓            | VARCHAR(2000000)          |
-| MONEY                    | ✓            | DOUBLE                    |
-| NUMERIC                  | ✓            | VARCHAR(2000000)          | Stored in Exasol as VARCHAR, because PostgreSQL NUMERIC values can exceed Exasol Decimal limit which makes it impossible to use Virtual Schemas.
-| PATH                     | ✓            | VARCHAR(2000000)          |
-| POINT                    | ✓            | VARCHAR(2000000)          |
-| POLYGON                  | ✓            | VARCHAR(2000000)          |
-| REAL                     | ✓            | DOUBLE                    |
-| SMALLINT                 | ✓            | DECIMAL(5,0)              |
-| SMALLSERIAL              | ? (untested) |                           |
-| SERIAL                   | ? (untested) |                           |
-| TEXT                     | ✓            | VARCHAR(2000000)          |
-| TIME                     | ✓            | VARCHAR(2000000)          |
-| TIME WITH TIME ZONE      | ✓            | VARCHAR(2000000)          |
-| TIMESTAMP                | ✓            | TIMESTAMP                 |
-| TIMESTAMP WITH TIME ZONE | ✓            | TIMESTAMP                 |
-| TSQUERY                  | ✓            | VARCHAR(2000000)          |
-| TSVECTOR                 | ✓            | VARCHAR(2000000)          |
-| UUID                     | ✓            | VARCHAR(2000000)          |
-| XML                      | ✓            | VARCHAR(2000000)          |
-
-## Testing information
-
-In the following matrix you find combinations of JDBC driver and dialect version that we tested.
-
-| Virtual Schema Version | PostgreSQL Version | Driver Name            | Driver Version  |
-|------------------------|--------------------|------------------------|-----------------|
-| Latest                 | PostgreSQL 14.2    | PostgreSQL JDBC Driver |  42.4.2         |
+| PostgreSQL Data Type     | Supported    | Converted Exasol Data Type | Known limitations                                                         |
+|--------------------------|--------------|---------------------------|---------------------------------------------------------------------------|
+| BIGINT                   | ✓            | DECIMAL(19,0)             |                                                                           |
+| BIGSERIAL                | ✓            | DECIMAL(19,0)             |                                                                           |
+| BIT                      | ✓            | BOOLEAN                   |                                                                           |
+| BIT VARYING              | ✓            | VARCHAR(5)                |                                                                           |
+| BOX                      | ✓            | VARCHAR(2000000)          |                                                                           |
+| BYTEA                    | ✓            | VARCHAR(2000000)          |                                                                           |
+| BOOLEAN                  | ✓            | BOOLEAN                   |                                                                           |
+| CHARACTER                | ✓            | CHAR                      |                                                                           |
+| CHARACTER VARYING        | ✓            | VARCHAR                   |                                                                           |
+| CIDR                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| CIRCLE                   | ✓            | VARCHAR(2000000)          |                                                                           |
+| DATE                     | ✓            | DATE                      |                                                                           |
+| DOUBLE PRECISION         | ✓            | DOUBLE                    |                                                                           |
+| INET                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| INTEGER                  | ✓            | DECIMAL(10,0)             |                                                                           |
+| INTERVAL                 | ✓            | VARCHAR(2000000)          |                                                                           |
+| JSON                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| JSONB                    | ✓            | VARCHAR(2000000)          |                                                                           |
+| LINE                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| LSEG                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| MACADDR                  | ✓            | VARCHAR(2000000)          |                                                                           |
+| MONEY                    | ✓            | DOUBLE                    |                                                                           |
+| NUMERIC                  | ✓            | VARCHAR(2000000)          | Stored in Exasol as VARCHAR, because PostgreSQL NUMERIC values can exceed  Exasol Decimal limit which makes it impossible to use Virtual Schemas. |
+| PATH                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| POINT                    | ✓            | VARCHAR(2000000)          |                                                                           |
+| POLYGON                  | ✓            | VARCHAR(2000000)          |                                                                           |
+| REAL                     | ✓            | DOUBLE                    |                                                                           |
+| SMALLINT                 | ✓            | DECIMAL(5,0)              |                                                                           |
+| SMALLSERIAL              | ? (untested) |                           |                                                                           |
+| SERIAL                   | ? (untested) |                           |                                                                           |
+| TEXT                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| TIME                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| TIME WITH TIME ZONE      | ✓            | VARCHAR(2000000)          |                                                                           |
+| TIMESTAMP                | ✓            | TIMESTAMP                 |                                                                           |
+| TIMESTAMP WITH TIME ZONE | ✓            | TIMESTAMP                 |                                                                           |
+| TSQUERY                  | ✓            | VARCHAR(2000000)          |                                                                           |
+| TSVECTOR                 | ✓            | VARCHAR(2000000)          |                                                                           |
+| UUID                     | ✓            | VARCHAR(2000000)          |                                                                           |
+| XML                      | ✓            | VARCHAR(2000000)          |                                                                           |
