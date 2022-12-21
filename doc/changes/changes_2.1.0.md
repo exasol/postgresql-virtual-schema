@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 2.1.0, released 2022-12-20
+# Virtual Schema for PostgreSQL 2.1.0, released 2022-12-21
 
 Code name: Result set Type Calculation Switch
 
@@ -12,10 +12,6 @@ We also renamed error codes from PGVS to VSPG and removed the reference to the E
 
 * #59: Renamed error codes from PGVS to VSPG.
 
-## Known Issues
-
-`snakeyaml` is a transitive test dependency of this project. CVE-2022-1471 describes a potential unrestricted resource allocation issue. Users are not affected, because the code in question is only used in the tests. At the time of this release no update exists for `snakeyaml` that fixes the CVE.
-
 ## Dependency Updates
 
 ### Compile Dependency Updates
@@ -25,10 +21,11 @@ We also renamed error codes from PGVS to VSPG and removed the reference to the E
 
 ### Test Dependency Updates
 
-* Updated `com.exasol:exasol-testcontainers:6.2.0` to `6.4.0`
+* Updated `com.exasol:exasol-testcontainers:6.2.0` to `6.4.1`
 * Updated `com.exasol:test-db-builder-java:3.3.4` to `3.4.1`
 * Updated `com.exasol:udf-debugging-java:0.6.4` to `0.6.5`
 * Updated `com.exasol:virtual-schema-common-jdbc:10.0.1` to `10.1.0`
+* Updated `com.exasol:virtual-schema-shared-integration-tests:2.2.2` to `2.2.3`
 * Updated `org.mockito:mockito-junit-jupiter:4.8.0` to `4.10.0`
 * Updated `org.testcontainers:junit-jupiter:1.17.3` to `1.17.6`
 * Updated `org.testcontainers:postgresql:1.17.3` to `1.17.6`
