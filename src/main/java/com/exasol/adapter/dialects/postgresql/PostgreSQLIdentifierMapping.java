@@ -26,7 +26,7 @@ public class PostgreSQLIdentifierMapping {
     enum CaseFolding {
         CONVERT_TO_UPPER, PRESERVE_ORIGINAL_CASE;
 
-        static public final CaseFolding DEFAULT = CONVERT_TO_UPPER;
+        public static final CaseFolding DEFAULT = CONVERT_TO_UPPER;
     }
 
     /**
