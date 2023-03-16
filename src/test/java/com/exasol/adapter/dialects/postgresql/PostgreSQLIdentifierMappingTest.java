@@ -7,17 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
+
 class PostgreSQLIdentifierMappingTest {
     @Test
     void testParseConvertToUpperCase() {
-        assertThat(PostgreSQLIdentifierMapping.parse("CONVERT_TO_UPPER"),
-                equalTo(PostgreSQLIdentifierMapping.CONVERT_TO_UPPER));
+        assertThat(PostgreSQLIdentifierMapping.parse("CONVERT_TO_UPPER"), equalTo(CaseFolding.CONVERT_TO_UPPER));
     }
 
     @Test
     void testParseConvertToPreserverOriginalCase() {
         assertThat(PostgreSQLIdentifierMapping.parse("PRESERVE_ORIGINAL_CASE"),
-                equalTo(PostgreSQLIdentifierMapping.PRESERVE_ORIGINAL_CASE));
+                equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
     }
 
     @Test

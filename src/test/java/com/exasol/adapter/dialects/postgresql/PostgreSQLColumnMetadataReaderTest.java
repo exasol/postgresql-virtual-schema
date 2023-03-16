@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.BaseIdentifierConverter;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.jdbc.JDBCTypeDescription;
 import com.exasol.adapter.metadata.DataType;
 
@@ -55,8 +56,7 @@ class PostgreSQLColumnMetadataReaderTest {
 
     @Test
     void testGetDefaultPostgreSQLIdentifierMapping() {
-        assertThat(this.columnMetadataReader.getIdentifierMapping(),
-                equalTo(PostgreSQLIdentifierMapping.CONVERT_TO_UPPER));
+        assertThat(this.columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
     }
 
     @Test
@@ -65,8 +65,7 @@ class PostgreSQLColumnMetadataReaderTest {
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
         final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
                 adapterProperties, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(),
-                equalTo(PostgreSQLIdentifierMapping.PRESERVE_ORIGINAL_CASE));
+        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
     }
 
     @Test
@@ -75,6 +74,6 @@ class PostgreSQLColumnMetadataReaderTest {
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
         final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
                 adapterProperties, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(PostgreSQLIdentifierMapping.CONVERT_TO_UPPER));
+        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
     }
 }
