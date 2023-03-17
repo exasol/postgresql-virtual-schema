@@ -3,6 +3,9 @@ package com.exasol.adapter.dialects.postgresql;
 import static com.exasol.adapter.AdapterProperties.IGNORE_ERRORS_PROPERTY;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.properties.PropertyValidationException;
@@ -20,38 +23,46 @@ public class PostgreSQLIdentifierMapping {
     /** Name of switch for upper case table names **/
     public static final String UPPERCASE_TABLES_SWITCH = "POSTGRESQL_UPPERCASE_TABLES";
 
-    private static final String PRESERVE_ORIGINAL_CASE = "PRESERVE_ORIGINAL_CASE";
-    private static final String CONVERT_TO_UPPER = "CONVERT_TO_UPPER";
-
     enum CaseFolding {
-        CONVERT_TO_UPPER, PRESERVE_ORIGINAL_CASE;
+        CONVERT_TO_UPPER("CONVERT_TO_UPPER"), //
+        PRESERVE_ORIGINAL_CASE("PRESERVE_ORIGINAL_CASE");
 
         public static final CaseFolding DEFAULT = CONVERT_TO_UPPER;
+
+        String representation;
+
+        private CaseFolding(final String string) {
+            this.representation = string;
+        }
+
+        static String validValues() {
+            return Stream.of(values()).map(c -> c.representation).collect(Collectors.joining(","));
+        }
+
+        static Optional<CaseFolding> map(final String name) {
+            return Stream.of(CaseFolding.values()) //
+                    .filter(c -> c.representation.equals(name)) //
+                    .findAny();
+        }
     }
 
     /**
      * Parse the identifier mapping from a string.
      *
-     * @param mapping string describing the mapping
+     * @param name string describing the mapping
      * @return PosgreSQL identifier mapping
      * @throws IllegalArgumentException if the given string contains a mapping name that is unknown or
      *                                  <code>null</code>.
      */
-    public static CaseFolding parse(final String mapping) {
-        if (mapping != null) {
-            switch (mapping) {
-            case CONVERT_TO_UPPER:
-                return CaseFolding.CONVERT_TO_UPPER;
-            case PRESERVE_ORIGINAL_CASE:
-                return CaseFolding.PRESERVE_ORIGINAL_CASE;
-            default:
-                throw new IllegalArgumentException(ExaError.messageBuilder("E-VSPG-2")
-                        .message("Unable to parse PostgreSQL identifier mapping {{mapping}}.", mapping).toString());
-            }
-        } else {
+    public static CaseFolding parse(final String name) {
+        if (name == null) {
             throw new IllegalArgumentException(ExaError.messageBuilder("E-VSPG-1")
                     .message("Unable to parse PostgreSQL identifier mapping from a null value.").toString());
         }
+        return CaseFolding.map(name).orElseThrow( //
+                () -> new IllegalArgumentException(ExaError.messageBuilder("E-VSPG-2") //
+                        .message("Unable to parse PostgreSQL identifier mapping {{mapping}}.", name) //
+                        .toString()));
     }
 
     /**
@@ -77,11 +88,10 @@ public class PostgreSQLIdentifierMapping {
         @Override
         public void validate(final AdapterProperties properties) throws PropertyValidationException {
             if (properties.containsKey(PROPERTY)) {
-                final String propertyValue = properties.get(PROPERTY);
-                if (!propertyValue.equals(PRESERVE_ORIGINAL_CASE) && !propertyValue.equals(CONVERT_TO_UPPER)) {
+                if (CaseFolding.map(properties.get(PROPERTY)).isEmpty()) {
                     throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-4") //
-                            .message("Value for {{property}} must be {{value_1}} or {{value_2}}.", PROPERTY,
-                                    PRESERVE_ORIGINAL_CASE, CONVERT_TO_UPPER) //
+                            .message("Value for {{property}} must be one of [{{values}}].", PROPERTY,
+                                    CaseFolding.validValues()) //
                             .toString());
                 }
             }
