@@ -87,13 +87,11 @@ public class PostgreSQLIdentifierMapping {
     private static class Validator implements PropertyValidator {
         @Override
         public void validate(final AdapterProperties properties) throws PropertyValidationException {
-            if (properties.containsKey(PROPERTY)) {
-                if (CaseFolding.map(properties.get(PROPERTY)).isEmpty()) {
-                    throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-4") //
-                            .message("Value for {{property}} must be one of [{{values}}].", PROPERTY,
-                                    CaseFolding.validValues()) //
-                            .toString());
-                }
+            if (properties.containsKey(PROPERTY) && CaseFolding.map(properties.get(PROPERTY)).isEmpty()) {
+                throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-4") //
+                        .message("Value for {{property}} must be one of [{{values}}].", PROPERTY,
+                                CaseFolding.validValues()) //
+                        .toString());
             }
             if (properties.hasIgnoreErrors()
                     && !List.of(UPPERCASE_TABLES_SWITCH).containsAll(properties.getIgnoredErrors())) {
