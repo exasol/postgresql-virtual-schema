@@ -1,12 +1,11 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY;
-
 import java.util.regex.Pattern;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierCaseHandling;
 import com.exasol.adapter.dialects.IdentifierConverter;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 
 /**
  * This class implements database identifier converter for {@link PostgreSQLSqlDialect}.
@@ -17,7 +16,7 @@ public class PostgreSQLIdentifierConverter implements IdentifierConverter {
 
     /**
      * Create a new instance of the {@link PostgreSQLIdentifierConverter}.
-     * 
+     *
      * @param properties adapter properties
      */
     public PostgreSQLIdentifierConverter(final AdapterProperties properties) {
@@ -26,7 +25,7 @@ public class PostgreSQLIdentifierConverter implements IdentifierConverter {
 
     @Override
     public String convert(final String identifier) {
-        if (getIdentifierMapping() == PostgreSQLIdentifierMapping.PRESERVE_ORIGINAL_CASE) {
+        if (getIdentifierMapping() == CaseFolding.PRESERVE_ORIGINAL_CASE) {
             return identifier;
         } else {
             if (isUnquotedIdentifier(identifier)) {
@@ -42,10 +41,8 @@ public class PostgreSQLIdentifierConverter implements IdentifierConverter {
      *
      * @return identifier mapping
      */
-    public PostgreSQLIdentifierMapping getIdentifierMapping() {
-        return this.properties.containsKey(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY) //
-                ? PostgreSQLIdentifierMapping.valueOf(this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY))
-                : PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
+    public CaseFolding getIdentifierMapping() {
+        return PostgreSQLIdentifierMapping.from(this.properties);
     }
 
     private boolean isUnquotedIdentifier(final String identifier) {

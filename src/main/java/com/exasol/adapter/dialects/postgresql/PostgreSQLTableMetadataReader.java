@@ -1,14 +1,13 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.AdapterProperties.IGNORE_ERRORS_PROPERTY;
-import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY;
-import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_UPPERCASE_TABLES_SWITCH;
 
 import java.sql.Connection;
 import java.util.logging.Logger;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierConverter;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.jdbc.*;
 import com.exasol.errorreporting.ExaError;
 
@@ -36,10 +35,8 @@ public class PostgreSQLTableMetadataReader extends BaseTableMetadataReader {
      *
      * @return identifier mapping
      */
-    public PostgreSQLIdentifierMapping getIdentifierMapping() {
-        return this.properties.containsKey(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY) //
-                ? PostgreSQLIdentifierMapping.valueOf(this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY))
-                : PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
+    public CaseFolding getIdentifierMapping() {
+        return PostgreSQLIdentifierMapping.from(this.properties);
     }
 
     /**
@@ -48,7 +45,7 @@ public class PostgreSQLTableMetadataReader extends BaseTableMetadataReader {
      * @return <code>true</code> if the reader should ignore upper-case tables
      */
     public boolean ignoresUpperCaseTables() {
-        return this.properties.getIgnoredErrors().contains(POSTGRESQL_UPPERCASE_TABLES_SWITCH);
+        return this.properties.getIgnoredErrors().contains(PostgreSQLIdentifierMapping.UPPERCASE_TABLES_SWITCH);
     }
 
     @Override
@@ -61,16 +58,18 @@ public class PostgreSQLTableMetadataReader extends BaseTableMetadataReader {
     }
 
     protected boolean isUppercaseTableIncludedByMapping(final String tableName) {
-        if (getIdentifierMapping() == PostgreSQLIdentifierMapping.CONVERT_TO_UPPER) {
+        if (getIdentifierMapping() == CaseFolding.CONVERT_TO_UPPER) {
             if (ignoresUpperCaseTables()) {
                 LOGGER.fine(() -> "Ignoring PostgreSQL table " + tableName
                         + "because it contains an uppercase character and " + IGNORE_ERRORS_PROPERTY + " is set to "
-                        + POSTGRESQL_UPPERCASE_TABLES_SWITCH + ".");
+                        + PostgreSQLIdentifierMapping.UPPERCASE_TABLES_SWITCH + ".");
                 return false;
             } else {
-                throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-VSPG-6").message(
-                        "Table {{tableName}} cannot be used in virtual schema. Set property {{propertyName}} to {{propertyValue}} to enforce schema creation.",
-                        tableName, IGNORE_ERRORS_PROPERTY, POSTGRESQL_UPPERCASE_TABLES_SWITCH).toString());
+                throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-VSPG-6")
+                        .message("Table {{tableName}} cannot be used in virtual schema.", tableName)
+                        .mitigation("Set property {{propertyName}} to {{propertyValue}} to enforce schema creation.",
+                                IGNORE_ERRORS_PROPERTY, PostgreSQLIdentifierMapping.UPPERCASE_TABLES_SWITCH)
+                        .toString());
             }
         } else {
             return true;

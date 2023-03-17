@@ -1,7 +1,6 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.AdapterProperties.IGNORE_ERRORS_PROPERTY;
-import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -17,6 +16,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.BaseIdentifierConverter;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.jdbc.RemoteMetadataReaderException;
 
 class PostgreSQLTableMetadataReaderTest {
@@ -41,7 +41,7 @@ class PostgreSQLTableMetadataReaderTest {
     })
     @ParameterizedTest
     void testIsUppercaseTableIncludedByMapping(final String tableName, final String ignoreErrors,
-            final PostgreSQLIdentifierMapping identifierMapping, final boolean included) {
+            final CaseFolding identifierMapping, final boolean included) {
         ignoreErrors(ignoreErrors);
         selectIdentifierMapping(identifierMapping);
         assertThat(this.reader.isTableIncludedByMapping(tableName), equalTo(included));
@@ -51,8 +51,8 @@ class PostgreSQLTableMetadataReaderTest {
         this.rawProperties.put(IGNORE_ERRORS_PROPERTY, ignoreErrors);
     }
 
-    private void selectIdentifierMapping(final PostgreSQLIdentifierMapping identifierMapping) {
-        this.rawProperties.put(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY, identifierMapping.toString());
+    private void selectIdentifierMapping(final CaseFolding identifierMapping) {
+        this.rawProperties.put(PostgreSQLIdentifierMapping.PROPERTY, identifierMapping.toString());
     }
 
     @Test

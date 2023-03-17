@@ -1,12 +1,11 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static com.exasol.adapter.dialects.postgresql.PostgreSQLSqlDialect.POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY;
-
 import java.sql.*;
 import java.util.logging.Logger;
 
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierConverter;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.jdbc.BaseColumnMetadataReader;
 import com.exasol.adapter.jdbc.JDBCTypeDescription;
 import com.exasol.adapter.metadata.DataType;
@@ -62,16 +61,14 @@ public class PostgreSQLColumnMetadataReader extends BaseColumnMetadataReader {
 
     @Override
     public String readColumnName(final ResultSet columns) throws SQLException {
-        if (getIdentifierMapping().equals(PostgreSQLIdentifierMapping.CONVERT_TO_UPPER)) {
+        if (getIdentifierMapping().equals(CaseFolding.CONVERT_TO_UPPER)) {
             return super.readColumnName(columns).toUpperCase();
         } else {
             return super.readColumnName(columns);
         }
     }
 
-    PostgreSQLIdentifierMapping getIdentifierMapping() {
-        return this.properties.containsKey(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY) //
-                ? PostgreSQLIdentifierMapping.valueOf(this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY))
-                : PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
+    CaseFolding getIdentifierMapping() {
+        return PostgreSQLIdentifierMapping.from(this.properties);
     }
 }

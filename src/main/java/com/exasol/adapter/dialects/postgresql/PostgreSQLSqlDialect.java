@@ -17,6 +17,7 @@ import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
 import com.exasol.adapter.dialects.*;
+import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.dialects.rewriting.ImportIntoTemporaryTableQueryRewriter;
 import com.exasol.adapter.dialects.rewriting.SqlGenerationContext;
 import com.exasol.adapter.jdbc.*;
@@ -28,11 +29,7 @@ import com.exasol.errorreporting.ExaError;
  */
 public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     static final String NAME = "POSTGRESQL";
-    public static final String POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY = "POSTGRESQL_IDENTIFIER_MAPPING";
-    public static final String POSTGRESQL_UPPERCASE_TABLES_SWITCH = "POSTGRESQL_UPPERCASE_TABLES";
-    private static final String POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE = "PRESERVE_ORIGINAL_CASE";
-    private static final String POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE = "CONVERT_TO_UPPER";
-    private static final PostgreSQLIdentifierMapping DEFAULT_POSTGRESS_IDENTIFIER_MAPPING = PostgreSQLIdentifierMapping.CONVERT_TO_UPPER;
+
     private static final Set<ScalarFunctionCapability> DISABLED_SCALAR_FUNCTION = Set.of(
             /*
              * Implementation for `BETWEEN` time functions is not supported. For more information see `design.md` file,
@@ -101,8 +98,10 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
      * @param properties        user-defined adapter properties
      */
     public PostgreSQLSqlDialect(final ConnectionFactory connectionFactory, final AdapterProperties properties) {
-        super(connectionFactory, properties, Set.of(CATALOG_NAME_PROPERTY, SCHEMA_NAME_PROPERTY, IGNORE_ERRORS_PROPERTY,
-                POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY));
+        super(connectionFactory, properties, //
+                Set.of(CATALOG_NAME_PROPERTY, SCHEMA_NAME_PROPERTY, IGNORE_ERRORS_PROPERTY,
+                        PostgreSQLIdentifierMapping.PROPERTY), //
+                List.of(PostgreSQLIdentifierMapping.validator()));
     }
 
     @Override
@@ -138,12 +137,8 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
         return CAPABILITIES;
     }
 
-    private PostgreSQLIdentifierMapping getIdentifierMapping() {
-        if (this.properties.containsKey(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY)) {
-            return PostgreSQLIdentifierMapping.parse(this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY));
-        } else {
-            return DEFAULT_POSTGRESS_IDENTIFIER_MAPPING;
-        }
+    private CaseFolding getIdentifierMapping() {
+        return PostgreSQLIdentifierMapping.from(this.properties);
     }
 
     @Override
@@ -169,7 +164,7 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
     public String applyQuote(final String identifier) {
         String postgreSQLIdentifier = identifier;
-        if (getIdentifierMapping() != PostgreSQLIdentifierMapping.PRESERVE_ORIGINAL_CASE) {
+        if (getIdentifierMapping() != CaseFolding.PRESERVE_ORIGINAL_CASE) {
             postgreSQLIdentifier = convertIdentifierToLowerCase(postgreSQLIdentifier);
         }
         return super.quoteIdentifierWithDoubleQuotes(postgreSQLIdentifier);
@@ -197,32 +192,6 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     @Override
     public SqlGenerator getSqlGenerator(final SqlGenerationContext context) {
         return new PostgresSQLSqlGenerationVisitor(this, context);
-    }
-
-    @Override
-    public void validateProperties() throws PropertyValidationException {
-        super.validateProperties();
-        checkPostgreSQLIdentifierPropertyConsistency();
-    }
-
-    private void checkPostgreSQLIdentifierPropertyConsistency() throws PropertyValidationException {
-        if (this.properties.containsKey(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY)) {
-            final String propertyValue = this.properties.get(POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY);
-            if (!propertyValue.equals(POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE)
-                    && !propertyValue.equals(POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)) {
-                throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-4")
-                        .message("Value for " + POSTGRESQL_IDENTIFIER_MAPPING_PROPERTY + " must be "
-                                + POSTGRESQL_IDENTIFER_MAPPING_PRESERVE_ORIGINAL_CASE_VALUE + " or "
-                                + POSTGRESQL_IDENTIFIER_MAPPING_CONVERT_TO_UPPER_VALUE)
-                        .toString());
-            }
-        }
-        if (this.properties.hasIgnoreErrors()
-                && !List.of(POSTGRESQL_UPPERCASE_TABLES_SWITCH).containsAll(this.properties.getIgnoredErrors())) {
-            throw new PropertyValidationException(ExaError.messageBuilder("E-VSPG-5").message(
-                    "Unknown error identifier in list of ignored errors ({{propertyName}}). Pick one of: {{availableValues}}",
-                    IGNORE_ERRORS_PROPERTY, POSTGRESQL_UPPERCASE_TABLES_SWITCH).toString());
-        }
     }
 
     @Override
