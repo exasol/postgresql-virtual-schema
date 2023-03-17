@@ -15,9 +15,9 @@ import com.exasol.errorreporting.ExaError;
  */
 public class PostgreSQLIdentifierMapping {
 
-    /** name of adapter property controlling identifier mapping **/
+    /** Name of adapter property controlling identifier mapping **/
     public static final String PROPERTY = "POSTGRESQL_IDENTIFIER_MAPPING";
-    /** name of switch for upper case table names **/
+    /** Name of switch for upper case table names **/
     public static final String UPPERCASE_TABLES_SWITCH = "POSTGRESQL_UPPERCASE_TABLES";
 
     private static final String PRESERVE_ORIGINAL_CASE = "PRESERVE_ORIGINAL_CASE";
@@ -73,7 +73,7 @@ public class PostgreSQLIdentifierMapping {
         return new Validator();
     }
 
-    static class Validator implements PropertyValidator {
+    private static class Validator implements PropertyValidator {
         @Override
         public void validate(final AdapterProperties properties) throws PropertyValidationException {
             if (properties.containsKey(PROPERTY)) {
