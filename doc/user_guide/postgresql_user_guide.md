@@ -45,7 +45,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 --/
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-10.5.0-postgresql-2.2.0.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-10.5.0-postgresql-2.2.1.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
@@ -93,6 +93,8 @@ CREATE VIRTUAL SCHEMA <virtual schema name>
 | `<schema name>` | Name of the database schema you want to use in the PostgreSQL database. |
 
 See also section [Remote logging](../developers_guide/developers_guide.md#remote-logging) in the developers guide.
+
+For additional parameters coming from the base library see also [Adapter Properties for JDBC-Based Virtual Schemas](https://github.com/exasol/virtual-schema-common-jdbc#adapter-properties-for-jdbc-based-virtual-schemas).
 
 ## PostgreSQL Identifiers
 
