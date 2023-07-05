@@ -94,6 +94,8 @@ CREATE VIRTUAL SCHEMA <virtual schema name>
 
 See also section [Remote logging](../developers_guide/developers_guide.md#remote-logging) in the developers guide.
 
+For additional parameters coming from the base library see also [Adapter Properties for JDBC-Based Virtual Schemas](https://github.com/exasol/virtual-schema-common-jdbc#adapter-properties-for-jdbc-based-virtual-schemas).
+
 ## PostgreSQL Identifiers
 
 In contrast to Exasol, PostgreSQL does not treat identifiers as specified in the SQL standard. PostgreSQL folds unquoted identifiers to lower case instead of upper case. The adapter has two modes for handling this:
