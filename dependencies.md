@@ -39,7 +39,7 @@
 | [Maven Surefire Plugin][35]                             | [Apache-2.0][31]                               |
 | [Versions Maven Plugin][36]                             | [Apache License, Version 2.0][31]              |
 | [duplicate-finder-maven-plugin Maven Mojo][37]          | [Apache License 2.0][38]                       |
-| [Apache Maven Assembly Plugin][39]                      | [Apache License, Version 2.0][31]              |
+| [Apache Maven Assembly Plugin][39]                      | [Apache-2.0][31]                               |
 | [Apache Maven JAR Plugin][40]                           | [Apache License, Version 2.0][31]              |
 | [Artifact reference checker and unifier][41]            | [MIT License][42]                              |
 | [Project keeper maven plugin][43]                       | [The MIT License][44]                          |
@@ -69,7 +69,7 @@
 [11]: https://github.com/mockito/mockito/blob/main/LICENSE
 [12]: https://github.com/exasol/exasol-testcontainers/
 [13]: https://github.com/exasol/exasol-testcontainers/blob/main/LICENSE
-[14]: https://testcontainers.org
+[14]: https://java.testcontainers.org
 [15]: http://opensource.org/licenses/MIT
 [16]: https://github.com/exasol/test-db-builder-java/
 [17]: https://github.com/exasol/test-db-builder-java/blob/main/LICENSE
@@ -92,7 +92,7 @@
 [34]: https://sonatype.github.io/ossindex-maven/maven-plugin/
 [35]: https://maven.apache.org/surefire/maven-surefire-plugin/
 [36]: https://www.mojohaus.org/versions/versions-maven-plugin/
-[37]: https://github.com/basepom/duplicate-finder-maven-plugin
+[37]: https://basepom.github.io/duplicate-finder-maven-plugin
 [38]: http://www.apache.org/licenses/LICENSE-2.0.html
 [39]: https://maven.apache.org/plugins/maven-assembly-plugin/
 [40]: https://maven.apache.org/plugins/maven-jar-plugin/
