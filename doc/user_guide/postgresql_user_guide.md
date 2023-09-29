@@ -5,16 +5,18 @@
 ## Uploading the JDBC Driver to Exasol BucketFS
 
 1. Download the [PostgreSQL JDBC driver](https://jdbc.postgresql.org/).
-Driver version 42.2.6 or later is recommended if you want to establish a TLS-secured connection.
-2. Upload the driver to BucketFS, see https://docs.exasol.com/db/latest/administration/on-premise/bucketfs/accessfiles.htm.<br />
-Hint: Put the driver into folder `default/drivers/jdbc/` to register it for [ExaLoader](#registering-the-jdbc-driver-for-exaloader), too.
+
+    Driver version 42.2.6 or later is recommended if you want to establish a TLS-secured connection.
+2. Upload the driver to BucketFS, see [BucketFS documentation](https://docs.exasol.com/db/latest/administration/on-premise/bucketfs/accessfiles.htm).
+
+    Hint: Put the driver into folder `default/drivers/jdbc/` to register it for [ExaLoader](#registering-the-jdbc-driver-for-exaloader), too.
 
 ## Registering the JDBC driver for ExaLoader
 
 In order to enable the ExaLoader to fetch data from the external database you must register the driver for ExaLoader as described in the [Installation procedure for JDBC drivers](https://github.com/exasol/docker-db/#installing-custom-jdbc-drivers).
 1. ExaLoader expects the driver in BucketFS folder `default/drivers/jdbc`.<br />
 If you uploaded the driver for UDF to a different folder, then you need to [upload](#uploading-the-jdbc-driver-to-exasol-bucketfs) the driver again.
-2. Additionally  you need to create a file `settings.cfg` and [upload](#uploading-the-jdbc-driver-to-exasol-bucketfs) it to the same folder in BucketFS:
+2. Additionally  you need to create file `settings.cfg` and [upload](#uploading-the-jdbc-driver-to-exasol-bucketfs) it to the same folder in BucketFS:
 
 ```
 DRIVERNAME=POSTGRES_JDBC_DRIVER
@@ -27,7 +29,7 @@ INSERTSIZE=-1
 
 | Variable | Description |
 |----------|-------------|
-| `<jar file containing the jdbc driver>` | E.g. postgresql-42.4.2.jar |
+| `<jar file containing the jdbc driver>` | E.g. `postgresql-42.4.2.jar` |
 
 ## Installing the Adapter Script
 
@@ -45,7 +47,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 --/
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-10.5.0-postgresql-2.2.1.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-11.0.2-postgresql-2.2.2.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
@@ -78,12 +80,11 @@ Use the following SQL command in Exasol database to create a PostgreSQL Virtual 
 
 ```sql
 CREATE VIRTUAL SCHEMA <virtual schema name>
-	USING ADAPTER.JDBC_ADAPTER
-	WITH
-	CATALOG_NAME = '<catalog name>'
-	SCHEMA_NAME = '<schema name>'
-	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
-	;
+  USING ADAPTER.JDBC_ADAPTER
+  WITH
+  CATALOG_NAME = '<catalog name>'
+  SCHEMA_NAME = '<schema name>'
+  CONNECTION_NAME = 'POSTGRESQL_CONNECTION';
 ```
 
 | Variable | Description |
@@ -113,13 +114,12 @@ Regardless of this, you can create or refresh the virtual schema by specifying t
 
 ```sql
 CREATE VIRTUAL SCHEMA <virtual schema name>
-	USING ADAPTER.JDBC_ADAPTER
-	WITH
-	CATALOG_NAME = '<catalog name>'
-	SCHEMA_NAME = '<schema name>'
-	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
-	IGNORE_ERRORS = 'POSTGRESQL_UPPERCASE_TABLES'
-;
+  USING ADAPTER.JDBC_ADAPTER
+  WITH
+  CATALOG_NAME = '<catalog name>'
+  SCHEMA_NAME = '<schema name>'
+  CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
+  IGNORE_ERRORS = 'POSTGRESQL_UPPERCASE_TABLES';
 ```
 You can also set this property to an existing virtual schema:
 
@@ -145,23 +145,25 @@ SELECT Col1 FROM MySecondTable;
 ```sql
 --Create Virtual Schema on EXASOL side
 CREATE VIRTUAL SCHEMA <virtual schema name>
-	USING ADAPTER.JDBC_ADAPTER
-	WITH
-	CATALOG_NAME = '<catalog name>'
-	SCHEMA_NAME = '<schema name>'
-	CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
-	POSTGRESQL_IDENTIFIER_MAPPING = 'PRESERVE_ORIGINAL_CASE'
-;
+  USING ADAPTER.JDBC_ADAPTER
+  WITH
+  CATALOG_NAME = '<catalog name>'
+  SCHEMA_NAME = '<schema name>'
+  CONNECTION_NAME = 'POSTGRESQL_CONNECTION'
+  POSTGRESQL_IDENTIFIER_MAPPING = 'PRESERVE_ORIGINAL_CASE';
+
 -- Open Schema and see what tables are there
-open schema postgres;
-select * from cat;
+OPEN SCHEMA postgres;
+SELECT * FROM CAT;
 -- result -->
--- TABLE_NAME	TABLE_TYPE
+-- TABLE_NAME  TABLE_TYPE
 -- ----------------------
 -- MyTable       | TABLE
 -- mysecondtable | TABLE
 ```
+
 As you can see `MySecondTable` is displayed in lower case in the virtual schema catalog. This is exactly like it is on the PostgreSQL side, but since unquoted identifiers are folded differently in PostgreSQL you cannot query the table like you did in PostgreSQL:
+
 ```sql
 --Querying the virtual schema
 --> this works
@@ -175,6 +177,7 @@ SELECT Col1 FROM postgres.MySecondTable;
 --> this works
 SELECT "col1" FROM postgres."mysecondtable";
 ```
+
 Unquoted identifiers are converted to lowercase on the PostgreSQL side, and since there is no catalog conversion these identifiers are also lowercase in Exasol. To query a lowercase identifier you must use quotes in Exasol, because everything that is unquoted gets folded to uppercase.
 
 A best practice for this mode is: **always quote identifiers** (in the PostgreSQL Schema as well as in the Exasol Virtual Schema). This way everything works without having to change your queries.

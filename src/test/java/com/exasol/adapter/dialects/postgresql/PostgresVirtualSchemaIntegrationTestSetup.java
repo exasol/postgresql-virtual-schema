@@ -2,7 +2,8 @@ package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.dbbuilder.dialects.exasol.AdapterScript.Language.JAVA;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-10.5.0-postgresql-2.2.1.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-11.0.2-postgresql-2.2.2.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
@@ -39,8 +40,8 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             POSTGRES_CONTAINER_NAME);
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
             EXASOL_DOCKER_IMAGE_REFERENCE).withRequiredServices(ExasolService.BUCKETFS, ExasolService.UDF)
-                    .withReuse(true);
-    private final Connection exasolConection;
+            .withReuse(true);
+    private final Connection exasolConnection;
     private final Statement exasolStatement;
     private final AdapterScript adapterScript;
     private final ConnectionDefinition connectionDefinition;
@@ -56,14 +57,14 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             final Bucket bucket = this.exasolContainer.getDefaultBucket();
             uploadDriverToBucket(bucket);
             uploadVsJarToBucket(bucket);
-            this.exasolConection = this.exasolContainer.createConnection("");
-            this.exasolStatement = this.exasolConection.createStatement();
+            this.exasolConnection = this.exasolContainer.createConnection("");
+            this.exasolStatement = this.exasolConnection.createStatement();
             this.postgresConnection = this.postgresqlContainer.createConnection("");
             this.postgresStatement = this.postgresConnection.createStatement();
             final String hostIpAddress = getTestHostIpFromInsideExasol();
-            assert(hostIpAddress != null);
-            final UdfTestSetup udfTestSetup = new UdfTestSetup(hostIpAddress,
-                    this.exasolContainer.getDefaultBucket(), this.exasolConection);
+            assert (hostIpAddress != null);
+            final UdfTestSetup udfTestSetup = new UdfTestSetup(hostIpAddress, this.exasolContainer.getDefaultBucket(),
+                    this.exasolConnection);
             this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""),
                     ExasolObjectConfiguration.builder().withJvmOptions(udfTestSetup.getJvmOptions()).build());
             final ExasolSchema exasolSchema = this.exasolFactory.createSchema(SCHEMA_EXASOL);
@@ -146,7 +147,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     public void close() {
         try {
             this.exasolStatement.close();
-            this.exasolConection.close();
+            this.exasolConnection.close();
             this.postgresStatement.close();
             this.postgresConnection.close();
             this.exasolContainer.stop();

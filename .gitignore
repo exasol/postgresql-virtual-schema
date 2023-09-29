@@ -4,7 +4,9 @@ pom.xml.versionsBackup
 # Eclipse and Maven
 .classpath
 .project
-.settings/org.eclipse.jdt.apt.core.prefs
+/.settings/org.eclipse.core.resources.prefs
+/.settings/org.eclipse.m2e.core.prefs
+/.settings/org.eclipse.jdt.apt.core.prefs
 # .settings : we need Eclipse settings for code formatter and clean-up rules
 target
 .cache

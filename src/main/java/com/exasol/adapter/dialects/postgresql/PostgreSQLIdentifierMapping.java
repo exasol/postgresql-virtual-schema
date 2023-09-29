@@ -50,7 +50,7 @@ public class PostgreSQLIdentifierMapping {
      * Parse the identifier mapping from a string.
      *
      * @param name string describing the mapping
-     * @return PosgreSQL identifier mapping
+     * @return PostgreSQL identifier mapping
      * @throws IllegalArgumentException if the given string contains a mapping name that is unknown or
      *                                  <code>null</code>.
      */
