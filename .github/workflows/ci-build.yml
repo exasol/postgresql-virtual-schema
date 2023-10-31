@@ -10,8 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-20.04 # UDFs fail with "VM error: Internal error: VM crashed" on ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.docker_db_version }}
       cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        docker_db_version: ["7.1.24", "8.23.0"]
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -37,7 +41,8 @@ jobs:
         run: |
           JAVA_HOME=$JAVA_HOME_11_X64 mvn --batch-mode clean verify \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -DtrimStackTrace=false
+              -DtrimStackTrace=false \
+              -Dcom.exasol.dockerdb.image=${{ matrix.docker_db_version }}
       - name: Publish Test Report
         uses: scacap/action-surefire-report@v1
         if: ${{ always() && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}

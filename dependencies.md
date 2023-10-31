@@ -49,11 +49,6 @@
 | [JaCoCo :: Maven Plugin][48]                            | [Eclipse Public License 2.0][49]               |
 | [error-code-crawler-maven-plugin][50]                   | [MIT License][51]                              |
 | [Reproducible Build Maven Plugin][52]                   | [Apache 2.0][23]                               |
-| [Maven Clean Plugin][53]                                | [The Apache Software License, Version 2.0][23] |
-| [Maven Resources Plugin][54]                            | [The Apache Software License, Version 2.0][23] |
-| [Maven Install Plugin][55]                              | [The Apache Software License, Version 2.0][23] |
-| [Maven Deploy Plugin][56]                               | [The Apache Software License, Version 2.0][23] |
-| [Maven Site Plugin 3][57]                               | [The Apache Software License, Version 2.0][23] |
 
 [0]: https://github.com/exasol/virtual-schema-common-jdbc/
 [1]: https://github.com/exasol/virtual-schema-common-jdbc/blob/main/LICENSE
@@ -108,8 +103,3 @@
 [50]: https://github.com/exasol/error-code-crawler-maven-plugin/
 [51]: https://github.com/exasol/error-code-crawler-maven-plugin/blob/main/LICENSE
 [52]: http://zlika.github.io/reproducible-build-maven-plugin
-[53]: http://maven.apache.org/plugins/maven-clean-plugin/
-[54]: http://maven.apache.org/plugins/maven-resources-plugin/
-[55]: http://maven.apache.org/plugins/maven-install-plugin/
-[56]: http://maven.apache.org/plugins/maven-deploy-plugin/
-[57]: http://maven.apache.org/plugins/maven-site-plugin/
