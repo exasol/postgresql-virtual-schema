@@ -13,11 +13,20 @@ Code name:
 ### Compile Dependency Updates
 
 * Updated `com.exasol:virtual-schema-common-jdbc:11.0.2` to `12.0.0`
+* Updated `org.postgresql:postgresql:42.6.0` to `42.7.1`
 
 ### Test Dependency Updates
 
+* Updated `com.exasol:exasol-testcontainers:6.6.2` to `7.0.0`
+* Updated `com.exasol:hamcrest-resultset-matcher:1.6.1` to `1.6.4`
+* Updated `com.exasol:test-db-builder-java:3.5.1` to `3.5.3`
 * Updated `com.exasol:virtual-schema-common-jdbc:11.0.2` to `12.0.0`
+* Updated `com.exasol:virtual-schema-shared-integration-tests:2.2.5` to `2.2.6`
 * Added `org.jacoco:org.jacoco.agent:0.8.11`
+* Updated `org.junit.jupiter:junit-jupiter:5.10.0` to `5.10.1`
+* Updated `org.mockito:mockito-junit-jupiter:5.5.0` to `5.10.0`
+* Updated `org.testcontainers:junit-jupiter:1.19.0` to `1.19.4`
+* Updated `org.testcontainers:postgresql:1.19.0` to `1.19.4`
 
 ### Plugin Dependency Updates
 
