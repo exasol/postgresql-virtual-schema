@@ -32,8 +32,17 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
     private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "8.24.0";
     private static final String POSTGRES_CONTAINER_NAME = "postgres:14.2";
+
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
-    static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
+    private static final String JDBC_DRIVER_CONFIGURATION_FILE_NAME = "settings.cfg";
+    private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
+    private static final String JDBC_DRIVER_CONFIGURATION_FILE_CONTENT = "DRIVERNAME=POSTGRES_JDBC_DRIVER\n" //
+            + "JAR=" + JDBC_DRIVER_NAME + "\n" //
+            + "DRIVERMAIN=org.postgresql.Driver\n" //
+            + "PREFIX=jdbc:postgresql:\n" //
+            + "FETCHSIZE=100000\n" //
+            + "INSERTSIZE=-1\n";
+
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
     private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
@@ -86,10 +95,12 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static void uploadDriverToBucket(final Bucket bucket)
             throws InterruptedException, TimeoutException, BucketAccessException {
         try {
-            bucket.uploadFile(JDBC_DRIVER_PATH, JDBC_DRIVER_NAME);
+            bucket.uploadStringContent(JDBC_DRIVER_CONFIGURATION_FILE_CONTENT,
+                    "drivers/jdbc/" + JDBC_DRIVER_CONFIGURATION_FILE_NAME);
+            bucket.uploadFile(JDBC_DRIVER_PATH, "drivers/jdbc/" + JDBC_DRIVER_NAME);
         } catch (final BucketAccessException | FileNotFoundException exception) {
             throw new IllegalStateException(
-                    ExaError.messageBuilder("F-VSPG-8")
+                    ExaError.messageBuilder("F-VSMYSQL-2")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
