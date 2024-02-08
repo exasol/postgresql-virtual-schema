@@ -270,10 +270,11 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testQueryUpperCaseTableQuotedThrowsException() {
-        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute("SELECT x FROM  "
-                + virtualSchemaPostgresUppercaseTable.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
-        assertThat(exception.getMessage(), containsString("object \"" + virtualSchemaPostgresUppercaseTable.getName()
-                + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
+        final String selectStatement = "SELECT x FROM  " + virtualSchemaPostgresUppercaseTable.getName() + ".\""
+                + TABLE_POSTGRES_MIXED_CASE + "\"";
+        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute(selectStatement));
+        assertThat(exception.getMessage(), containsString("object " + virtualSchemaPostgresUppercaseTable.getName()
+                + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
     }
 
     @Test
