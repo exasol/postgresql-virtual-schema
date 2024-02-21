@@ -254,6 +254,38 @@ class PostgreSQLSqlDialectIT {
     }
 
     @Test
+    void testYearScalarFunctionFromTimeStamp() throws SQLException {
+        final String query = "SELECT year(\"MYTIMESTAMP\") FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+    }
+
+    @Test
+    void testYearScalarFunctionFromDate() throws SQLException {
+        final String query = "SELECT year(\"MYDATE\") FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+    }
+
+    @Test
+    void testCurrentSchemaScalarFunction() throws SQLException {
+        final String query = " SELECT current_schema FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+    }
+
+    @Test
+    void testFloatDivFunction() throws SQLException {
+        final String query = " SELECT MYINTEGER / MYINTEGER FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+    }
+
+    @Test
     void testCountAll() throws SQLException {
         final String qualifiedExpectedTableName = virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_SIMPLE;
         final String query = "SELECT COUNT(*) FROM " + qualifiedExpectedTableName;
