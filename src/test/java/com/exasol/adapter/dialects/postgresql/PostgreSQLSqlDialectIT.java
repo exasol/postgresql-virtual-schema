@@ -258,7 +258,8 @@ class PostgreSQLSqlDialectIT {
         final String query = "SELECT year(\"MYTIMESTAMP\") FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
-        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+        final Short yearShort = 2010;
+        assertThat(actualResultSet, table().row(yearShort).matches());
     }
 
     @Test
@@ -266,15 +267,20 @@ class PostgreSQLSqlDialectIT {
         final String query = "SELECT year(\"MYDATE\") FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
-        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+        final Short yearShort = 2010;
+        assertThat(actualResultSet, table().row(yearShort).matches());
     }
 
+    // Check 'current_schema' functionality, re-enable tests after resolution
+    // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
+    // https://github.com/exasol/postgresql-virtual-schema/issues/79
+    // https://exasol.atlassian.net/browse/SPOT-19716
+    @Disabled
     @Test
     void testCurrentSchemaScalarFunction() throws SQLException {
         final String query = " SELECT current_schema FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
-        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
     }
 
     @Test
@@ -282,7 +288,7 @@ class PostgreSQLSqlDialectIT {
         final String query = " SELECT MYINTEGER / MYINTEGER FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
-        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
+        assertThat(actualResultSet, table("DOUBLE PRECISION").row(1.0).matches());
     }
 
     @Test
