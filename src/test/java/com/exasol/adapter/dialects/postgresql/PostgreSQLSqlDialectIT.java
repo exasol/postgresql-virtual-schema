@@ -275,12 +275,13 @@ class PostgreSQLSqlDialectIT {
     // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
     // https://github.com/exasol/postgresql-virtual-schema/issues/79
     // https://exasol.atlassian.net/browse/SPOT-19716
-    @Disabled
+    @Disabled("Currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII'")
     @Test
     void testCurrentSchemaScalarFunction() throws SQLException {
         final String query = " SELECT current_schema FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table().row(TABLE_POSTGRES_ALL_DATA_TYPES).matches());
     }
 
     @Test
