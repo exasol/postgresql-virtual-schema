@@ -18,6 +18,7 @@ import com.exasol.containers.ExasolContainer;
 import com.exasol.containers.ExasolService;
 import com.exasol.dbbuilder.dialects.exasol.*;
 import com.exasol.dbbuilder.dialects.postgres.PostgreSqlObjectFactory;
+import com.exasol.drivers.JdbcDriver;
 import com.exasol.errorreporting.ExaError;
 import com.exasol.udfdebugging.UdfTestSetup;
 import com.github.dockerjava.api.model.ContainerNetwork;
@@ -34,14 +35,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final String POSTGRES_CONTAINER_NAME = "postgres:14.2";
 
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
-    private static final String JDBC_DRIVER_CONFIGURATION_FILE_NAME = "settings.cfg";
     private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
-    private static final String JDBC_DRIVER_CONFIGURATION_FILE_CONTENT = "DRIVERNAME=POSTGRES_JDBC_DRIVER\n" //
-            + "JAR=" + JDBC_DRIVER_NAME + "\n" //
-            + "DRIVERMAIN=org.postgresql.Driver\n" //
-            + "PREFIX=jdbc:postgresql:\n" //
-            + "FETCHSIZE=100000\n" //
-            + "INSERTSIZE=-1\n";
 
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
@@ -64,7 +58,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             this.exasolContainer.start();
             this.postgresqlContainer.start();
             final Bucket bucket = this.exasolContainer.getDefaultBucket();
-            uploadDriverToBucket(bucket);
+            uploadDriverToBucket(this.exasolContainer);
             uploadVsJarToBucket(bucket);
             this.exasolConnection = this.exasolContainer.createConnection("");
             this.exasolStatement = this.exasolConnection.createStatement();
@@ -92,20 +86,25 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         }
     }
 
-    private static void uploadDriverToBucket(final Bucket bucket)
+    private static void uploadDriverToBucket(final ExasolContainer<? extends ExasolContainer<?>> container)
             throws InterruptedException, TimeoutException, BucketAccessException {
         try {
-            bucket.uploadStringContent(JDBC_DRIVER_CONFIGURATION_FILE_CONTENT,
-                    "drivers/jdbc/" + JDBC_DRIVER_CONFIGURATION_FILE_NAME);
-            bucket.uploadFile(JDBC_DRIVER_PATH, "drivers/jdbc/" + JDBC_DRIVER_NAME);
-        } catch (final BucketAccessException | FileNotFoundException exception) {
+            container.getDriverManager().install( //
+                    JdbcDriver.builder("POSTGRES_JDBC_DRIVER") //
+                            .enableSecurityManager(false) //
+                            .mainClass("org.postgresql.Driver") //
+                            .prefix("jdbc:postgresql:") //
+                            .sourceFile(JDBC_DRIVER_PATH) //
+                            .build());
+
+        } catch (final Exception ex) {
             throw new IllegalStateException(
                     ExaError.messageBuilder("F-VSMYSQL-2")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
                             .mitigation("You can generate it by executing the integration test with maven.").toString(),
-                    exception);
+                    ex);
         }
     }
 
