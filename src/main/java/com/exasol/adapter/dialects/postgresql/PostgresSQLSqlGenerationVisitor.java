@@ -139,17 +139,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         builder.append(") AS DECIMAL(");
         switch (scalarFunction) {
         case SECOND:
-            builder.append("2");
-            break;
         case MINUTE:
-            builder.append("2");
-            break;
         case DAY:
-            builder.append("2");
-            break;
         case WEEK:
-            builder.append("2");
-            break;
         case MONTH:
             builder.append("2");
             break;
