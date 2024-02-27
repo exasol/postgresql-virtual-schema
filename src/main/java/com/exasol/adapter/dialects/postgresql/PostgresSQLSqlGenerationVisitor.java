@@ -85,9 +85,16 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             return getDateTime(argumentsSql, scalarFunction);
         case POSIX_TIME:
             return getPosixTime(argumentsSql);
+        case FLOAT_DIV:
+            return getCastToDoublePrecisionAndDivide(argumentsSql);
         default:
             return super.visit(function);
         }
+    }
+
+    private String getCastToDoublePrecisionAndDivide(final List<String> sqlArguments) {
+        return "( CAST (" + sqlArguments.get(0) + " AS DOUBLE PRECISION) / CAST (" + sqlArguments.get(1)
+                + " AS DOUBLE PRECISION))";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
@@ -104,7 +111,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
 
     private String getDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
         final StringBuilder builder = new StringBuilder();
-        builder.append("DATE_PART(");
+        builder.append("CAST(DATE_PART(");
         switch (scalarFunction) {
         case SECOND:
             builder.append("'SECOND'");
@@ -129,7 +136,30 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         }
         builder.append(",");
         builder.append(argumentsSql.get(0));
-        builder.append(")");
+        builder.append(") AS DECIMAL(");
+        switch (scalarFunction) {
+        case SECOND:
+            builder.append("2");
+            break;
+        case MINUTE:
+            builder.append("2");
+            break;
+        case DAY:
+            builder.append("2");
+            break;
+        case WEEK:
+            builder.append("2");
+            break;
+        case MONTH:
+            builder.append("2");
+            break;
+        case YEAR:
+            builder.append("4");
+            break;
+        default:
+            break;
+        }
+        builder.append(",0))");
         return builder.toString();
     }
 
