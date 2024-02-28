@@ -85,9 +85,16 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             return getDateTime(argumentsSql, scalarFunction);
         case POSIX_TIME:
             return getPosixTime(argumentsSql);
+        case FLOAT_DIV:
+            return getCastToDoublePrecisionAndDivide(argumentsSql);
         default:
             return super.visit(function);
         }
+    }
+
+    private String getCastToDoublePrecisionAndDivide(final List<String> sqlArguments) {
+        return "( CAST (" + sqlArguments.get(0) + " AS DOUBLE PRECISION) / CAST (" + sqlArguments.get(1)
+                + " AS DOUBLE PRECISION))";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
@@ -104,7 +111,17 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
 
     private String getDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
         final StringBuilder builder = new StringBuilder();
-        builder.append("DATE_PART(");
+        builder.append("CAST(DATE_PART(");
+        appendDatePart(scalarFunction, builder);
+        builder.append(",");
+        builder.append(argumentsSql.get(0));
+        builder.append(") AS DECIMAL(");
+        appendDecimalSize(scalarFunction, builder);
+        builder.append(",0))");
+        return builder.toString();
+    }
+
+    private static void appendDatePart(ScalarFunction scalarFunction, StringBuilder builder) {
         switch (scalarFunction) {
         case SECOND:
             builder.append("'SECOND'");
@@ -127,10 +144,23 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         default:
             break;
         }
-        builder.append(",");
-        builder.append(argumentsSql.get(0));
-        builder.append(")");
-        return builder.toString();
+    }
+
+    private static void appendDecimalSize(ScalarFunction scalarFunction, StringBuilder builder) {
+        switch (scalarFunction) {
+        case SECOND:
+        case MINUTE:
+        case DAY:
+        case WEEK:
+        case MONTH:
+            builder.append("2");
+            break;
+        case YEAR:
+            builder.append("4");
+            break;
+        default:
+            break;
+        }
     }
 
     private String getPosixTime(final List<String> argumentsSql) {

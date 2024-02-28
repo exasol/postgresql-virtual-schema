@@ -2,13 +2,16 @@ sources:
   - type: maven
     path: pom.xml
     modules:
-      - jar_artifact
       - integration_tests
-    advertise: true
+      - udf_coverage
+      - jar_artifact
 version:
   fromSource: pom.xml
+build:
+  runnerOs: ubuntu-20.04
+  freeDiskSpace: false
+  exasolDbVersions:
+    - "7.1.25"
+    - "8.24.0"  
 linkReplacements:
   - "https://jdbc.postgresql.org/about/license.html|https://jdbc.postgresql.org/license/"
-excludes:
-  - "E-PK-CORE-18: Outdated content: '.github/workflows/ci-build.yml'"
-  - "E-PK-CORE-18: Outdated content: '.github/workflows/release_droid_prepare_original_checksum.yml'"

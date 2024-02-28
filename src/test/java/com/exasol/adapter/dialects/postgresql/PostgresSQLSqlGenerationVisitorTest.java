@@ -64,17 +64,18 @@ class PostgresSQLSqlGenerationVisitorTest {
         return new SqlFunctionScalar(scalarFunction, arguments);
     }
 
-    @CsvSource({ "SECOND, SECOND", //
-            "MINUTE, MINUTE", //
-            "DAY, DAY", //
-            "WEEK, WEEK", //
-            "MONTH, MONTH", //
-            "YEAR, YEAR" })
+    @CsvSource({ "SECOND, SECOND, 2", //
+            "MINUTE, MINUTE, 2", //
+            "DAY, DAY, 2", //
+            "WEEK, WEEK, 2", //
+            "MONTH, MONTH, 2", //
+            "YEAR, YEAR, 4" })
     @ParameterizedTest
-    void testVisitSqlFunctionScalarDatetime(final ScalarFunction scalarFunction, final String expected)
-            throws AdapterException {
+    void testVisitSqlFunctionScalarDatetime(final ScalarFunction scalarFunction, final String expected,
+            final String decimalSize) throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(scalarFunction, 0);
-        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("DATE_PART('" + expected + "',\"test_column\")"));
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("CAST(DATE_PART('" + expected + "',\"test_column\") AS DECIMAL(" + decimalSize + ",0))"));
     }
 
     @Test

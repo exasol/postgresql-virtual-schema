@@ -254,12 +254,50 @@ class PostgreSQLSqlDialectIT {
     }
 
     @Test
+    void testYearScalarFunctionFromTimeStamp() throws SQLException {
+        final String query = "SELECT year(\"MYTIMESTAMP\") FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        final Short yearShort = 2010;
+        assertThat(actualResultSet, table().row(yearShort).matches());
+    }
+
+    @Test
+    void testYearScalarFunctionFromDate() throws SQLException {
+        final String query = "SELECT year(\"MYDATE\") FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        final Short yearShort = 2010;
+        assertThat(actualResultSet, table().row(yearShort).matches());
+    }
+
+    // Check 'current_schema' functionality, re-enable tests after resolution
+    // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
+    // https://github.com/exasol/postgresql-virtual-schema/issues/79
+    // https://exasol.atlassian.net/browse/SPOT-19716
+    @Disabled("Currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII'")
+    @Test
+    void testCurrentSchemaScalarFunction() throws SQLException {
+        final String query = " SELECT current_schema FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table().row(TABLE_POSTGRES_ALL_DATA_TYPES).matches());
+    }
+
+    @Test
+    void testFloatDivFunction() throws SQLException {
+        final String query = " SELECT MYINTEGER / MYINTEGER FROM " + virtualSchemaPostgres.getName() + "."
+                + TABLE_POSTGRES_ALL_DATA_TYPES;
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("DOUBLE PRECISION").row(1.0).matches());
+    }
+
+    @Test
     void testCountAll() throws SQLException {
         final String qualifiedExpectedTableName = virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_SIMPLE;
         final String query = "SELECT COUNT(*) FROM " + qualifiedExpectedTableName;
-        final ResultSet expected = getExpectedResultSet(List.of("x DECIMAL(19,0)"), //
-                List.of("1.00000"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        final ResultSet actualResultSet = getActualResultSet(query);
+        assertThat(actualResultSet, table("BIGINT").row(1L).matches());
     }
 
     @Test
@@ -271,10 +309,10 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testQueryUpperCaseTableQuotedThrowsException() {
-        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute("SELECT x FROM  "
-                + virtualSchemaPostgresUppercaseTable.getName() + ".\"" + TABLE_POSTGRES_MIXED_CASE + "\""));
-        assertThat(exception.getMessage(), containsString("object \"" + virtualSchemaPostgresUppercaseTable.getName()
-                + "\".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
+        final String selectStatement = "SELECT x FROM  " + virtualSchemaPostgresUppercaseTable.getName() + ".\""
+                + TABLE_POSTGRES_MIXED_CASE + "\"";
+        final Exception exception = assertThrows(SQLException.class, () -> statementExasol.execute(selectStatement));
+        assertThat(exception.getMessage(), containsString(".\"" + TABLE_POSTGRES_MIXED_CASE + "\" not found"));
     }
 
     @Test
@@ -383,12 +421,12 @@ class PostgreSQLSqlDialectIT {
     void testDatatypeCharacter() throws SQLException {
         final String empty = " ";
         final String expected = "hajksdf" + String.join("", Collections.nCopies(993, empty));
-        assertSingleValue("myCharacter", "CHAR(1000) ASCII", expected);
+        assertSingleValue("myCharacter", "CHAR(1000) UTF8", expected);
     }
 
     @Test
     void testDatatypeCharacterVar() throws SQLException {
-        assertSingleValue("myCharactervar", "VARCHAR(1000) ASCII", "hjkdhjgfh");
+        assertSingleValue("myCharactervar", "VARCHAR(1000) UTF8", "hjkdhjgfh");
     }
 
     @Test
@@ -491,7 +529,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeText() throws SQLException {
-        assertSingleValue("myText", "VARCHAR(2000000) ASCII", "This cat is super cute");
+        assertSingleValue("myText", "VARCHAR(2000000) UTF8", "This cat is super cute");
     }
 
     @Test
@@ -552,10 +590,14 @@ class PostgreSQLSqlDialectIT {
         final String expectedValues = expectedRows.stream().map(row -> "(" + row + ")")
                 .collect(Collectors.joining(","));
         final String qualifiedExpectedTableName = exasolSchema.getName() + ".EXPECTED";
-        statementExasol.execute("CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
-                + String.join(", ", expectedColumns) + ")");
-        statementExasol.execute("INSERT INTO " + qualifiedExpectedTableName + " VALUES" + expectedValues);
-        return statementExasol.executeQuery("SELECT * FROM " + qualifiedExpectedTableName);
+        final String createTableStatement = "CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
+                + String.join(", ", expectedColumns) + ");";
+        statementExasol.execute(createTableStatement);
+        final String insertIntoTableStatement = "INSERT INTO " + qualifiedExpectedTableName + " VALUES "
+                + expectedValues + ";";
+        statementExasol.execute(insertIntoTableStatement);
+        final String selectStatement = "SELECT * FROM " + qualifiedExpectedTableName + ";";
+        return statementExasol.executeQuery(selectStatement);
     }
 
     private ResultSet getActualResultSet(final String query) throws SQLException {

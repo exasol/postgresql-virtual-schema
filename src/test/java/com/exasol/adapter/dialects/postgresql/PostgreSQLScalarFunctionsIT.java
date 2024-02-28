@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.exasol.adapter.commontests.scalarfunction.ScalarFunctionsTestBase;
@@ -46,7 +45,8 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         }
                     }
 
-                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(), Collections.emptyMap());
+                    final VirtualSchema virtualSchema = SETUP.createVirtualSchema(postgresSchema.getName(),
+                            Collections.emptyMap());
 
                     return new PostgreSQLSingleTableVirtualSchemaTestSetup(virtualSchema, postgresSchema);
                 };
@@ -87,7 +87,12 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         "add_days",
                         // expected was a value close to <1972-01-01> (tolerance: +/- <0.00010>) but was
                         // "1972-01-01T00:00:00Z"
-                        "add_years");
+                        "add_years",
+                        // Check 'current_schema' functionality, re-enable tests after resolution #79
+                        // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
+                        // https://github.com/exasol/postgresql-virtual-schema/issues/79
+                        // https://exasol.atlassian.net/browse/SPOT-19716
+                        "current_schema");
             }
 
             @Override
@@ -119,8 +124,14 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
         }
     }
 
-    @BeforeAll
-    static void beforeAll() {
+    // protected virtual method, must be overridden
+    @Override
+    protected void beforeAllSetup() throws SQLException {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
+    // protected virtual method, must be overridden
+    @Override
+    protected void afterAllTeardown() throws SQLException {
     }
 }
