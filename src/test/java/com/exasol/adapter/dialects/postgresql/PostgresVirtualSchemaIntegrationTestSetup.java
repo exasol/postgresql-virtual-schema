@@ -97,14 +97,14 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
                             .sourceFile(JDBC_DRIVER_PATH) //
                             .build());
 
-        } catch (final Exception ex) {
+        } catch (final Exception exception) {
             throw new IllegalStateException(
                     ExaError.messageBuilder("F-VSPG-8")
                             .message("An error occurred while uploading the jdbc driver to the bucket.")
                             .mitigation("Make sure the {{JDBC_DRIVER_PATH}} file exists.")
                             .parameter("JDBC_DRIVER_PATH", JDBC_DRIVER_PATH)
                             .mitigation("You can generate it by executing the integration test with maven.").toString(),
-                    ex);
+                    exception);
         }
     }
 
