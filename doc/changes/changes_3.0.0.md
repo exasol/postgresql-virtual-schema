@@ -1,12 +1,35 @@
-# Virtual Schema for PostgreSQL 3.0.0, released 2024-??-??
+# Virtual Schema for PostgreSQL 3.0.0, released 2024-02-28
 
-Code name:
+Code name: Char set is always `utf-8`, deprecated IMPORT_DATA_TYPES `FROM_RESULT_SET` value
+
 
 ## Summary
 
+The behaviour when it comes to character sets is now simplified,
+The target char set is now always UTF-8.
+The `IMPORT_DATA_TYPES` property (and value `FROM_RESULT_SET`) are now deprecated (change in vs-common-jdbc):
+An exception will be thrown when users use `FROM_RESULT_SET`. The exception message warns the user that the value is no longer supported and the property itself is also deprecated.
+
+Various broken scalar time-related extraction functions for dates and timestamps in the virtual schema are now fixed: `year`,`month`,`day`,`hour`,`minute`,`second`.
+
+Scalar `division` (`/`) which was broken in some cases now also works correctly.
+
+Tests for `current_schema` are currently disabled, this is because of a discovered compiler bug: https://github.com/exasol/postgresql-virtual-schema/issues/79 . 
+These tests will be re-evaluated later when there is more clarity about this issue.
+
+We also updated dependencies and resolved the following 2 CVEs in test dependency `org.apache.commons:commons-compress`:
+- CVE-2024-26308
+- CVE-2024-25710
+We also updated dependencies and resolved the following CVE in test dependency `org.postgresql:postgresql:`:
+- CVE-2024-1597
+
 ## Features
 
-- ISSUE_NUMBER: description
+- #68 : Update tests to V8 VSPG refactoring
+
+## Security
+
+- #78 : Fix vulnerabilities in org.postgresql:postgresql:jar:42.6.0:compile & org.apache.commons:commons-compress:jar:1.24.0:test
 
 ## Dependency Updates
 
