@@ -112,6 +112,16 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     private String getDateTime(final List<String> argumentsSql, final ScalarFunction scalarFunction) {
         final StringBuilder builder = new StringBuilder();
         builder.append("CAST(DATE_PART(");
+        appendDatePart(scalarFunction, builder);
+        builder.append(",");
+        builder.append(argumentsSql.get(0));
+        builder.append(") AS DECIMAL(");
+        appendDecimalSize(scalarFunction, builder);
+        builder.append(",0))");
+        return builder.toString();
+    }
+
+    private static void appendDatePart(ScalarFunction scalarFunction, StringBuilder builder) {
         switch (scalarFunction) {
         case SECOND:
             builder.append("'SECOND'");
@@ -134,9 +144,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         default:
             break;
         }
-        builder.append(",");
-        builder.append(argumentsSql.get(0));
-        builder.append(") AS DECIMAL(");
+    }
+
+    private static void appendDecimalSize(ScalarFunction scalarFunction, StringBuilder builder) {
         switch (scalarFunction) {
         case SECOND:
         case MINUTE:
@@ -151,8 +161,6 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         default:
             break;
         }
-        builder.append(",0))");
-        return builder.toString();
     }
 
     private String getPosixTime(final List<String> argumentsSql) {
