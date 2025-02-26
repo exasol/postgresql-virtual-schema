@@ -120,7 +120,7 @@
             <plugin>
                 <groupId>com.exasol</groupId>
                 <artifactId>project-keeper-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.5.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -184,7 +184,7 @@
     <parent>
         <artifactId>postgresql-virtual-schema-generated-parent</artifactId>
         <groupId>com.exasol</groupId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
         <relativePath>pk_generated_parent.pom</relativePath>
     </parent>
 </project>
