@@ -150,6 +150,7 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | TAN                 |     ✓     |
 | TANH                |     ✓     |
 | TRUNC               |     ✓     |
+| WIDTH_BUCKET        |     ✓     |
 | ASCII               |     ✓     |
 | BIT_LENGTH          |     ✓     |
 | CHR                 |     ✓     |
