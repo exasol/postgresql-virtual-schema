@@ -8,10 +8,10 @@ sources:
 version:
   fromSource: pom.xml
 build:
-  runnerOs: ubuntu-20.04
+  runnerOs: ubuntu-24.04
   freeDiskSpace: false
   exasolDbVersions:
-    - "7.1.25"
-    - "8.24.0"  
+    - "8.24.0"
+    # - "7.1.30" # Exasol 7.1.x does not support the latest Ubuntu version
 linkReplacements:
   - "https://jdbc.postgresql.org/about/license.html|https://jdbc.postgresql.org/license/"
