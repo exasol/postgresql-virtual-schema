@@ -1,12 +1,17 @@
-# Virtual Schema for PostgreSQL 3.0.1, released 2025-??-??
+# Virtual Schema for PostgreSQL 3.0.1, released 2025-06-04
 
-Code name:
+Code name: Dependency updates on top of 3.0.0
 
 ## Summary
 
-## Features
+This release is a security update. We updated the dependencies of the project to fix transitive security issues.
 
-* ISSUE_NUMBER: description
+We also added an exception for the OSSIndex for CVE-2024-55551, which is a false positive in Exasol's JDBC driver.
+This issue has been fixed quite a while back now, but the OSSIndex unfortunately does not contain the fix version of 24.2.1 (2024-12-10) set.
+
+## Security
+
+* #83: Upgraded dependencies
 
 ## Dependency Updates
 

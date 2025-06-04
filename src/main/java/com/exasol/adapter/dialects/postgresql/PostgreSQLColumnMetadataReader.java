@@ -3,6 +3,7 @@ package com.exasol.adapter.dialects.postgresql;
 import java.sql.*;
 import java.util.logging.Logger;
 
+import com.exasol.ExaMetadata;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.IdentifierConverter;
 import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
@@ -22,24 +23,26 @@ public class PostgreSQLColumnMetadataReader extends BaseColumnMetadataReader {
      *
      * @param connection          JDBC connection to the remote data source
      * @param properties          user-defined adapter properties
+     * @param exaMetadata         metadata of the Exasol database
      * @param identifierConverter converter between source and Exasol identifiers
      */
     public PostgreSQLColumnMetadataReader(final Connection connection, final AdapterProperties properties,
+            final ExaMetadata exaMetadata,
             final IdentifierConverter identifierConverter) {
-        super(connection, properties, identifierConverter);
+        super(connection, properties, exaMetadata, identifierConverter);
     }
 
     @Override
     public DataType mapJdbcType(final JDBCTypeDescription jdbcTypeDescription) {
         switch (jdbcTypeDescription.getJdbcType()) {
-        case Types.OTHER:
-            return mapJdbcTypeOther(jdbcTypeDescription);
-        case Types.SQLXML:
-        case Types.DISTINCT:
-        case Types.BINARY:
-            return DataType.createMaximumSizeVarChar(DataType.ExaCharset.UTF8);
-        default:
-            return super.mapJdbcType(jdbcTypeDescription);
+            case Types.OTHER:
+                return mapJdbcTypeOther(jdbcTypeDescription);
+            case Types.SQLXML:
+            case Types.DISTINCT:
+            case Types.BINARY:
+                return DataType.createMaximumSizeVarChar(DataType.ExaCharset.UTF8);
+            default:
+                return super.mapJdbcType(jdbcTypeDescription);
         }
     }
 

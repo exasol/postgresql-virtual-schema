@@ -33,17 +33,18 @@ class PostgresSQLSqlGenerationVisitorTest {
 
     @BeforeEach
     void beforeEach(@Mock final ConnectionFactory connectionFactoryMock) {
-        final SqlDialect dialect = new PostgreSQLSqlDialect(connectionFactoryMock, AdapterProperties.emptyProperties());
+        final SqlDialect dialect = new PostgreSQLSqlDialect(connectionFactoryMock, AdapterProperties.emptyProperties(),
+                null);
         final SqlGenerationContext context = new SqlGenerationContext("test_catalog", "test_schema", false);
         this.visitor = new PostgresSQLSqlGenerationVisitor(dialect, context);
     }
 
-    @CsvSource({ "ADD_DAYS, days", //
-            "ADD_HOURS, hours", //
-            "ADD_MINUTES, mins", //
-            "ADD_SECONDS, secs", //
-            "ADD_YEARS, years", //
-            "ADD_WEEKS, weeks", //
+    @CsvSource({ "ADD_DAYS, days",
+            "ADD_HOURS, hours",
+            "ADD_MINUTES, mins",
+            "ADD_SECONDS, secs",
+            "ADD_YEARS, years",
+            "ADD_WEEKS, weeks",
             "ADD_MONTHS, months" })
     @ParameterizedTest
     void testVisitSqlFunctionScalarAddDate(final ScalarFunction scalarFunction, final String expected)
@@ -64,11 +65,11 @@ class PostgresSQLSqlGenerationVisitorTest {
         return new SqlFunctionScalar(scalarFunction, arguments);
     }
 
-    @CsvSource({ "SECOND, SECOND, 2", //
-            "MINUTE, MINUTE, 2", //
-            "DAY, DAY, 2", //
-            "WEEK, WEEK, 2", //
-            "MONTH, MONTH, 2", //
+    @CsvSource({ "SECOND, SECOND, 2",
+            "MINUTE, MINUTE, 2",
+            "DAY, DAY, 2",
+            "WEEK, WEEK, 2",
+            "MONTH, MONTH, 2",
             "YEAR, YEAR, 4" })
     @ParameterizedTest
     void testVisitSqlFunctionScalarDatetime(final ScalarFunction scalarFunction, final String expected,
@@ -93,12 +94,12 @@ class PostgresSQLSqlGenerationVisitorTest {
     @Test
     void testVisitSqlStatementSelect() throws AdapterException {
         final SqlStatementSelect select = (SqlStatementSelect) DialectTestData.getTestSqlNode();
-        assertThat(this.visitor.visit(select), //
-                equalTo("SELECT \"user_id\", " //
-                        + "COUNT(\"url\") FROM \"test_schema\".\"clicks\" " //
-                        + "WHERE 1 < \"user_id\" " //
-                        + "GROUP BY \"user_id\" " //
-                        + "HAVING 1 < COUNT(\"url\") " //
+        assertThat(this.visitor.visit(select),
+                equalTo("SELECT \"user_id\", "
+                        + "COUNT(\"url\") FROM \"test_schema\".\"clicks\" "
+                        + "WHERE 1 < \"user_id\" "
+                        + "GROUP BY \"user_id\" "
+                        + "HAVING 1 < COUNT(\"url\") "
                         + "ORDER BY \"user_id\" LIMIT 10"));
     }
 
