@@ -55,6 +55,7 @@ This issue has been fixed quite a while back now, but the OSSIndex unfortunately
 * Updated `org.apache.maven.plugins:maven-site-plugin:3.12.1` to `3.21.0`
 * Updated `org.apache.maven.plugins:maven-surefire-plugin:3.2.5` to `3.5.3`
 * Updated `org.apache.maven.plugins:maven-toolchains-plugin:3.1.0` to `3.2.0`
+* Updated `org.codehaus.mojo:exec-maven-plugin:3.1.0` to `3.5.0`
 * Updated `org.codehaus.mojo:flatten-maven-plugin:1.6.0` to `1.7.0`
 * Updated `org.codehaus.mojo:versions-maven-plugin:2.16.2` to `2.18.0`
 * Updated `org.jacoco:jacoco-maven-plugin:0.8.11` to `0.8.13`
