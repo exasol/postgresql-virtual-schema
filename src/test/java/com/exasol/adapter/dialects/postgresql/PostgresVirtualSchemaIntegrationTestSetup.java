@@ -1,6 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.dbbuilder.dialects.exasol.AdapterScript.Language.JAVA;
+import static java.util.Objects.requireNonNull;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
@@ -41,10 +42,12 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private final Statement postgresStatement;
     private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
             POSTGRES_CONTAINER_NAME);
+    @SuppressWarnings("resource") // Will be closed in close() method
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
             EXASOL_DOCKER_IMAGE_REFERENCE).withRequiredServices(ExasolService.BUCKETFS, ExasolService.UDF)
             .withReuse(true);
     private final Connection exasolConnection;
+    private final UdfTestSetup udfTestSetup;
     private final Statement exasolStatement;
     private final AdapterScript adapterScript;
     private final ConnectionDefinition connectionDefinition;
@@ -64,9 +67,8 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
             this.exasolStatement = this.exasolConnection.createStatement();
             this.postgresConnection = this.postgresqlContainer.createConnection("");
             this.postgresStatement = this.postgresConnection.createStatement();
-            final String hostIpAddress = getTestHostIpFromInsideExasol();
-            assert (hostIpAddress != null);
-            final UdfTestSetup udfTestSetup = new UdfTestSetup(hostIpAddress, this.exasolContainer.getDefaultBucket(),
+            final String hostIpAddress = requireNonNull(getTestHostIpFromInsideExasol());
+            this.udfTestSetup = new UdfTestSetup(hostIpAddress, this.exasolContainer.getDefaultBucket(),
                     this.exasolConnection);
             this.exasolFactory = new ExasolObjectFactory(this.exasolContainer.createConnection(""),
                     ExasolObjectConfiguration.builder().withJvmOptions(udfTestSetup.getJvmOptions()).build());
@@ -157,6 +159,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     public void close() {
         try {
             this.exasolStatement.close();
+            this.udfTestSetup.close();
             this.exasolConnection.close();
             this.postgresStatement.close();
             this.postgresConnection.close();
