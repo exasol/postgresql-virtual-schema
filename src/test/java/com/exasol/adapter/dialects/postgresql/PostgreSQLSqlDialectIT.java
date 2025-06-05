@@ -1,6 +1,5 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import static com.exasol.matcher.ResultSetMatcher.matchesResultSet;
 import static com.exasol.matcher.ResultSetStructureMatcher.table;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -13,10 +12,11 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
 import java.util.Date;
-import java.util.stream.Collectors;
+import java.util.Map;
 
+import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,6 @@ import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
 import com.exasol.containers.ExasolDockerImageReference;
 import com.exasol.dbbuilder.dialects.DatabaseObjectException;
-import com.exasol.dbbuilder.dialects.Schema;
 import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
 import com.exasol.matcher.TypeMatchMode;
 
@@ -42,7 +41,6 @@ class PostgreSQLSqlDialectIT {
     private static final String TABLE_POSTGRES_MIXED_CASE = "Table_Postgres_Mixed_Case";
     private static final String TABLE_POSTGRES_LOWER_CASE = "table_postgres_lower_case";
     private static final String TABLE_POSTGRES_ALL_DATA_TYPES = "table_postgres_all_data_types";
-    private static Schema exasolSchema;
     private static VirtualSchema virtualSchemaPostgres;
     private static VirtualSchema virtualSchemaPostgresUppercaseTable;
     private static final String TABLE_JOIN_1 = "TABLE_JOIN_1";
@@ -70,7 +68,6 @@ class PostgreSQLSqlDialectIT {
                 Map.of("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"));
         qualifiedTableJoinName1 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_1;
         qualifiedTableJoinName2 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_2;
-        exasolSchema = SETUP.getExasolFactory().createSchema("EXASOL_TEST_SCHEMA");
     }
 
     private static void createPostgresTestTableSimple(final Statement statementPostgres) throws SQLException {
@@ -198,70 +195,68 @@ class PostgreSQLSqlDialectIT {
     void testInnerJoin() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a INNER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x=b.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("2,'bbb', 2,'bbb'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query,
+                table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR").row(2L, "bbb", 2L, "bbb").matches());
+    }
+
+    private void assertResult(final String query, final Matcher<ResultSet> matcher) {
+        try (ResultSet resultSet = getActualResultSet(query)) {
+            assertThat(resultSet, matcher);
+        } catch (final SQLException exception) {
+            throw new IllegalStateException(String.format("Failed to execute query '%s'", query));
+        }
     }
 
     @Test
     void testInnerJoinWithProjection() throws SQLException {
         final String query = "SELECT b.y || " + qualifiedTableJoinName1 + ".y FROM " + qualifiedTableJoinName1
                 + " INNER JOIN  " + qualifiedTableJoinName2 + " b ON " + qualifiedTableJoinName1 + ".x=b.x";
-        final ResultSet expected = getExpectedResultSet(List.of("y VARCHAR(100)"), //
-                List.of("'bbbbbb'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("VARCHAR").row("bbbbbb").matches());
     }
 
     @Test
     void testLeftJoin() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a LEFT OUTER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("1, 'aaa', null, null", //
-                        "2, 'bbb', 2, 'bbb'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR").row(1L, "aaa", null, null)
+                .row(2L, "bbb", 2L, "bbb").matches());
     }
 
     @Test
     void testRightJoin() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a RIGHT OUTER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("2, 'bbb', 2, 'bbb'", //
-                        "null, null, 3, 'ccc'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR").row(2L, "bbb", 2L, "bbb")
+                .row(null, null, 3L, "ccc").matches());
     }
 
     @Test
     void testFullOuterJoin() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a FULL OUTER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("1, 'aaa', null, null", //
-                        "2, 'bbb', 2, 'bbb'", //
-                        "null, null, 3, 'ccc'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR")
+                .row(1L, "aaa", null, null)
+                .row(2L, "bbb", 2L, "bbb")
+                .row(null, null, 3L, "ccc").matches());
     }
 
     @Test
     void testRightJoinWithComplexCondition() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a RIGHT OUTER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x||a.y=b.x||b.y ORDER BY a.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("2, 'bbb', 2, 'bbb'", //
-                        "null, null, 3, 'ccc'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR")
+                .row(2L, "bbb", 2L, "bbb")
+                .row(null, null, 3L, "ccc").matches());
     }
 
     @Test
     void testFullOuterJoinWithComplexCondition() throws SQLException {
         final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a FULL OUTER JOIN  "
                 + qualifiedTableJoinName2 + " b ON a.x-b.x=0 ORDER BY a.x";
-        final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
-                List.of("1, 'aaa', null, null", //
-                        "2, 'bbb', 2, 'bbb'", //
-                        "null, null, 3, 'ccc'"));
-        assertThat(getActualResultSet(query), matchesResultSet(expected));
+        assertResult(query, table("BIGINT", "VARCHAR", "BIGINT", "VARCHAR")
+                .row(1L, "aaa", null, null)
+                .row(2L, "bbb", 2L, "bbb")
+                .row(null, null, 3L, "ccc").matches());
     }
 
     @Test
@@ -599,22 +594,6 @@ class PostgreSQLSqlDialectIT {
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES);
         MatcherAssert.assertThat(actual,
                 table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-    }
-
-    // TODO refactor to use table().row().matches()
-    private ResultSet getExpectedResultSet(final List<String> expectedColumns, final List<String> expectedRows)
-            throws SQLException {
-        final String expectedValues = expectedRows.stream().map(row -> "(" + row + ")")
-                .collect(Collectors.joining(","));
-        final String qualifiedExpectedTableName = exasolSchema.getName() + ".EXPECTED";
-        final String createTableStatement = "CREATE OR REPLACE TABLE " + qualifiedExpectedTableName + "("
-                + String.join(", ", expectedColumns) + ");";
-        statementExasol.execute(createTableStatement);
-        final String insertIntoTableStatement = "INSERT INTO " + qualifiedExpectedTableName + " VALUES "
-                + expectedValues + ";";
-        statementExasol.execute(insertIntoTableStatement);
-        final String selectStatement = "SELECT * FROM " + qualifiedExpectedTableName + ";";
-        return statementExasol.executeQuery(selectStatement);
     }
 
     private ResultSet getActualResultSet(final String query) throws SQLException {
