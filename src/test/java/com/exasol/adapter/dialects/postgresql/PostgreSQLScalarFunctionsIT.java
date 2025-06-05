@@ -55,18 +55,18 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
             @Override
             public String getExternalTypeFor(final DataType exasolType) {
                 switch (exasolType.getExaDataType()) {
-                case VARCHAR:
-                    return "VARCHAR(" + exasolType.getSize() + ")";
-                case DOUBLE:
-                    return "DOUBLE PRECISION";
-                case DECIMAL:
-                    if (exasolType.getScale() == 0) {
-                        return "INTEGER";
-                    } else {
+                    case VARCHAR:
+                        return "VARCHAR(" + exasolType.getSize() + ")";
+                    case DOUBLE:
+                        return "DOUBLE PRECISION";
+                    case DECIMAL:
+                        if (exasolType.getScale() == 0) {
+                            return "INTEGER";
+                        } else {
+                            return exasolType.toString();
+                        }
+                    default:
                         return exasolType.toString();
-                    }
-                default:
-                    return exasolType.toString();
                 }
             }
 
@@ -87,12 +87,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         "add_days",
                         // expected was a value close to <1972-01-01> (tolerance: +/- <0.00010>) but was
                         // "1972-01-01T00:00:00Z"
-                        "add_years",
-                        // Check 'current_schema' functionality, re-enable tests after resolution #79
-                        // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
-                        // https://github.com/exasol/postgresql-virtual-schema/issues/79
-                        // https://exasol.atlassian.net/browse/SPOT-19716
-                        "current_schema");
+                        "add_years");
             }
 
             @Override
@@ -126,12 +121,12 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
 
     // protected virtual method, must be overridden
     @Override
-    protected void beforeAllSetup() throws SQLException {
+    protected void beforeAllSetup() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
     // protected virtual method, must be overridden
     @Override
-    protected void afterAllTeardown() throws SQLException {
+    protected void afterAllTeardown() {
     }
 }
