@@ -104,7 +104,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>virtual-schema-shared-integration-tests</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -184,6 +184,15 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <properties>
+                        <configurationParameters>
+                            junit.jupiter.execution.parallel.enabled = true
+                            <!-- junit.jupiter.execution.parallel.mode.default = same_thread
+                            junit.jupiter.execution.parallel.mode.classes.default = concurrent
+                            junit.jupiter.execution.parallel.config.strategy = dynamic
+                            junit.jupiter.execution.parallel.config.dynamic.factor = 3 -->
+                        </configurationParameters>
+                    </properties>
                 </configuration>
             </plugin>
             <plugin>

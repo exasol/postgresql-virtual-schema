@@ -27,7 +27,7 @@ This issue has been fixed quite a while back now, but the OSSIndex unfortunately
 * Updated `com.exasol:test-db-builder-java:3.5.3` to `3.6.1`
 * Updated `com.exasol:udf-debugging-java:0.6.11` to `0.6.16`
 * Updated `com.exasol:virtual-schema-common-jdbc:12.0.0` to `13.0.0`
-* Updated `com.exasol:virtual-schema-shared-integration-tests:3.0.0` to `3.0.1`
+* Updated `com.exasol:virtual-schema-shared-integration-tests:3.0.0` to `3.0.2`
 * Updated `org.hamcrest:hamcrest:2.2` to `3.0`
 * Updated `org.jacoco:org.jacoco.agent:0.8.11` to `0.8.13`
 * Updated `org.junit.jupiter:junit-jupiter:5.10.1` to `5.13.0`
