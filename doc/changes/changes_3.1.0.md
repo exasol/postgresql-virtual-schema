@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 3.1.0, released 2025-06-05
+# Virtual Schema for PostgreSQL 3.1.0, released 2025-06-06
 
 Code name: Timestamp precision
 
