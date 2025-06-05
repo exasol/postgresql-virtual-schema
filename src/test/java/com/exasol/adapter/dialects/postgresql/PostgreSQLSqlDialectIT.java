@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
@@ -109,6 +111,9 @@ class PostgreSQLSqlDialectIT {
                 + "myTime TIME, " //
                 + "myTimeWithTimeZone TIME WITH TIME ZONE, " //
                 + "myTimestamp TIMESTAMP, " //
+                + "myTimestamp0 TIMESTAMP(0), " //
+                + "myTimestamp3 TIMESTAMP(3), " //
+                + "myTimestamp6 TIMESTAMP(6), " //
                 + "myTimestampWithTimeZone TIMESTAMP WITH TIME ZONE, " //
                 + "myTsquery TSQUERY, " //
                 + "myTsvector TSVECTOR, " //
@@ -148,6 +153,9 @@ class PostgreSQLSqlDialectIT {
                 + "'11:11:11', " // myTime
                 + "'11:11:11 +01:00', " // myTimeWithTimeZone
                 + "'2010-01-01 11:11:11', " // myTimestamp
+                + "'2010-01-01 11:11:11', " // myTimestamp0
+                + "'2010-01-01 11:11:11.123', " // myTimestamp3
+                + "'2010-01-01 11:11:11.123456', " // myTimestamp6
                 + "'2010-01-01 11:11:11 +01:00', " // myTimestampwithtimezone
                 + "'fat & rat'::tsquery, " // myTsquery
                 + "to_tsvector('english', 'The Fat Rats'), " // myTsvector
@@ -271,22 +279,17 @@ class PostgreSQLSqlDialectIT {
         assertThat(actualResultSet, table().row(yearShort).matches());
     }
 
-    // Check 'current_schema' functionality, re-enable tests after resolution
-    // currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII' see
-    // https://github.com/exasol/postgresql-virtual-schema/issues/79
-    // https://exasol.atlassian.net/browse/SPOT-19716
-    @Disabled("Currently a bug in the compiler, compiler always expects 'VARCHAR(1) ASCII'")
     @Test
     void testCurrentSchemaScalarFunction() throws SQLException {
         final String query = " SELECT current_schema FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
-        assertThat(actualResultSet, table().row(TABLE_POSTGRES_ALL_DATA_TYPES).matches());
+        assertThat(actualResultSet, table().row("public").matches());
     }
 
     @Test
     void testFloatDivFunction() throws SQLException {
-        final String query = " SELECT MYINTEGER / MYINTEGER FROM " + virtualSchemaPostgres.getName() + "."
+        final String query = "SELECT MYINTEGER / MYINTEGER FROM " + virtualSchemaPostgres.getName() + "."
                 + TABLE_POSTGRES_ALL_DATA_TYPES;
         final ResultSet actualResultSet = getActualResultSet(query);
         assertThat(actualResultSet, table("DOUBLE PRECISION").row(1.0).matches());
@@ -542,18 +545,17 @@ class PostgreSQLSqlDialectIT {
         assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 11:11:11.0");
     }
 
-    @Test
-    void testDatatypeTimestamp() throws SQLException, ParseException {
-        final Timestamp expectedDate = new Timestamp(
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2010-01-01 11:11:11").getTime());
-        assertSingleValue("myTimestamp", "TIMESTAMP", expectedDate);
-    }
-
-    @Test
-    void testDatatypeTimestampWithTimezone() throws SQLException, ParseException {
-        final Timestamp expectedDate = new Timestamp(
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2010-01-01 11:11:11").getTime());
-        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", expectedDate);
+    @ParameterizedTest
+    @CsvSource({
+            "myTimestamp, TIMESTAMP, 2010-01-01 11:11:11",
+            "myTimestamp0, TIMESTAMP, 2010-01-01 11:11:11",
+            "myTimestamp3, TIMESTAMP, 2010-01-01 11:11:11.123",
+            "myTimestamp6, TIMESTAMP, 2010-01-01 11:11:11.123456",
+            "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 11:11:11",
+    })
+    void testDatatypeTimestamp(final String column, final String expectedType, final String expectedTimestamp)
+            throws SQLException, ParseException {
+        assertSingleValue(column, expectedType, Timestamp.valueOf(expectedTimestamp));
     }
 
     @Test
@@ -581,7 +583,8 @@ class PostgreSQLSqlDialectIT {
             throws SQLException {
         final ResultSet actual = statementExasol.executeQuery("SELECT " + columnName + " FROM "
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES);
-        MatcherAssert.assertThat(actual, table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+        MatcherAssert.assertThat(actual,
+                table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
     }
 
     // TODO refactor to use table().row().matches()
