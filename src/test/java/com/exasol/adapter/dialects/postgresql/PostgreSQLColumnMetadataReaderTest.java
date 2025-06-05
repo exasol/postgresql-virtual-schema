@@ -72,17 +72,17 @@ class PostgreSQLColumnMetadataReaderTest {
     void testGetPreserveCasePostgreSQLIdentifierMapping() {
         this.rawProperties.put("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE");
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
-        final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
+        final PostgreSQLColumnMetadataReader testee = new PostgreSQLColumnMetadataReader(null,
                 adapterProperties, exaMetadataMock, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
+        assertThat(testee.getIdentifierMapping(), equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
     }
 
     @Test
     void testGetConverToUpperPostgreSQLIdentifierMapping() {
         this.rawProperties.put("POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT_TO_UPPER");
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
-        final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
+        final PostgreSQLColumnMetadataReader testee = new PostgreSQLColumnMetadataReader(null,
                 adapterProperties, exaMetadataMock, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
+        assertThat(testee.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
     }
 }

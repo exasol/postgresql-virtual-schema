@@ -80,16 +80,12 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
                     + this.postgresqlContainer.getDatabaseName();
             this.connectionDefinition = this.exasolFactory.createConnectionDefinition("POSGRES_CONNECTION",
                     connectionString, this.postgresqlContainer.getUsername(), this.postgresqlContainer.getPassword());
-        } catch (final SQLException | BucketAccessException | TimeoutException exception) {
+        } catch (final SQLException exception) {
             throw new IllegalStateException("Failed to created PostgreSQL test setup.", exception);
-        } catch (final InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Thread was interrupted");
         }
     }
 
-    private static void uploadDriverToBucket(final ExasolContainer<? extends ExasolContainer<?>> container)
-            throws InterruptedException, TimeoutException, BucketAccessException {
+    private static void uploadDriverToBucket(final ExasolContainer<? extends ExasolContainer<?>> container) {
         try {
             container.getDriverManager().install( //
                     JdbcDriver.builder("POSTGRES_JDBC_DRIVER") //

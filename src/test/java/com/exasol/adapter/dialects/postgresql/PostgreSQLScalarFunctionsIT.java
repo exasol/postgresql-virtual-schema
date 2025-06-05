@@ -131,5 +131,6 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
     // protected virtual method, must be overridden
     @Override
     protected void afterAllTeardown() {
+        // Nothing to do
     }
 }

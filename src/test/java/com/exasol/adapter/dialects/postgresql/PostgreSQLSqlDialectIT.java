@@ -48,8 +48,8 @@ class PostgreSQLSqlDialectIT {
     private static final String TABLE_JOIN_1 = "TABLE_JOIN_1";
     private static final String TABLE_JOIN_2 = "TABLE_JOIN_2";
     private static VirtualSchema virtualSchemaPostgresPreserveOriginalCase;
-    private static String QUALIFIED_TABLE_JOIN_NAME_1;
-    private static String QUALIFIED_TABLE_JOIN_NAME_2;
+    private static String qualifiedTableJoinName1;
+    private static String qualifiedTableJoinName2;
     private static Statement statementExasol;
 
     @BeforeAll
@@ -68,8 +68,8 @@ class PostgreSQLSqlDialectIT {
                 Map.of("IGNORE_ERRORS", "POSTGRESQL_UPPERCASE_TABLES"));
         virtualSchemaPostgresPreserveOriginalCase = SETUP.createVirtualSchema(SCHEMA_POSTGRES_UPPERCASE_TABLE,
                 Map.of("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE"));
-        QUALIFIED_TABLE_JOIN_NAME_1 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_1;
-        QUALIFIED_TABLE_JOIN_NAME_2 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_2;
+        qualifiedTableJoinName1 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_1;
+        qualifiedTableJoinName2 = virtualSchemaPostgres.getName() + "." + TABLE_JOIN_2;
         exasolSchema = SETUP.getExasolFactory().createSchema("EXASOL_TEST_SCHEMA");
     }
 
@@ -196,8 +196,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testInnerJoin() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a INNER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x=b.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a INNER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x=b.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("2,'bbb', 2,'bbb'"));
         assertThat(getActualResultSet(query), matchesResultSet(expected));
@@ -205,8 +205,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testInnerJoinWithProjection() throws SQLException {
-        final String query = "SELECT b.y || " + QUALIFIED_TABLE_JOIN_NAME_1 + ".y FROM " + QUALIFIED_TABLE_JOIN_NAME_1
-                + " INNER JOIN  " + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON " + QUALIFIED_TABLE_JOIN_NAME_1 + ".x=b.x";
+        final String query = "SELECT b.y || " + qualifiedTableJoinName1 + ".y FROM " + qualifiedTableJoinName1
+                + " INNER JOIN  " + qualifiedTableJoinName2 + " b ON " + qualifiedTableJoinName1 + ".x=b.x";
         final ResultSet expected = getExpectedResultSet(List.of("y VARCHAR(100)"), //
                 List.of("'bbbbbb'"));
         assertThat(getActualResultSet(query), matchesResultSet(expected));
@@ -214,8 +214,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testLeftJoin() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a LEFT OUTER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x=b.x ORDER BY a.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a LEFT OUTER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("1, 'aaa', null, null", //
                         "2, 'bbb', 2, 'bbb'"));
@@ -224,8 +224,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testRightJoin() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a RIGHT OUTER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x=b.x ORDER BY a.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a RIGHT OUTER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("2, 'bbb', 2, 'bbb'", //
                         "null, null, 3, 'ccc'"));
@@ -234,8 +234,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testFullOuterJoin() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a FULL OUTER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x=b.x ORDER BY a.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a FULL OUTER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x=b.x ORDER BY a.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("1, 'aaa', null, null", //
                         "2, 'bbb', 2, 'bbb'", //
@@ -245,8 +245,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testRightJoinWithComplexCondition() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a RIGHT OUTER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x||a.y=b.x||b.y ORDER BY a.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a RIGHT OUTER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x||a.y=b.x||b.y ORDER BY a.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("2, 'bbb', 2, 'bbb'", //
                         "null, null, 3, 'ccc'"));
@@ -255,8 +255,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testFullOuterJoinWithComplexCondition() throws SQLException {
-        final String query = "SELECT * FROM " + QUALIFIED_TABLE_JOIN_NAME_1 + " a FULL OUTER JOIN  "
-                + QUALIFIED_TABLE_JOIN_NAME_2 + " b ON a.x-b.x=0 ORDER BY a.x";
+        final String query = "SELECT * FROM " + qualifiedTableJoinName1 + " a FULL OUTER JOIN  "
+                + qualifiedTableJoinName2 + " b ON a.x-b.x=0 ORDER BY a.x";
         final ResultSet expected = getExpectedResultSet(List.of("x INT", "y VARCHAR(100)", "a INT", "b VARCHAR(100)"), //
                 List.of("1, 'aaa', null, null", //
                         "2, 'bbb', 2, 'bbb'", //
