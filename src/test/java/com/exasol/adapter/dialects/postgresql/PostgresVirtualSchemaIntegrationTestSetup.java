@@ -32,8 +32,8 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
-    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "8.24.0";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:14.2";
+    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "8.34.0";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:17.5";
 
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
