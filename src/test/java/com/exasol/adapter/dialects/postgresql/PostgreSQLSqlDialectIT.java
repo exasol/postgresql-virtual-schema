@@ -7,6 +7,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.sql.*;
 import java.text.ParseException;
@@ -23,6 +25,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
+import com.exasol.containers.ExasolDockerImageReference;
 import com.exasol.dbbuilder.dialects.DatabaseObjectException;
 import com.exasol.dbbuilder.dialects.Schema;
 import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
@@ -550,12 +553,23 @@ class PostgreSQLSqlDialectIT {
             "myTimestamp, TIMESTAMP, 2010-01-01 11:11:11",
             "myTimestamp0, TIMESTAMP, 2010-01-01 11:11:11",
             "myTimestamp3, TIMESTAMP, 2010-01-01 11:11:11.123",
-            "myTimestamp6, TIMESTAMP, 2010-01-01 11:11:11.123456",
             "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 11:11:11",
     })
     void testDatatypeTimestamp(final String column, final String expectedType, final String expectedTimestamp)
-            throws SQLException, ParseException {
+            throws SQLException {
         assertSingleValue(column, expectedType, Timestamp.valueOf(expectedTimestamp));
+    }
+
+    @Test
+    void testDatatypeTimestampWithPrecision6() throws SQLException {
+        assumeTrue(supportTimestampPrecision());
+        assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123456"));
+    }
+
+    @Test
+    void testDatatypeTimestampWithoutPrecision6() throws SQLException {
+        assumeFalse(supportTimestampPrecision());
+        assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123"));
     }
 
     @Test
@@ -607,4 +621,8 @@ class PostgreSQLSqlDialectIT {
         return statementExasol.executeQuery(query);
     }
 
+    private boolean supportTimestampPrecision() {
+        final ExasolDockerImageReference reference = SETUP.getExasolContainer().getDockerImageReference();
+        return reference.getMajor() > 8 || (reference.getMajor() == 8 && reference.getMinor() >= 32);
+    }
 }

@@ -11,7 +11,8 @@
     "java.sources.organizeImports.staticStarThreshold": 3,
     "java.test.config": {
         "vmArgs": [
-            "-Djava.util.logging.config.file=src/test/resources/logging.properties"
+            "-Djava.util.logging.config.file=src/test/resources/logging.properties",
+            "-Dcom.exasol.dockerdb.image=8.34.0"
         ],
         "env": {
             "TESTCONTAINERS_RYUK_DISABLED": "true"
