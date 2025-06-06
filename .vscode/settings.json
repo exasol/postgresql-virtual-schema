@@ -21,5 +21,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "exasol",
         "projectKey": "com.exasol:postgresql-virtual-schema"
-    }
+    },
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx12G -Xms100m"
 }
