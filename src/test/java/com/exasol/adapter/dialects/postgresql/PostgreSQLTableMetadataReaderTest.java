@@ -27,7 +27,7 @@ class PostgreSQLTableMetadataReaderTest {
     void beforeEach() {
         this.rawProperties = new HashMap<>();
         final AdapterProperties properties = new AdapterProperties(this.rawProperties);
-        this.reader = new PostgreSQLTableMetadataReader(null, null, properties,
+        this.reader = new PostgreSQLTableMetadataReader(null, null, properties, null,
                 BaseIdentifierConverter.createDefault());
     }
 

@@ -1,21 +1,26 @@
 {
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.generate.finalModifiers": true,
-    "source.fixAll": true
-  },
-  "java.codeGeneration.useBlocks": true,
-  "java.saveActions.organizeImports": true,
-  "java.sources.organizeImports.starThreshold": 3,
-  "java.sources.organizeImports.staticStarThreshold": 3,
-  "java.test.config": {
-    "vmArgs": [
-      "-Djava.util.logging.config.file=src/test/resources/logging.properties"
-    ]
-  },
-  "sonarlint.connectedMode.project": {
-    "connectionId": "exasol",
-    "projectKey": "com.exasol:postgresql-virtual-schema"
-  }
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.generate.finalModifiers": "explicit",
+        "source.fixAll": "explicit"
+    },
+    "java.codeGeneration.useBlocks": true,
+    "java.saveActions.organizeImports": true,
+    "java.sources.organizeImports.starThreshold": 3,
+    "java.sources.organizeImports.staticStarThreshold": 3,
+    "java.test.config": {
+        "vmArgs": [
+            "-Djava.util.logging.config.file=src/test/resources/logging.properties",
+            "-Dcom.exasol.dockerdb.image=8.34.0"
+        ],
+        "env": {
+            "TESTCONTAINERS_RYUK_DISABLED": "true"
+        }
+    },
+    "sonarlint.connectedMode.project": {
+        "connectionId": "exasol",
+        "projectKey": "com.exasol:postgresql-virtual-schema"
+    },
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx12G -Xms100m"
 }

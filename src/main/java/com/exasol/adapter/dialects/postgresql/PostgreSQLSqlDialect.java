@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Predicate;
 
+import com.exasol.ExaMetadata;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
 import com.exasol.adapter.capabilities.ScalarFunctionCapability;
@@ -97,10 +98,11 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
      * @param connectionFactory factory for the JDBC connection to the remote data source
      * @param properties        user-defined adapter properties
      */
-    public PostgreSQLSqlDialect(final ConnectionFactory connectionFactory, final AdapterProperties properties) {
-        super(connectionFactory, properties, //
+    public PostgreSQLSqlDialect(final ConnectionFactory connectionFactory, final AdapterProperties properties,
+            final ExaMetadata exaMetadata) {
+        super(connectionFactory, properties, exaMetadata,
                 Set.of(CATALOG_NAME_PROPERTY, SCHEMA_NAME_PROPERTY, IGNORE_ERRORS_PROPERTY,
-                        PostgreSQLIdentifierMapping.PROPERTY), //
+                        PostgreSQLIdentifierMapping.PROPERTY),
                 List.of(PostgreSQLIdentifierMapping.validator()));
     }
 
@@ -112,7 +114,8 @@ public class PostgreSQLSqlDialect extends AbstractSqlDialect {
     @Override
     protected RemoteMetadataReader createRemoteMetadataReader() {
         try {
-            return new PostgreSQLMetadataReader(this.connectionFactory.getConnection(), this.properties);
+            return new PostgreSQLMetadataReader(this.connectionFactory.getConnection(), this.properties,
+                    this.exaMetadata);
         } catch (final SQLException exception) {
             throw new RemoteMetadataReaderException(ExaError.messageBuilder("E-VSPG-3")
                     .message("Unable to create PostgreSQL remote metadata reader. Caused by: {{cause}}",

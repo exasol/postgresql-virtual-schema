@@ -2,6 +2,7 @@ package com.exasol.adapter.dialects.postgresql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.when;
 
 import java.sql.Types;
 import java.util.HashMap;
@@ -9,18 +10,25 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.exasol.ExaMetadata;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.dialects.BaseIdentifierConverter;
 import com.exasol.adapter.dialects.postgresql.PostgreSQLIdentifierMapping.CaseFolding;
 import com.exasol.adapter.jdbc.JDBCTypeDescription;
 import com.exasol.adapter.metadata.DataType;
 
+@ExtendWith(MockitoExtension.class)
 class PostgreSQLColumnMetadataReaderTest {
     private PostgreSQLColumnMetadataReader columnMetadataReader;
     private Map<String, String> rawProperties;
+    @Mock
+    ExaMetadata exaMetadataMock;
 
     @BeforeEach
     void beforeEach() {
@@ -29,7 +37,8 @@ class PostgreSQLColumnMetadataReaderTest {
     }
 
     private PostgreSQLColumnMetadataReader createDefaultPostgreSQLColumnMetadataReader() {
-        return new PostgreSQLColumnMetadataReader(null, AdapterProperties.emptyProperties(),
+        when(exaMetadataMock.getDatabaseVersion()).thenReturn("8.34.0");
+        return new PostgreSQLColumnMetadataReader(null, AdapterProperties.emptyProperties(), exaMetadataMock,
                 BaseIdentifierConverter.createDefault());
     }
 
@@ -63,17 +72,17 @@ class PostgreSQLColumnMetadataReaderTest {
     void testGetPreserveCasePostgreSQLIdentifierMapping() {
         this.rawProperties.put("POSTGRESQL_IDENTIFIER_MAPPING", "PRESERVE_ORIGINAL_CASE");
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
-        final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
-                adapterProperties, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
+        final PostgreSQLColumnMetadataReader testee = new PostgreSQLColumnMetadataReader(null,
+                adapterProperties, exaMetadataMock, BaseIdentifierConverter.createDefault());
+        assertThat(testee.getIdentifierMapping(), equalTo(CaseFolding.PRESERVE_ORIGINAL_CASE));
     }
 
     @Test
     void testGetConverToUpperPostgreSQLIdentifierMapping() {
         this.rawProperties.put("POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT_TO_UPPER");
         final AdapterProperties adapterProperties = new AdapterProperties(this.rawProperties);
-        final PostgreSQLColumnMetadataReader columnMetadataReader = new PostgreSQLColumnMetadataReader(null,
-                adapterProperties, BaseIdentifierConverter.createDefault());
-        assertThat(columnMetadataReader.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
+        final PostgreSQLColumnMetadataReader testee = new PostgreSQLColumnMetadataReader(null,
+                adapterProperties, exaMetadataMock, BaseIdentifierConverter.createDefault());
+        assertThat(testee.getIdentifierMapping(), equalTo(CaseFolding.CONVERT_TO_UPPER));
     }
 }

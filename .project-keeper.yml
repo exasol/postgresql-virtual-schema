@@ -8,10 +8,22 @@ sources:
 version:
   fromSource: pom.xml
 build:
-  runnerOs: ubuntu-20.04
+  runnerOs: ubuntu-24.04
   freeDiskSpace: false
   exasolDbVersions:
-    - "7.1.25"
-    - "8.24.0"  
+    - "8.34.0"
+    - "8.29.9" # Added to test support for TIMESTAMP without nano precision. Remove if/when 7.1 is re-enabled
+    # - "7.1.30" # Exasol 7.1.x does not support the latest Ubuntu version
+  workflows:
+    - name: ci-build.yml
+      stepCustomizations:
+        - action: INSERT_AFTER
+          job: matrix-build
+          stepId: enable-testcontainer-reuse
+          content:
+            name: Fix VM Crash in UDFs
+            id: fix-vm-crash
+            run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
 linkReplacements:
   - "https://jdbc.postgresql.org/about/license.html|https://jdbc.postgresql.org/license/"

@@ -1,8 +1,8 @@
 package com.exasol.adapter.dialects.postgresql;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ public class PostgreSQLSqlDialectFactoryTest {
 
     @Test
     void testCreateDialect() {
-        assertThat(this.factory.createSqlDialect(null, AdapterProperties.emptyProperties()),
+        assertThat(this.factory.createSqlDialect(null, AdapterProperties.emptyProperties(), null),
                 instanceOf(PostgreSQLSqlDialect.class));
     }
 }

@@ -5,11 +5,13 @@ import static com.exasol.adapter.capabilities.AggregateFunctionCapability.*;
 import static com.exasol.adapter.capabilities.LiteralCapability.*;
 import static com.exasol.adapter.capabilities.MainCapability.*;
 import static com.exasol.adapter.capabilities.PredicateCapability.*;
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
@@ -26,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.exasol.ExaMetadata;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
 import com.exasol.adapter.dialects.SqlDialect;
@@ -38,11 +41,14 @@ import com.exasol.adapter.properties.PropertyValidationException;
 class PostgreSQLSqlDialectTest {
     private PostgreSQLSqlDialect dialect;
     @Mock
-    private ConnectionFactory connectionFactoryMock;
+    ConnectionFactory connectionFactoryMock;
+    @Mock
+    ExaMetadata exaMetadataMock;
 
     @BeforeEach
     void beforeEach() {
-        this.dialect = new PostgreSQLSqlDialect(this.connectionFactoryMock, AdapterProperties.emptyProperties());
+        lenient().when(exaMetadataMock.getDatabaseVersion()).thenReturn("8.34.0");
+        this.dialect = testee(emptyMap());
     }
 
     @Test
@@ -86,9 +92,9 @@ class PostgreSQLSqlDialectTest {
         );
     }
 
-    @CsvSource({ "ABC, \"abc\"", //
-            "AbCde, \"abcde\"", //
-            "\"tableName, \"\"\"tablename\"" //
+    @CsvSource({ "ABC, \"abc\"",
+            "AbCde, \"abcde\"",
+            "\"tableName, \"\"\"tablename\""
     })
     @ParameterizedTest
     void testApplyQuote(final String unquoted, final String quoted) {
@@ -110,17 +116,17 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testPostgreSQLIdentifierMappingConsistency() throws PropertyValidationException {
-        final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                CONNECTION_NAME_PROPERTY, "MY_CONN", //
-                "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT_TO_UPPER")));
+        final SqlDialect sqlDialect = testee(Map.of(
+                CONNECTION_NAME_PROPERTY, "MY_CONN",
+                "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT_TO_UPPER"));
         sqlDialect.validateProperties();
     }
 
     @Test
     void testPostgreSQLIdentifierMappingInvalidPropertyValueThrowsException() {
-        final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                CONNECTION_NAME_PROPERTY, "MY_CONN", //
-                "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT")));
+        final SqlDialect sqlDialect = testee(Map.of(
+                CONNECTION_NAME_PROPERTY, "MY_CONN",
+                "POSTGRESQL_IDENTIFIER_MAPPING", "CONVERT"));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
                 sqlDialect::validateProperties);
         assertThat(exception.getMessage(), containsString("E-VSPG-4"));
@@ -128,9 +134,9 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testIgnoreErrorsConsistency() {
-        final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                CONNECTION_NAME_PROPERTY, "MY_CONN", //
-                "IGNORE_ERRORS", "ORACLE_ERROR")));
+        final SqlDialect sqlDialect = testee(Map.of(
+                CONNECTION_NAME_PROPERTY, "MY_CONN",
+                "IGNORE_ERRORS", "ORACLE_ERROR"));
         final PropertyValidationException exception = assertThrows(PropertyValidationException.class,
                 sqlDialect::validateProperties);
         assertThat(exception.getMessage(), containsString("E-VSPG-5"));
@@ -138,17 +144,25 @@ class PostgreSQLSqlDialectTest {
 
     @Test
     void testValidateCatalogProperty() throws PropertyValidationException {
-        final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                CONNECTION_NAME_PROPERTY, "MY_CONN", //
-                CATALOG_NAME_PROPERTY, "MY_CATALOG")));
+        final SqlDialect sqlDialect = testee(Map.of(
+                CONNECTION_NAME_PROPERTY, "MY_CONN",
+                CATALOG_NAME_PROPERTY, "MY_CATALOG"));
         sqlDialect.validateProperties();
     }
 
     @Test
     void testValidateSchemaProperty() throws PropertyValidationException {
-        final SqlDialect sqlDialect = new PostgreSQLSqlDialect(null, new AdapterProperties(Map.of( //
-                CONNECTION_NAME_PROPERTY, "MY_CONN", //
-                SCHEMA_NAME_PROPERTY, "MY_SCHEMA")));
+        final SqlDialect sqlDialect = testee(Map.of(
+                CONNECTION_NAME_PROPERTY, "MY_CONN",
+                SCHEMA_NAME_PROPERTY, "MY_SCHEMA"));
         sqlDialect.validateProperties();
+    }
+
+    private PostgreSQLSqlDialect testee(final Map<String, String> properties) {
+        return testee(new AdapterProperties(properties));
+    }
+
+    private PostgreSQLSqlDialect testee(final AdapterProperties properties) {
+        return new PostgreSQLSqlDialect(connectionFactoryMock, properties, exaMetadataMock);
     }
 }
