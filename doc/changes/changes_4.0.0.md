@@ -2,19 +2,19 @@
 
 ## Summary
 
-This release adds anonymous feature-usage telemetry via `telemetry-java`. See the [documentation](https://github.com/exasol/telemetry-java/blob/main/doc/app-user-guide.md) for details on collected data and opt-out behavior.
+This release introduces anonymous feature-usage telemetry through `telemetry-java`. See the [documentation](https://github.com/exasol/telemetry-java/blob/main/doc/app-user-guide.md) for details about the collected data and how to opt out.
 
 ## Breaking Change
 
-Starting with this release, the PostgreSQL Virtual Schema does not support Exasol versions 7.1 anymore. Only LTS version 2025.1.x and the current version are supported.
+Starting with this release, this Virtual Schema no longer supports Exasol 7.1. The supported versions are the current release and the LTS release line `2025.1.x`.
 
 ## Features
 
-* #90: Added anonymous feature tracking
+* #90: Added anonymous feature-usage tracking
 
 ## Bugfixes
 
-* #89: Fixed reported adapter version
+* #89: Fixed the reported adapter version
 
 ## Dependency Updates
 
