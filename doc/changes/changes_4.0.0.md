@@ -1,5 +1,7 @@
 # Virtual Schema for PostgreSQL 4.0.0, released 2026-05-22
 
+Code name: Anonymous telemetry
+
 ## Summary
 
 This release introduces anonymous feature-usage telemetry through `telemetry-java`. See the [documentation](https://github.com/exasol/telemetry-java/blob/main/doc/app-user-guide.md) for details about the collected data and how to opt out.
