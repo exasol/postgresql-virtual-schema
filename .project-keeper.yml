@@ -11,9 +11,8 @@ build:
   runnerOs: ubuntu-24.04
   freeDiskSpace: false
   exasolDbVersions:
-    - "8.34.0"
-    - "8.29.9" # Added to test support for TIMESTAMP without nano precision. Remove if/when 7.1 is re-enabled
-    # - "7.1.30" # Exasol 7.1.x does not support the latest Ubuntu version
+    - "2025.2.1"
+    - "2025.1.10"
   workflows:
     - name: ci-build.yml
       stepCustomizations:

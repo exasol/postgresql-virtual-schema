@@ -2,6 +2,12 @@
 
 [PostgreSQL](https://www.postgresql.org/) is an open-source  Relational Database Management System (RDBMS).
 
+## Telemetry
+
+This application uses `telemetry-java` to send anonymous feature-usage events.
+
+For details on what is collected and how to disable telemetry, see the [documentation](https://github.com/exasol/telemetry-java/blob/main/doc/app-user-guide.md).
+
 ## Uploading the JDBC Driver to Exasol BucketFS
 
 1. Download the [PostgreSQL JDBC driver](https://jdbc.postgresql.org/).
@@ -47,7 +53,7 @@ The SQL statement below creates the adapter script, defines the Java class that 
 --/
 CREATE OR REPLACE JAVA ADAPTER SCRIPT ADAPTER.JDBC_ADAPTER AS
   %scriptclass com.exasol.adapter.RequestDispatcher;
-  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-13.0.0-postgresql-3.1.1.jar;
+  %jar /buckets/<BFS service>/<bucket>/virtual-schema-dist-14.0.2-postgresql-4.0.0.jar;
   %jar /buckets/<BFS service>/<bucket>/postgresql-<postgresql-driver-version>.jar;
 /
 ```
