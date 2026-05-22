@@ -19,8 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.exasol.adapter.AdapterException;
 import com.exasol.adapter.AdapterProperties;
-import com.exasol.adapter.dialects.DialectTestData;
-import com.exasol.adapter.dialects.SqlDialect;
+import com.exasol.adapter.dialects.*;
 import com.exasol.adapter.dialects.rewriting.SqlGenerationContext;
 import com.exasol.adapter.jdbc.ConnectionFactory;
 import com.exasol.adapter.metadata.ColumnMetadata;
@@ -33,8 +32,10 @@ class PostgresSQLSqlGenerationVisitorTest {
 
     @BeforeEach
     void beforeEach(@Mock final ConnectionFactory connectionFactoryMock) {
-        final SqlDialect dialect = new PostgreSQLSqlDialect(connectionFactoryMock, AdapterProperties.emptyProperties(),
-                null);
+        final SqlDialect dialect = new PostgreSQLSqlDialect(JDBCAdapterContext.builder()
+                .connectionFactory(connectionFactoryMock)
+                .properties(AdapterProperties.emptyProperties())
+                .build());
         final SqlGenerationContext context = new SqlGenerationContext("test_catalog", "test_schema", false);
         this.visitor = new PostgresSQLSqlGenerationVisitor(dialect, context);
     }

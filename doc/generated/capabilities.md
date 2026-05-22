@@ -167,6 +167,7 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | LPAD                |     ✓     |
 | LTRIM               |     ✓     |
 | OCTET_LENGTH        |     ✓     |
+| REGEXP_COUNT        |     ✓     |
 | REGEXP_INSTR        |           |
 | REGEXP_REPLACE      |     ✓     |
 | REGEXP_SUBSTR       |           |
@@ -215,6 +216,7 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | SESSIONTIMEZONE     |           |
 | SYSDATE             |           |
 | SYSTIMESTAMP        |           |
+| DAYOFWEEK           |     ✓     |
 | WEEK                |     ✓     |
 | YEAR                |     ✓     |
 | YEARS_BETWEEN       |           |

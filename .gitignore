@@ -38,3 +38,4 @@ venv/
 /.apt_generated_tests/
 *.flattened-pom.xml
 /bin/
+/.serena/

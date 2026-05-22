@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.exasol.ExaMetadata;
 import com.exasol.adapter.AdapterProperties;
 import com.exasol.adapter.capabilities.Capabilities;
+import com.exasol.adapter.dialects.JDBCAdapterContext;
 import com.exasol.adapter.dialects.SqlDialect;
 import com.exasol.adapter.dialects.rewriting.ImportIntoTemporaryTableQueryRewriter;
 import com.exasol.adapter.jdbc.ConnectionFactory;
@@ -163,6 +164,10 @@ class PostgreSQLSqlDialectTest {
     }
 
     private PostgreSQLSqlDialect testee(final AdapterProperties properties) {
-        return new PostgreSQLSqlDialect(connectionFactoryMock, properties, exaMetadataMock);
+        return new PostgreSQLSqlDialect(
+                JDBCAdapterContext.builder()
+                        .connectionFactory(connectionFactoryMock)
+                        .properties(properties)
+                        .metadata(exaMetadataMock).build());
     }
 }

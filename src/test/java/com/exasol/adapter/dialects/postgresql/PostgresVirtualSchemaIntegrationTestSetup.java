@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.exasol.bucketfs.Bucket;
 import com.exasol.bucketfs.BucketAccessException;
@@ -28,24 +28,24 @@ import com.github.dockerjava.api.model.ContainerNetwork;
  * This class contains the common integration test setup for all PostgreSQL virtual schemas.
  */
 public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
-    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-13.0.0-postgresql-3.1.1.jar";
+    private static final String VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION = "virtual-schema-dist-14.0.2-postgresql-4.0.0.jar";
     private static final Path PATH_TO_VIRTUAL_SCHEMAS_JAR = Path.of("target", VIRTUAL_SCHEMAS_JAR_NAME_AND_VERSION);
     private static final String SCHEMA_EXASOL = "SCHEMA_EXASOL";
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
-    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "8.34.0";
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:17.5";
+    private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "2025.2.1";
+    // https://hub.docker.com/_/postgres
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:18.4";
 
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
 
     private static final int POSTGRES_PORT = 5432;
     private final Statement postgresStatement;
-    private final PostgreSQLContainer<? extends PostgreSQLContainer<?>> postgresqlContainer = new PostgreSQLContainer<>(
-            POSTGRES_CONTAINER_NAME);
+    private final PostgreSQLContainer postgresqlContainer = new PostgreSQLContainer(POSTGRES_CONTAINER_NAME);
     @SuppressWarnings("resource") // Will be closed in close() method
     private final ExasolContainer<? extends ExasolContainer<?>> exasolContainer = new ExasolContainer<>(
             EXASOL_DOCKER_IMAGE_REFERENCE).withRequiredServices(ExasolService.BUCKETFS, ExasolService.UDF)
-            .withReuse(true);
+                    .withReuse(true);
     private final Connection exasolConnection;
     private final UdfTestSetup udfTestSetup;
     private final Statement exasolStatement;
@@ -144,7 +144,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
         properties.putAll(additionalProperties);
         return this.exasolFactory.createVirtualSchemaBuilder("POSTGRES_VIRTUAL_SCHEMA_" + (this.virtualSchemaCounter++))
                 .adapterScript(this.adapterScript).connectionDefinition(this.connectionDefinition)
-                .properties(properties).build();
+                .addProperties(properties).build();
     }
 
     public ExasolObjectFactory getExasolFactory() {
