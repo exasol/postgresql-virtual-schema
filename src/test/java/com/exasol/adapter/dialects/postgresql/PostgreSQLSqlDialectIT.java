@@ -6,8 +6,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.sql.*;
 import java.text.ParseException;
@@ -23,7 +21,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.exasol.closeafterall.CloseAfterAll;
 import com.exasol.closeafterall.CloseAfterAllExtension;
-import com.exasol.containers.ExasolDockerImageReference;
 import com.exasol.dbbuilder.dialects.DatabaseObjectException;
 import com.exasol.dbbuilder.dialects.exasol.VirtualSchema;
 import com.exasol.matcher.TypeMatchMode;
@@ -112,6 +109,7 @@ class PostgreSQLSqlDialectIT {
                 + "myTimestamp0 TIMESTAMP(0), " //
                 + "myTimestamp3 TIMESTAMP(3), " //
                 + "myTimestamp6 TIMESTAMP(6), " //
+                + "myTimestamp9 TIMESTAMP(9), " //
                 + "myTimestampWithTimeZone TIMESTAMP WITH TIME ZONE, " //
                 + "myTsquery TSQUERY, " //
                 + "myTsvector TSVECTOR, " //
@@ -154,6 +152,7 @@ class PostgreSQLSqlDialectIT {
                 + "'2010-01-01 11:11:11', " // myTimestamp0
                 + "'2010-01-01 11:11:11.123', " // myTimestamp3
                 + "'2010-01-01 11:11:11.123456', " // myTimestamp6
+                + "'2010-01-01 11:11:11.123456789', " // myTimestamp9
                 + "'2010-01-01 11:11:11 +01:00', " // myTimestampwithtimezone
                 + "'fat & rat'::tsquery, " // myTsquery
                 + "to_tsvector('english', 'The Fat Rats'), " // myTsvector
@@ -198,7 +197,7 @@ class PostgreSQLSqlDialectIT {
 
     private void assertResult(final String query, final Matcher<ResultSet> matcher) {
         try (ResultSet resultSet = getActualResultSet(query)) {
-            assertThat(resultSet, matcher);
+            assertThat("Result for query '" + query + "'", resultSet, matcher);
         } catch (final SQLException exception) {
             throw new IllegalStateException(String.format("Failed to execute query '%s'", query));
         }
@@ -538,7 +537,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 11:11:11.0");
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 12:11:11.0");
     }
 
     @ParameterizedTest
@@ -546,7 +545,10 @@ class PostgreSQLSqlDialectIT {
             "myTimestamp, TIMESTAMP, 2010-01-01 11:11:11",
             "myTimestamp0, TIMESTAMP, 2010-01-01 11:11:11",
             "myTimestamp3, TIMESTAMP, 2010-01-01 11:11:11.123",
-            "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 11:11:11",
+            "myTimestamp6, TIMESTAMP, 2010-01-01 11:11:11.123456",
+            "myTimestamp9, TIMESTAMP, 2010-01-01 11:11:11.123457", // Postgres rounds the value
+            // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
+            "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 12:11:11",
     })
     void testDatatypeTimestamp(final String column, final String expectedType, final String expectedTimestamp) {
         assertSingleValue(column, expectedType, Timestamp.valueOf(expectedTimestamp));
@@ -554,14 +556,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimestampWithPrecision6() {
-        assumeTrue(supportTimestampPrecision());
         assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123456"));
-    }
-
-    @Test
-    void testDatatypeTimestampWithoutPrecision6() {
-        assumeFalse(supportTimestampPrecision());
-        assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123"));
     }
 
     @Test
@@ -590,10 +585,5 @@ class PostgreSQLSqlDialectIT {
         final String query = "SELECT " + columnName + " FROM "
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES;
         assertResult(query, table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-    }
-
-    private boolean supportTimestampPrecision() {
-        final ExasolDockerImageReference reference = SETUP.getExasolContainer().getDockerImageReference();
-        return reference.getMajor() > 8 || (reference.getMajor() == 8 && reference.getMinor() >= 32);
     }
 }
