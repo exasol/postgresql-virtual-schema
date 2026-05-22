@@ -4,7 +4,7 @@
 
 ## Telemetry
 
-This application uses `telemetry-java` to send anonymous feature-usage events.
+This virtual schema uses `telemetry-java` to send anonymous feature-usage events.
 
 For details on what is collected and how to disable telemetry, see the [documentation](https://github.com/exasol/telemetry-java/blob/main/doc/app-user-guide.md).
 
