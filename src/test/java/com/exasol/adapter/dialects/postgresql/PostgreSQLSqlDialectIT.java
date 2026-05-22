@@ -537,6 +537,7 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
+        // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
         assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 12:11:11.0");
     }
 
