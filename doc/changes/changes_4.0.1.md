@@ -4,7 +4,7 @@ Code name: Fixed vulnerabilities CVE-2026-9563, CVE-2026-54291
 
 ## Summary
 
-This release fixes the following 2 vulnerabilities:
+This release adds support for pushdown of scalar function `DAYOFWEEK` and fixes the following 2 vulnerabilities:
 
 ### CVE-2026-9563 (CWE-400) in dependency `org.eclipse.parsson:parsson:jar:1.1.7:test`
 In Eclipse Parsson published Maven Central artifacts before version 1.1.8, the JSON parser did not enforce a default maximum on the number of characters consumed while parsing a single JSON document. Applications that parse attacker- controlled JSON can be forced to consume excessive CPU and memory by processing very large documents, including large arrays, objects, strings, numbers, whitespace, or nested structures, resulting in a denial of service. Eclipse Parsson 1.1.8 introduces a configurable maximum parsing limit with a default limit of 15 million parser-consumed characters.
