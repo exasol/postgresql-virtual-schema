@@ -88,7 +88,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             case FLOAT_DIV:
                 return getCastToDoublePrecisionAndDivide(argumentsSql);
             case DAYOFWEEK:
-                return "EXTRACT(DOW FROM " + argumentsSql.get(0) + ")";
+                return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
             default:
                 return super.visit(function);
         }

@@ -90,7 +90,7 @@ class PostgresSQLSqlGenerationVisitorTest {
     @Test
     void testVisitSqlFunctionScalarDayOfWeek() throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(DAYOFWEEK, 0);
-        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("EXTRACT(DOW FROM \"test_column\")"));
+        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("(EXTRACT(DOW FROM \"test_column\") + 1)"));
     }
 
     @Test
