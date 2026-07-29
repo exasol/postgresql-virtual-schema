@@ -90,9 +90,7 @@ class PostgreSQLScalarFunctionsIT extends ScalarFunctionsTestBase {
                         "add_years",
                         // expected was a value close to <1970-01-01 00:00:01.0> (tolerance: +/- <0.00010>) but was
                         // "1970-01-01T00:00:00Z"'
-                        "add_seconds(\"DATE_C5\", \"DOUBLE_PRECISION_C0\")",
-                        // ERROR: function dayofweek(date) does not exist
-                        "dayofweek");
+                        "add_seconds(\"DATE_C5\", \"DOUBLE_PRECISION_C0\")");
             }
 
             @Override
