@@ -1,4 +1,4 @@
-# Virtual Schema for PostgreSQL 4.0.1, released 2026-??-??
+# Virtual Schema for PostgreSQL 4.0.1, released 2026-07-29
 
 Code name: Fixed vulnerabilities CVE-2026-9563, CVE-2026-54291
 
