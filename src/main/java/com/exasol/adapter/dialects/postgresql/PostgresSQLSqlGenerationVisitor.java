@@ -88,7 +88,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
             case FLOAT_DIV:
                 return getCastToDoublePrecisionAndDivide(argumentsSql);
             case DAYOFWEEK:
-                return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
+                return pushdownDayOfWeek(argumentsSql);
             default:
                 return super.visit(function);
         }
@@ -97,6 +97,12 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     private String getCastToDoublePrecisionAndDivide(final List<String> sqlArguments) {
         return "( CAST (" + sqlArguments.get(0) + " AS DOUBLE PRECISION) / CAST (" + sqlArguments.get(1)
                 + " AS DOUBLE PRECISION))";
+    }
+
+    private String pushdownDayOfWeek(final List<String> argumentsSql) {
+        // Postgres: 0 = Sunday, ... 6 = Saturday
+        // Exasol: 1 = Sunday, ... 7 = Saturday when NLS_FIRST_DAY_OF_WEEK = Sunday
+        return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
