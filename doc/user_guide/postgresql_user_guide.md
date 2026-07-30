@@ -231,3 +231,7 @@ A best practice for this mode is: **always quote identifiers** (in the PostgreSQ
 | TSVECTOR                 | ✓            | VARCHAR(2000000)          |                                                                           |
 | UUID                     | ✓            | VARCHAR(2000000)          |                                                                           |
 | XML                      | ✓            | VARCHAR(2000000)          |                                                                           |
+
+## Scalar Functions
+
+The `DAYOFWEEK` scalar function is pushed down to PostgreSQL. This pushdown only returns correct results when the parameter `NLS_FIRST_DAY_OF_WEEK` is set to `7` (= Sunday).

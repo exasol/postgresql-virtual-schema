@@ -101,7 +101,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
 
     private String pushdownDayOfWeek(final List<String> argumentsSql) {
         // Postgres: 0 = Sunday, ... 6 = Saturday
-        // Exasol: 1 = Sunday, ... 7 = Saturday when NLS_FIRST_DAY_OF_WEEK = Sunday
+        // Exasol: 1 = Sunday, ... 7 = Saturday when NLS_FIRST_DAY_OF_WEEK = 7 (Sunday)
         return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
     }
 
