@@ -1,6 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.dialects.VisitorAssertions.assertSqlNodeConvertedToOne;
+import static com.exasol.adapter.sql.ScalarFunction.DAYOFWEEK;
 import static com.exasol.adapter.sql.ScalarFunction.POSIX_TIME;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -84,6 +85,12 @@ class PostgresSQLSqlGenerationVisitorTest {
     void testVisitSqlFunctionScalarPosixTime() throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(POSIX_TIME, 0);
         assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("EXTRACT(EPOCH FROM \"test_column\")"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarDayOfWeek() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(DAYOFWEEK, 0);
+        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("(EXTRACT(DOW FROM \"test_column\") + 1)"));
     }
 
     @Test
