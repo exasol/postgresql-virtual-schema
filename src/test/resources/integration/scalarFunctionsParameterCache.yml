@@ -246,6 +246,7 @@ cot: ['"DOUBLE_PRECISION_C0"', '"INTEGER_C1"', '"DECIMAL18__3_C2"']
 curdate: ['']
 current_schema_id: ['']
 day: ['"DATE_C5"', '"TIMESTAMP_C6"']
+dayofweek: ['"DATE_C5"', '"TIMESTAMP_C6"']
 days_between: ['"DATE_C5", "DATE_C5"', '"DATE_C5", "TIMESTAMP_C6"', '"TIMESTAMP_C6",
     "DATE_C5"', '"TIMESTAMP_C6", "TIMESTAMP_C6"']
 degrees: ['"DOUBLE_PRECISION_C0"', '"INTEGER_C1"', '"DECIMAL18__3_C2"']
