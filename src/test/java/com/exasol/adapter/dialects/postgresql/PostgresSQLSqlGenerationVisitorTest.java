@@ -1,8 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.dialects.VisitorAssertions.assertSqlNodeConvertedToOne;
-import static com.exasol.adapter.sql.ScalarFunction.DAYOFWEEK;
-import static com.exasol.adapter.sql.ScalarFunction.POSIX_TIME;
+import static com.exasol.adapter.sql.ScalarFunction.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -91,6 +90,13 @@ class PostgresSQLSqlGenerationVisitorTest {
     void testVisitSqlFunctionScalarDayOfWeek() throws AdapterException {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(DAYOFWEEK, 0);
         assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("(EXTRACT(DOW FROM \"test_column\") + 1)"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarLastDay() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(LAST_DAY, 0);
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("CAST((DATE_TRUNC('month', \"test_column\") + INTERVAL '1 month - 1 day') AS DATE)"));
     }
 
     @Test

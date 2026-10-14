@@ -1028,6 +1028,7 @@ instr: ['"DOUBLE_PRECISION_C0", "DOUBLE_PRECISION_C0"', '"DOUBLE_PRECISION_C0", 
     "DECIMAL18__3_C2"', '"TIMESTAMP_C6", "TIMESTAMP_C6", "BOOLEAN_C3"']
 iproc: ['']
 is_number: ['"DOUBLE_PRECISION_C0"', '"INTEGER_C1"', '"DECIMAL18__3_C2"', '"VARCHAR2_C4"']
+last_day: ['"DATE_C5"', '"TIMESTAMP_C6"']
 lcase: ['"VARCHAR2_C4"']
 left: ['"VARCHAR2_C4", "INTEGER_C1"']
 length: ['"VARCHAR2_C4"']

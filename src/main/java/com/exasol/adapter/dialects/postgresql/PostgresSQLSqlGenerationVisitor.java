@@ -89,6 +89,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
                 return getCastToDoublePrecisionAndDivide(argumentsSql);
             case DAYOFWEEK:
                 return pushdownDayOfWeek(argumentsSql);
+            case LAST_DAY:
+                return pushdownLastDay(argumentsSql);
             default:
                 return super.visit(function);
         }
@@ -103,6 +105,11 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         // Postgres: 0 = Sunday, ... 6 = Saturday
         // Exasol: 1 = Sunday, ... 7 = Saturday when NLS_FIRST_DAY_OF_WEEK = 7 (Sunday)
         return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
+    }
+
+    private String pushdownLastDay(final List<String> argumentsSql) {
+        return "CAST((DATE_TRUNC('month', " + argumentsSql.get(0)
+                + ") + INTERVAL '1 month - 1 day') AS DATE)";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
