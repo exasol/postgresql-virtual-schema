@@ -2,7 +2,7 @@
 
 # Capabilities
 
-Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adapter supports. If the Virtual Schema does not support a certain capability, Exasol rewrites the query without that feature. In case a Virtual Schema adapter has no capabilities at all, Exasol will rewrite all queries to `SELECT * FROM table`. That means, that it will always load the whole remote table, even if only a single row is requested.So, for optimizing your performance, make sure that at least all functions that you use in the `WHERE` clause of your queries are supported by the Virtual Schema adapter.
+Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adapter supports. If the Virtual Schema does not support a certain capability, Exasol rewrites the query without that feature. In case a Virtual Schema adapter has no capabilities at all, Exasol will rewrite all queries to `SELECT * FROM table`. That means, that it will always load the whole remote table, even if only a single row is requested. So, for optimizing your performance, make sure that at least all functions that you use in the `WHERE` clause of your queries are supported by the Virtual Schema adapter.
 
 ## Main Capabilities
 
