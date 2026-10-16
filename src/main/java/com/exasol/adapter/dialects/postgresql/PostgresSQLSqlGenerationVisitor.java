@@ -60,7 +60,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     public String visit(final SqlFunctionScalar function) throws AdapterException {
         final List<SqlNode> arguments = function.getArguments();
         final List<String> argumentsSql = arguments.stream()
-                .map(node -> visitNode(node))
+                .map(this::visitNode)
                 .collect(toList());
         final ScalarFunction scalarFunction = function.getFunction();
         switch (scalarFunction) {
