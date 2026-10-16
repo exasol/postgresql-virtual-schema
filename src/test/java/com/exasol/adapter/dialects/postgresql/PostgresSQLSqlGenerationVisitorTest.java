@@ -5,6 +5,7 @@ import static com.exasol.adapter.sql.ScalarFunction.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +98,33 @@ class PostgresSQLSqlGenerationVisitorTest {
         final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(LAST_DAY, 0);
         assertThat(this.visitor.visit(sqlFunctionScalar),
                 equalTo("CAST((DATE_TRUNC('month', \"test_column\") + INTERVAL '1 month - 1 day') AS DATE)"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarFloatDivision() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(FLOAT_DIV, 10);
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("( CAST (\"test_column\" AS DOUBLE PRECISION) / CAST (10 AS DOUBLE PRECISION))"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarDefault() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = new SqlFunctionScalar(ABS,
+                List.of(new SqlColumn(1, ColumnMetadata.builder().name("test_column")
+                        .type(DataType.createDouble()).build())));
+        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("ABS(\"test_column\")"));
+    }
+
+    @CsvSource({ "appendDatePart", "appendDecimalSize" })
+    @ParameterizedTest
+    // This test is a bit of a hack to increase the code coverage of the private methods appendDatePart and appendDecimalSize.
+    void testAppendDatePartAndDecimalSizeDefaults(final String methodName) throws ReflectiveOperationException {
+        final StringBuilder builder = new StringBuilder();
+        final Method method = PostgresSQLSqlGenerationVisitor.class.getDeclaredMethod(methodName, ScalarFunction.class,
+                StringBuilder.class);
+        method.setAccessible(true);
+        method.invoke(null, ADD_DAYS, builder);
+        assertThat(builder.toString(), equalTo(""));
     }
 
     @Test
