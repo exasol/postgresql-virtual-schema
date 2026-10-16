@@ -22,6 +22,7 @@ This release adds the following new scalar function capabilities: `FN_LAST_DAY`,
 * Updated `com.exasol:exasol-testcontainers:8.0.1` to `8.0.2`
 * Updated `com.exasol:hamcrest-resultset-matcher:1.7.3` to `1.7.4`
 * Updated `com.exasol:test-db-builder-java:4.0.2` to `4.0.3`
+* Updated `com.exasol:udf-debugging-java:0.6.20` to `0.6.21`
 * Updated `com.exasol:virtual-schema-common-jdbc:14.0.5` to `14.1.0`
 * Updated `com.exasol:virtual-schema-shared-integration-tests:3.0.3` to `3.1.0`
 * Updated `org.mockito:mockito-junit-jupiter:5.23.0` to `5.24.0`

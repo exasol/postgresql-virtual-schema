@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.exasol</groupId>
             <artifactId>udf-debugging-java</artifactId>
-            <version>0.6.20</version>
+            <version>0.6.21</version>
             <scope>test</scope>
         </dependency>
         <dependency>
