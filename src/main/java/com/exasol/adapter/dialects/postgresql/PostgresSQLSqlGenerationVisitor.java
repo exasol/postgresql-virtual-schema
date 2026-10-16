@@ -108,8 +108,7 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     }
 
     private String pushdownLastDay(final List<String> argumentsSql) {
-        return "CAST((DATE_TRUNC('month', " + argumentsSql.get(0)
-                + ") + INTERVAL '1 month - 1 day') AS DATE)";
+        return "CAST((DATE_TRUNC('month', " + argumentsSql.get(0) + ") + INTERVAL '1 month - 1 day') AS DATE)";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
