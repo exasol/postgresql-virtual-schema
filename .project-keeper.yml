@@ -13,7 +13,6 @@ build:
   exasolDbVersions:
     - "2026.1.2"  # Latest version
     - "2025.1.16" # Latest LTS version
-    - "8.29.13"   # Latest v8 LTS version
   workflows:
     - name: ci-build.yml
       stepCustomizations:

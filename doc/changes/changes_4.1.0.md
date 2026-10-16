@@ -6,6 +6,8 @@ Code name: Add new Scalar Function Capabilities
 
 This release adds the following new scalar function capabilities: `FN_LAST_DAY`, and `FN_LEFT`.
 
+**Breaking Change:** Exasol version 8 is no longer covered by integration tests due to issues with timestamps with timezone.
+
 ## Features
 
 * #103: Added new scalar function capabilities
