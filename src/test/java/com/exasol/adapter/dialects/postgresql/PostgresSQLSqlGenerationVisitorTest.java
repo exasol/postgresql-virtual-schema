@@ -105,6 +105,22 @@ class PostgresSQLSqlGenerationVisitorTest {
         assertSqlNodeConvertedToOne(sqlSelectList, this.visitor);
     }
 
+    @CsvSource({ "point, CAST(\"test_column\"  as VARCHAR )",
+            "smallserial, CAST(\"test_column\"  as SMALLINT )",
+            "serial, CAST(\"test_column\"  as INTEGER )",
+            "bigserial, CAST(\"test_column\"  as BIGINT )",
+            "bytea, cast('bytea NOT SUPPORTED' as varchar) as not_supported",
+            "text, \"test_column\"" })
+    @ParameterizedTest
+    void testVisitSqlColumnProjection(final String typeName, final String expected) throws AdapterException {
+        final SqlColumn column = new SqlColumn(1, ColumnMetadata.builder().name("test_column")
+                .adapterNotes("{\"jdbcDataType\":1111,\"typeName\":\"" + typeName + "\"}")
+                .type(DataType.createChar(20, DataType.ExaCharset.UTF8)).build());
+        SqlSelectList.createRegularSelectList(List.of(column));
+
+        assertThat(this.visitor.visit(column), equalTo(expected));
+    }
+
     @Test
     void testVisitSqlStatementSelect() throws AdapterException {
         final SqlStatementSelect select = (SqlStatementSelect) DialectTestData.getTestSqlNode();
@@ -117,8 +133,10 @@ class PostgresSQLSqlGenerationVisitorTest {
                         + "ORDER BY \"user_id\" LIMIT 10"));
     }
 
-    @Test
-    void testVisitSqlFunctionAggregateGroupConcat() throws AdapterException {
+    @CsvSource(value = { "true;STRING_AGG(E'test', E'''')", "false;STRING_AGG(E'test', ',')" }, delimiter = ';')
+    @ParameterizedTest
+    void testVisitSqlFunctionAggregateGroupConcat(final boolean withSeparator, final String expected)
+            throws AdapterException {
         final SqlLiteralString argument = new SqlLiteralString("test");
         final ColumnMetadata columnMetadata = ColumnMetadata.builder().name("test_column").type(DataType.createBool())
                 .build();
@@ -127,8 +145,11 @@ class PostgresSQLSqlGenerationVisitorTest {
         final List<SqlNode> orderByArguments = List.of(new SqlColumn(1, columnMetadata),
                 new SqlColumn(2, columnMetadata2));
         final SqlOrderBy orderBy = new SqlOrderBy(orderByArguments, List.of(false, true), List.of(false, true));
-        final SqlFunctionAggregateGroupConcat sqlFunctionAggregateGroupConcat = SqlFunctionAggregateGroupConcat
-                .builder(argument).separator(new SqlLiteralString("'")).orderBy(orderBy).build();
-        assertThat(this.visitor.visit(sqlFunctionAggregateGroupConcat), equalTo("STRING_AGG(E'test', E'''') "));
+        final SqlFunctionAggregateGroupConcat.Builder builder = SqlFunctionAggregateGroupConcat.builder(argument)
+                .orderBy(orderBy);
+        if (withSeparator) {
+            builder.separator(new SqlLiteralString("'"));
+        }
+        assertThat(this.visitor.visit(builder.build()), equalTo(expected + " "));
     }
 }
