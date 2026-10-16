@@ -1,14 +1,14 @@
 # Virtual Schema for PostgreSQL 4.1.0, released 2026-10-16
 
-Code name: Add new Capabilities
+Code name: Add new Scalar Function Capabilities
 
 ## Summary
 
-This release adds the following new capabilities: `FN_AGG_CORR`, `FN_AGG_GROUPING`, `FN_AGG_GROUPING_ID`, `FN_LAST_DAY`, and `FN_LEFT`. Please note that only scalar functions `LAST_DAY` and `LEFT` are covered by integration tests. The aggregate functions are not tested yet. Tests will be implemented in [virtual-schema-shared-integration-tests#53](https://github.com/exasol/virtual-schema-shared-integration-tests/issues/53).
+This release adds the following new scalar function capabilities: `FN_LAST_DAY`, and `FN_LEFT`.
 
 ## Features
 
-* #103: Added new capabilities
+* #103: Added new scalar function capabilities
 
 ## Dependency Updates
 
