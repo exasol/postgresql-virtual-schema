@@ -1,6 +1,9 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import java.util.*;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.exasol.adapter.AdapterException;
 import com.exasol.adapter.dialects.SqlDialect;
@@ -56,10 +59,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     @Override
     public String visit(final SqlFunctionScalar function) throws AdapterException {
         final List<SqlNode> arguments = function.getArguments();
-        final List<String> argumentsSql = new ArrayList<>(arguments.size());
-        for (final SqlNode node : arguments) {
-            argumentsSql.add(node.accept(this));
-        }
+        final List<String> argumentsSql = arguments.stream()
+                .map(node -> visitNode(node))
+                .collect(toList());
         final ScalarFunction scalarFunction = function.getFunction();
         switch (scalarFunction) {
             case ADD_DAYS:
@@ -93,6 +95,14 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
                 return pushdownLastDay(argumentsSql);
             default:
                 return super.visit(function);
+        }
+    }
+
+    private String visitNode(final SqlNode node) {
+        try {
+            return node.accept(this);
+        } catch (final AdapterException exception) {
+            throw new IllegalStateException(exception);
         }
     }
 
