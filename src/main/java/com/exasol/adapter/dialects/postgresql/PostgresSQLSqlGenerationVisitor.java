@@ -145,7 +145,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         return builder.toString();
     }
 
-    private static void appendDatePart(final ScalarFunction scalarFunction, final StringBuilder builder) {
+    // Visible for testing
+    static void appendDatePart(final ScalarFunction scalarFunction, final StringBuilder builder) {
         switch (scalarFunction) {
             case SECOND:
                 builder.append("'SECOND'");
@@ -170,7 +171,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         }
     }
 
-    private static void appendDecimalSize(final ScalarFunction scalarFunction, final StringBuilder builder) {
+    // Visible for testing
+     static void appendDecimalSize(final ScalarFunction scalarFunction, final StringBuilder builder) {
         switch (scalarFunction) {
             case SECOND:
             case MINUTE:

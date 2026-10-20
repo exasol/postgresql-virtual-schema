@@ -5,7 +5,6 @@ import static com.exasol.adapter.sql.ScalarFunction.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,15 +114,17 @@ class PostgresSQLSqlGenerationVisitorTest {
         assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("ABS(\"test_column\")"));
     }
 
-    @CsvSource({ "appendDatePart", "appendDecimalSize" })
-    @ParameterizedTest
-    // This test is a bit of a hack to increase the code coverage of the private methods appendDatePart and appendDecimalSize.
-    void testAppendDatePartAndDecimalSizeDefaults(final String methodName) throws ReflectiveOperationException {
+    @Test
+    void testAppendDatePart() {
         final StringBuilder builder = new StringBuilder();
-        final Method method = PostgresSQLSqlGenerationVisitor.class.getDeclaredMethod(methodName, ScalarFunction.class,
-                StringBuilder.class);
-        method.setAccessible(true);
-        method.invoke(null, ADD_DAYS, builder);
+        PostgresSQLSqlGenerationVisitor.appendDatePart(ADD_DAYS, builder);
+        assertThat(builder.toString(), equalTo(""));
+    }
+
+    @Test
+    void testAppendDecimalSizeDefaults() {
+        final StringBuilder builder = new StringBuilder();
+        PostgresSQLSqlGenerationVisitor.appendDecimalSize(ADD_DAYS, builder);
         assertThat(builder.toString(), equalTo(""));
     }
 
