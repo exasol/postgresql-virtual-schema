@@ -2,7 +2,7 @@
 
 # Capabilities
 
-Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adapter supports. If the Virtual Schema does not support a certain capability, Exasol rewrites the query without that feature. In case a Virtual Schema adapter has no capabilities at all, Exasol will rewrite all queries to `SELECT * FROM table`. That means, that it will always load the whole remote table, even if only a single row is requested.So, for optimizing your performance, make sure that at least all functions that you use in the `WHERE` clause of your queries are supported by the Virtual Schema adapter.
+Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adapter supports. If the Virtual Schema does not support a certain capability, Exasol rewrites the query without that feature. In case a Virtual Schema adapter has no capabilities at all, Exasol will rewrite all queries to `SELECT * FROM table`. That means, that it will always load the whole remote table, even if only a single row is requested. So, for optimizing your performance, make sure that at least all functions that you use in the `WHERE` clause of your queries are supported by the Virtual Schema adapter.
 
 ## Main Capabilities
 
@@ -68,6 +68,7 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | Aggregate Function           | Supported |
 | ---------------------------- |:---------:|
 | COUNT                        |     ✓     |
+| CORR                         |           |
 | COUNT_STAR                   |     ✓     |
 | COUNT_DISTINCT               |     ✓     |
 | COUNT_TUPLE                  |           |
@@ -96,6 +97,8 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | GROUP_CONCAT_DISTINCT        |           |
 | GROUP_CONCAT_SEPARATOR       |           |
 | GROUP_CONCAT_ORDER_BY        |           |
+| GROUPING                     |           |
+| GROUPING_ID                  |           |
 | GEO_INTERSECTION_AGGREGATE   |           |
 | GEO_UNION_AGGREGATE          |           |
 | ST_INTERSECTION              |           |
@@ -162,6 +165,8 @@ Capabilities tell the Exasol which SQL features / keywords a Virtual Schema adap
 | INSERT              |           |
 | INSTR               |           |
 | LENGTH              |     ✓     |
+| LAST_DAY            |     ✓     |
+| LEFT                |     ✓     |
 | LOCATE              |           |
 | LOWER               |     ✓     |
 | LPAD                |     ✓     |

@@ -1,6 +1,9 @@
 package com.exasol.adapter.dialects.postgresql;
 
-import java.util.*;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.exasol.adapter.AdapterException;
 import com.exasol.adapter.dialects.SqlDialect;
@@ -56,10 +59,9 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
     @Override
     public String visit(final SqlFunctionScalar function) throws AdapterException {
         final List<SqlNode> arguments = function.getArguments();
-        final List<String> argumentsSql = new ArrayList<>(arguments.size());
-        for (final SqlNode node : arguments) {
-            argumentsSql.add(node.accept(this));
-        }
+        final List<String> argumentsSql = arguments.stream()
+                .map(this::visitNode)
+                .collect(toList());
         final ScalarFunction scalarFunction = function.getFunction();
         switch (scalarFunction) {
             case ADD_DAYS:
@@ -89,8 +91,18 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
                 return getCastToDoublePrecisionAndDivide(argumentsSql);
             case DAYOFWEEK:
                 return pushdownDayOfWeek(argumentsSql);
+            case LAST_DAY:
+                return pushdownLastDay(argumentsSql);
             default:
                 return super.visit(function);
+        }
+    }
+
+    private String visitNode(final SqlNode node) {
+        try {
+            return node.accept(this);
+        } catch (final AdapterException exception) {
+            throw new IllegalStateException(exception);
         }
     }
 
@@ -103,6 +115,10 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         // Postgres: 0 = Sunday, ... 6 = Saturday
         // Exasol: 1 = Sunday, ... 7 = Saturday when NLS_FIRST_DAY_OF_WEEK = 7 (Sunday)
         return "(EXTRACT(DOW FROM " + argumentsSql.get(0) + ") + 1)";
+    }
+
+    private String pushdownLastDay(final List<String> argumentsSql) {
+        return "CAST((DATE_TRUNC('month', " + argumentsSql.get(0) + ") + INTERVAL '1 month - 1 day') AS DATE)";
     }
 
     private String getAddDateTime(final List<String> argumentsSql, final String unit) {
@@ -129,7 +145,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         return builder.toString();
     }
 
-    private static void appendDatePart(final ScalarFunction scalarFunction, final StringBuilder builder) {
+    // Visible for testing
+    static void appendDatePart(final ScalarFunction scalarFunction, final StringBuilder builder) {
         switch (scalarFunction) {
             case SECOND:
                 builder.append("'SECOND'");
@@ -154,7 +171,8 @@ public class PostgresSQLSqlGenerationVisitor extends SqlGenerationVisitor {
         }
     }
 
-    private static void appendDecimalSize(final ScalarFunction scalarFunction, final StringBuilder builder) {
+    // Visible for testing
+     static void appendDecimalSize(final ScalarFunction scalarFunction, final StringBuilder builder) {
         switch (scalarFunction) {
             case SECOND:
             case MINUTE:

@@ -11,8 +11,8 @@ build:
   runnerOs: ubuntu-24.04
   freeDiskSpace: false
   exasolDbVersions:
-    - "2026.1.0"  # Latest version
-    - "2025.1.13" # Latest LTS version
+    - "2026.1.2"  # Latest version
+    - "2025.1.16" # Latest LTS version
   workflows:
     - name: ci-build.yml
       stepCustomizations:

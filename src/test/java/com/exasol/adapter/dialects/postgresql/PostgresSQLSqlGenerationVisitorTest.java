@@ -1,8 +1,7 @@
 package com.exasol.adapter.dialects.postgresql;
 
 import static com.exasol.adapter.dialects.VisitorAssertions.assertSqlNodeConvertedToOne;
-import static com.exasol.adapter.sql.ScalarFunction.DAYOFWEEK;
-import static com.exasol.adapter.sql.ScalarFunction.POSIX_TIME;
+import static com.exasol.adapter.sql.ScalarFunction.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -94,9 +93,61 @@ class PostgresSQLSqlGenerationVisitorTest {
     }
 
     @Test
+    void testVisitSqlFunctionScalarLastDay() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(LAST_DAY, 0);
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("CAST((DATE_TRUNC('month', \"test_column\") + INTERVAL '1 month - 1 day') AS DATE)"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarFloatDivision() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = createSqlFunctionScalarForDateTest(FLOAT_DIV, 10);
+        assertThat(this.visitor.visit(sqlFunctionScalar),
+                equalTo("( CAST (\"test_column\" AS DOUBLE PRECISION) / CAST (10 AS DOUBLE PRECISION))"));
+    }
+
+    @Test
+    void testVisitSqlFunctionScalarDefault() throws AdapterException {
+        final SqlFunctionScalar sqlFunctionScalar = new SqlFunctionScalar(ABS,
+                List.of(new SqlColumn(1, ColumnMetadata.builder().name("test_column")
+                        .type(DataType.createDouble()).build())));
+        assertThat(this.visitor.visit(sqlFunctionScalar), equalTo("ABS(\"test_column\")"));
+    }
+
+    @Test
+    void testAppendDatePart() {
+        final StringBuilder builder = new StringBuilder();
+        PostgresSQLSqlGenerationVisitor.appendDatePart(ADD_DAYS, builder);
+        assertThat(builder.toString(), equalTo(""));
+    }
+
+    @Test
+    void testAppendDecimalSizeDefaults() {
+        final StringBuilder builder = new StringBuilder();
+        PostgresSQLSqlGenerationVisitor.appendDecimalSize(ADD_DAYS, builder);
+        assertThat(builder.toString(), equalTo(""));
+    }
+
+    @Test
     void testVisitSqlSelectListAnyValue() throws AdapterException {
         final SqlSelectList sqlSelectList = SqlSelectList.createAnyValueSelectList();
         assertSqlNodeConvertedToOne(sqlSelectList, this.visitor);
+    }
+
+    @CsvSource({ "point, CAST(\"test_column\"  as VARCHAR )",
+            "smallserial, CAST(\"test_column\"  as SMALLINT )",
+            "serial, CAST(\"test_column\"  as INTEGER )",
+            "bigserial, CAST(\"test_column\"  as BIGINT )",
+            "bytea, cast('bytea NOT SUPPORTED' as varchar) as not_supported",
+            "text, \"test_column\"" })
+    @ParameterizedTest
+    void testVisitSqlColumnProjection(final String typeName, final String expected) throws AdapterException {
+        final SqlColumn column = new SqlColumn(1, ColumnMetadata.builder().name("test_column")
+                .adapterNotes("{\"jdbcDataType\":1111,\"typeName\":\"" + typeName + "\"}")
+                .type(DataType.createChar(20, DataType.ExaCharset.UTF8)).build());
+        SqlSelectList.createRegularSelectList(List.of(column));
+
+        assertThat(this.visitor.visit(column), equalTo(expected));
     }
 
     @Test
@@ -111,8 +162,10 @@ class PostgresSQLSqlGenerationVisitorTest {
                         + "ORDER BY \"user_id\" LIMIT 10"));
     }
 
-    @Test
-    void testVisitSqlFunctionAggregateGroupConcat() throws AdapterException {
+    @CsvSource(value = { "true;STRING_AGG(E'test', E'''')", "false;STRING_AGG(E'test', ',')" }, delimiter = ';')
+    @ParameterizedTest
+    void testVisitSqlFunctionAggregateGroupConcat(final boolean withSeparator, final String expected)
+            throws AdapterException {
         final SqlLiteralString argument = new SqlLiteralString("test");
         final ColumnMetadata columnMetadata = ColumnMetadata.builder().name("test_column").type(DataType.createBool())
                 .build();
@@ -121,8 +174,11 @@ class PostgresSQLSqlGenerationVisitorTest {
         final List<SqlNode> orderByArguments = List.of(new SqlColumn(1, columnMetadata),
                 new SqlColumn(2, columnMetadata2));
         final SqlOrderBy orderBy = new SqlOrderBy(orderByArguments, List.of(false, true), List.of(false, true));
-        final SqlFunctionAggregateGroupConcat sqlFunctionAggregateGroupConcat = SqlFunctionAggregateGroupConcat
-                .builder(argument).separator(new SqlLiteralString("'")).orderBy(orderBy).build();
-        assertThat(this.visitor.visit(sqlFunctionAggregateGroupConcat), equalTo("STRING_AGG(E'test', E'''') "));
+        final SqlFunctionAggregateGroupConcat.Builder builder = SqlFunctionAggregateGroupConcat.builder(argument)
+                .orderBy(orderBy);
+        if (withSeparator) {
+            builder.separator(new SqlLiteralString("'"));
+        }
+        assertThat(this.visitor.visit(builder.build()), equalTo(expected + " "));
     }
 }
