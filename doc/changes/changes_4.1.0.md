@@ -27,7 +27,6 @@ This release adds the following new scalar function capabilities: `FN_LAST_DAY`,
 * Updated `com.exasol:udf-debugging-java:0.6.20` to `0.6.22`
 * Updated `com.exasol:virtual-schema-common-jdbc:14.0.5` to `14.1.0`
 * Updated `com.exasol:virtual-schema-shared-integration-tests:3.0.3` to `3.1.0`
-* Updated `org.junit.jupiter:junit-jupiter:5.14.4` to `6.1.3`
 * Updated `org.mockito:mockito-junit-jupiter:5.23.0` to `5.24.0`
 * Updated `org.slf4j:slf4j-jdk14:2.0.18` to `2.0.20`
 
