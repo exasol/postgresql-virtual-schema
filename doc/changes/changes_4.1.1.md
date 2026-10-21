@@ -1,12 +1,14 @@
 # Virtual Schema for PostgreSQL 4.1.1, released 2026-??-??
 
-Code name:
+Code name: Stabilize timezone-aware datatype tests
 
 ## Summary
 
-## Features
+This release stabilizes integration tests for PostgreSQL timezone-aware datatypes across daylight saving time changes.
 
-* ISSUE_NUMBER: description
+## Bugfixes
+
+* #92: Stabilized integration tests for PostgreSQL `TIME WITH TIME ZONE` and `TIMESTAMP WITH TIME ZONE` values.
 
 ## Dependency Updates
 
