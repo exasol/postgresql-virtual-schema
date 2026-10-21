@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Collections;
 import java.util.Map;
 
@@ -537,8 +538,8 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
-        // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 12:11:11.0");
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8",
+                "1970-01-01 " + getExpectedTimeWithTimeZone() + ".0");
     }
 
     @ParameterizedTest
@@ -548,8 +549,6 @@ class PostgreSQLSqlDialectIT {
             "myTimestamp3, TIMESTAMP, 2010-01-01 11:11:11.123",
             "myTimestamp6, TIMESTAMP, 2010-01-01 11:11:11.123456",
             "myTimestamp9, TIMESTAMP, 2010-01-01 11:11:11.123457", // Postgres rounds the value
-            // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
-            "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 12:11:11",
     })
     void testDatatypeTimestamp(final String column, final String expectedType, final String expectedTimestamp) {
         assertSingleValue(column, expectedType, Timestamp.valueOf(expectedTimestamp));
@@ -558,6 +557,12 @@ class PostgreSQLSqlDialectIT {
     @Test
     void testDatatypeTimestampWithPrecision6() {
         assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123456"));
+    }
+
+    @Test
+    void testDatatypeTimestampWithTimezone() {
+        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP",
+                Timestamp.valueOf(getExpectedTimestampWithTimeZone()));
     }
 
     @Test
@@ -586,5 +591,20 @@ class PostgreSQLSqlDialectIT {
         final String query = "SELECT " + columnName + " FROM "
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES;
         assertResult(query, table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
+    }
+
+    private static LocalTime getExpectedTimeWithTimeZone() {
+        return OffsetTime.of(11, 11, 11, 0, ZoneOffset.ofHours(1))
+                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
+    }
+
+    private static LocalDateTime getExpectedTimestampWithTimeZone() {
+        return LocalDateTime.of(2010, 1, 1, 11, 11, 11)
+                .plusSeconds(getCurrentExasolOffset().getTotalSeconds() - ZoneOffset.ofHours(1).getTotalSeconds());
+    }
+
+    private static ZoneOffset getCurrentExasolOffset() {
+        final ZoneId exasolTimeZone = SETUP.getExasolContainer().getTimeZone().toZoneId();
+        return exasolTimeZone.getRules().getOffset(Instant.now());
     }
 }
