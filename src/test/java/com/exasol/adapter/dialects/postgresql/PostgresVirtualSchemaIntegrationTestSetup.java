@@ -34,7 +34,7 @@ public class PostgresVirtualSchemaIntegrationTestSetup implements Closeable {
     private static final String ADAPTER_SCRIPT_EXASOL = "ADAPTER_SCRIPT_EXASOL";
     private static final String EXASOL_DOCKER_IMAGE_REFERENCE = "2026.1.2";
     // https://hub.docker.com/_/postgres
-    private static final String POSTGRES_CONTAINER_NAME = "postgres:18.4";
+    private static final String POSTGRES_CONTAINER_NAME = "postgres:18.6";
 
     private static final String JDBC_DRIVER_NAME = "postgresql.jar";
     private static final Path JDBC_DRIVER_PATH = Path.of("target/postgresql-driver/" + JDBC_DRIVER_NAME);
