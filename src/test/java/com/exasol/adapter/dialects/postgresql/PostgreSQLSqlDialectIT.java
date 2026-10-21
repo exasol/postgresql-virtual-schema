@@ -538,8 +538,16 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8",
-                "1970-01-01 " + getExpectedTimeWithTimeZone() + ".0");
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 " + getExpectedTimeWithTimeZone() + ".0");
+    }
+
+    private static LocalTime getExpectedTimeWithTimeZone() {
+        return OffsetTime.of(11, 11, 11, 0, ZoneOffset.ofHours(1)).withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
+    }
+
+    private static ZoneOffset getCurrentExasolOffset() {
+        final ZoneId exasolTimeZone = SETUP.getExasolContainer().getTimeZone().toZoneId();
+        return exasolTimeZone.getRules().getOffset(Instant.now());
     }
 
     @ParameterizedTest
@@ -561,8 +569,11 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimestampWithTimezone() {
-        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP",
-                Timestamp.valueOf(getExpectedTimestampWithTimeZone()));
+        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", Timestamp.valueOf(getExpectedTimestampWithTimeZone()));
+    }
+
+    private static LocalDateTime getExpectedTimestampWithTimeZone() {
+        return LocalDateTime.of(2010, 1, 1, 11, 11, 11).plusSeconds(getCurrentExasolOffset().getTotalSeconds() - ZoneOffset.ofHours(1).getTotalSeconds());
     }
 
     @Test
@@ -591,20 +602,5 @@ class PostgreSQLSqlDialectIT {
         final String query = "SELECT " + columnName + " FROM "
                 + virtualSchemaPostgres.getName() + "." + TABLE_POSTGRES_ALL_DATA_TYPES;
         assertResult(query, table().row(expectedValue).matches(TypeMatchMode.NO_JAVA_TYPE_CHECK));
-    }
-
-    private static LocalTime getExpectedTimeWithTimeZone() {
-        return OffsetTime.of(11, 11, 11, 0, ZoneOffset.ofHours(1))
-                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
-    }
-
-    private static LocalDateTime getExpectedTimestampWithTimeZone() {
-        return LocalDateTime.of(2010, 1, 1, 11, 11, 11)
-                .plusSeconds(getCurrentExasolOffset().getTotalSeconds() - ZoneOffset.ofHours(1).getTotalSeconds());
-    }
-
-    private static ZoneOffset getCurrentExasolOffset() {
-        final ZoneId exasolTimeZone = SETUP.getExasolContainer().getTimeZone().toZoneId();
-        return exasolTimeZone.getRules().getOffset(Instant.now());
     }
 }
