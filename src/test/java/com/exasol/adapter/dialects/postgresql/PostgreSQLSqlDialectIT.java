@@ -545,6 +545,7 @@ class PostgreSQLSqlDialectIT {
         return OffsetTime.of(11, 11, 11, 0, ZoneOffset.ofHours(1)).withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
     }
 
+    @SuppressWarnings("java:S8692") // Using current time to get current timezone offset
     private static ZoneOffset getCurrentExasolOffset() {
         final ZoneId exasolTimeZone = SETUP.getExasolContainer().getTimeZone().toZoneId();
         return exasolTimeZone.getRules().getOffset(Instant.now());
