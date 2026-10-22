@@ -538,11 +538,16 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 " + getExpectedTimeWithTimeZone() + ".0");
+        final LocalTime expected = OffsetTime.parse("11:11:11+01:00")
+                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 " + expected + ".0");
     }
 
-    private static LocalTime getExpectedTimeWithTimeZone() {
-        return OffsetTime.of(11, 11, 11, 0, ZoneOffset.ofHours(1)).withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
+    @Test
+    void testDatatypeTimestampWithTimezone() {
+        final LocalDateTime expected = OffsetDateTime.parse("2010-01-01T11:11:11+01:00")
+                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalDateTime();
+        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", Timestamp.valueOf(expected));
     }
 
     @SuppressWarnings("java:S8692") // Using current time to get current timezone offset
@@ -566,15 +571,6 @@ class PostgreSQLSqlDialectIT {
     @Test
     void testDatatypeTimestampWithPrecision6() {
         assertSingleValue("myTimestamp6", "TIMESTAMP", Timestamp.valueOf("2010-01-01 11:11:11.123456"));
-    }
-
-    @Test
-    void testDatatypeTimestampWithTimezone() {
-        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", Timestamp.valueOf(getExpectedTimestampWithTimeZone()));
-    }
-
-    private static LocalDateTime getExpectedTimestampWithTimeZone() {
-        return LocalDateTime.of(2010, 1, 1, 11, 11, 11).plusSeconds(getCurrentExasolOffset().getTotalSeconds() - ZoneOffset.ofHours(1).getTotalSeconds());
     }
 
     @Test
