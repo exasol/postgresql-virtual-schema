@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Collections;
 import java.util.Map;
 
@@ -537,8 +538,22 @@ class PostgreSQLSqlDialectIT {
 
     @Test
     void testDatatypeTimeWithTimezone() {
-        // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
-        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 12:11:11.0");
+        final LocalTime expected = OffsetTime.parse("11:11:11+01:00")
+                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalTime();
+        assertSingleValue("myTimeWithTimeZone", "VARCHAR(2000000) UTF8", "1970-01-01 " + expected + ".0");
+    }
+
+    @Test
+    void testDatatypeTimestampWithTimezone() {
+        final LocalDateTime expected = OffsetDateTime.parse("2010-01-01T11:11:11+01:00")
+                .withOffsetSameInstant(getCurrentExasolOffset()).toLocalDateTime();
+        assertSingleValue("myTimestampwithtimezone", "TIMESTAMP", Timestamp.valueOf(expected));
+    }
+
+    @SuppressWarnings("java:S8692") // Using current time to get current timezone offset
+    private static ZoneOffset getCurrentExasolOffset() {
+        final ZoneId exasolTimeZone = SETUP.getExasolContainer().getTimeZone().toZoneId();
+        return exasolTimeZone.getRules().getOffset(Instant.now());
     }
 
     @ParameterizedTest
@@ -548,8 +563,6 @@ class PostgreSQLSqlDialectIT {
             "myTimestamp3, TIMESTAMP, 2010-01-01 11:11:11.123",
             "myTimestamp6, TIMESTAMP, 2010-01-01 11:11:11.123456",
             "myTimestamp9, TIMESTAMP, 2010-01-01 11:11:11.123457", // Postgres rounds the value
-            // Actual value is DST-sensitive: https://github.com/exasol/postgresql-virtual-schema/issues/92
-            "myTimestampwithtimezone, TIMESTAMP, 2010-01-01 12:11:11",
     })
     void testDatatypeTimestamp(final String column, final String expectedType, final String expectedTimestamp) {
         assertSingleValue(column, expectedType, Timestamp.valueOf(expectedTimestamp));
