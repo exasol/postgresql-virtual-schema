@@ -7,7 +7,7 @@
     <description>Virtual Schema for connecting PostgreSQL as data source to Exasol</description>
     <url>https://github.com/exasol/postgresql-virtual-schema/</url>
     <properties>
-        <vscjdbc.version>14.1.0</vscjdbc.version>
+        <vscjdbc.version>14.1.1</vscjdbc.version>
         <org.testcontainers.version>2.0.5</org.testcontainers.version>
     </properties>
     <dependencies>
@@ -44,7 +44,7 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <!-- Version 6 requires Java 17 -->
-            <version>5.14.4</version>
+            <version>6.1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -128,7 +128,7 @@
             <plugin>
                 <groupId>com.exasol</groupId>
                 <artifactId>project-keeper-maven-plugin</artifactId>
-                <version>5.8.0</version>
+                <version>5.8.2</version>
                 <executions>
                     <execution>
                         <goals>
